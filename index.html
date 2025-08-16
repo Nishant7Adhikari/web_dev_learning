@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Momoholics</title>
+    <link rel="icon" href="media/momologo.png" />
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+    <a href="#home" class="nav-brand">MOMOHOLICS</a>
+    <div class="nav-icons">
+        <a href="#" id="cart-icon" class="nav-icon" title="View Cart">
+            🛒 <span id="cart-badge" class="cart-badge">0</span>
+        </a>
+        <a href="#" id="profile-icon" class="nav-icon" title="Profile">👤</a>
+        <button id="hamburger-btn" class="nav-icon hamburger">☰</button>
+    </div>
+    <div id="mobile-nav-menu" class="mobile-nav-menu">
+        <a href="#home">Home</a>
+        <a href="#menu">Menu</a>
+        <a href="#" id="auth-link">Login</a>
+    </div>
+</nav>
+
+<!-- HOME SECTION -->
+<section id="home">
+    <!-- ... Your existing home section content ... -->
+</section>
+
+<!-- MENU SECTION -->
+<section id="menu">
+    <div class="container">
+        <h1 class="heading">Our Menu<br>scroll</h1>
+        <div class="box-container"><!-- Menu items dynamically inserted --></div>
+    </div>
+</section>
+
+<!-- MODALS -->
+
+<!-- Add to Cart Item Modal -->
+<div id="itemModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <div class="modal-body">
+            <div class="modal-image-container">
+                <img src="" alt="Momo dish" class="modal-img"/>
+            </div>
+            <div class="item-info">
+                <form id="itemForm" class="fbox">
+                    <h3 class="modal-title">Add to Cart</h3>
+                    <label>Fillings:</label>
+                    <div class="radio-group">
+                        <input type="radio" id="buff" name="filling" value="Buff" required><label for="buff">Buff</label>
+                        <input type="radio" id="chick" name="filling" value="Chicken"><label for="chick">Chicken</label>
+                        <input type="radio" id="veg" name="filling" value="Veg"><label for="veg">Veg</label>
+                        <input type="radio" id="pork" name="filling" value="Pork"><label for="pork">Pork</label>
+                    </div>
+                    <label for="fquan">Quantity (plates):</label>
+                    <input type="number" id="fquan" name="quantity" min="1" value="1" required />
+                    <div class="price-display"><strong>Total:</strong> <span id="total-price">Rs. 0</span></div>
+                    <button type="submit" class="submit-btn">Add to Cart</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cart Modal -->
+<div id="cartModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3 class="modal-title">Your Cart</h3>
+        <div id="cart-items-container">
+            <!-- Cart items will be rendered here -->
+        </div>
+        <div class="cart-summary">
+            <strong>Grand Total: <span id="cart-grand-total">Rs. 0</span></strong>
+        </div>
+        <button id="place-order-btn" class="submit-btn">Place Order</button>
+    </div>
+</div>
+
+<!-- Auth Modal (Login/Signup) -->
+<div id="authModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <div class="auth-tabs">
+            <button id="login-tab" class="tab-btn active">Login</button>
+            <button id="signup-tab" class="tab-btn">Sign Up</button>
+        </div>
+        <!-- Login Form -->
+        <form id="login-form" class="fbox auth-form">
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <p class="error-message"></p>
+            <button type="submit" class="submit-btn"><span>Login</span></button>
+        </form>
+        <!-- Signup Form -->
+        <form id="signup-form" class="fbox auth-form" style="display: none;">
+            <input type="text" name="name" placeholder="Full Name" required>
+            <input type="tel" name="phone" placeholder="Phone Number" required>
+            <textarea name="delivery_address" placeholder="Delivery Address" rows="3" required></textarea>
+            <input type="number" name="age" placeholder="Age (Optional)">
+            <select name="gender">
+                <option value="">Gender (Optional)</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select>
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="password" name="password" placeholder="Password (min 6 chars)" required>
+            <p class="error-message"></p>
+            <button type="submit" class="submit-btn"><span>Sign Up</span></button>
+        </form>
+    </div>
+</div>
+
+<!-- Profile Modal -->
+<div id="profileModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3 class="modal-title">Your Profile</h3>
+        <form id="profile-form" class="fbox">
+            <div class="profile-pic-container">
+                <img id="profile-pic-preview" src="https://via.placeholder.com/150" alt="Profile Picture">
+                <input type="file" id="profile-pic-upload" accept="image/*" style="display: none;">
+                <button type="button" id="change-pic-btn" class="btn-secondary">Change Picture</button>
+            </div>
+            <label>Name:</label>
+            <input type="text" id="profile-name" name="name">
+            <label>Phone:</label>
+            <input type="tel" id="profile-phone" name="phone">
+            <label>Delivery Address:</label>
+            <textarea id="profile-address" name="delivery_address" rows="3"></textarea>
+            <button type="submit" class="submit-btn"><span>Save Profile</span></button>
+        </form>
+        <button id="delete-account-btn" class="btn-danger">Delete Account</button>
+    </div>
+</div>
+
+<!-- Toast Notification Container -->
+<div id="toast-container"></div>
+
+<!-- SCRIPTS -->
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+
+</body>
+</html>

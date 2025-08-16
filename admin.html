@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Momoholics - Admin Panel</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="js/config.js"></script>
+
+    <style>
+        /* --- CORE STYLES & CSS RESET --- */
+        :root {
+            --primary-bg: #f4f7fa;
+            --sidebar-bg: #2c3e50;
+            --sidebar-hover: #34495e;
+            --text-light: #ecf0f1;
+            --text-dark: #333;
+            --border-color: #e0e0e0;
+            --primary-accent: #007bff;
+            --success: #2ecc71;
+            --warning: #f1c40f;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-dark);
+        }
+
+        /* --- LOGIN OVERLAY --- */
+        #login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px);
+            display: flex; justify-content: center; align-items: center; z-index: 1000;
+        }
+        #login-box {
+            background: white; padding: 30px; border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center;
+            width: 90%; max-width: 350px;
+        }
+        #login-box h2 { margin-bottom: 20px; }
+        #login-box input { display: block; width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; }
+        #login-box button { width: 100%; padding: 12px; border: none; border-radius: 4px; background-color: var(--primary-accent); color: white; font-weight: bold; cursor: pointer; }
+        #login-error { color: red; margin-top: 10px; height: 1em; }
+        
+        /* --- MAIN LAYOUT (MOBILE FIRST) --- */
+        #admin-wrapper { display: none; height: 100%; position: relative; }
+
+        /* Sidebar: Hidden off-screen by default on mobile */
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0;
+            width: 240px;
+            height: 100%;
+            background-color: var(--sidebar-bg);
+            color: white;
+            padding-top: 20px;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+            z-index: 200;
+        }
+        .sidebar.visible { transform: translateX(0); }
+        .sidebar h1 { text-align: center; margin-bottom: 30px; font-size: 1.5rem; }
+        .sidebar nav a { display: block; color: #bdc3c7; text-decoration: none; padding: 15px 20px; transition: background 0.2s, color 0.2s; }
+        .sidebar nav a:hover, .sidebar nav a.active { background-color: var(--sidebar-hover); color: white; }
+        .sidebar .close-sidebar-btn {
+            position: absolute; top: 10px; right: 10px; background: none; border: none;
+            color: white; font-size: 1.5rem; cursor: pointer;
+        }
+        
+        /* Main Content: Takes full width on mobile */
+        .main-content {
+            width: 100%;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        /* Mobile Menu Toggle Button */
+        #menu-toggle {
+            background: none; border: none; font-size: 1.5rem; cursor: pointer;
+            padding: 10px; margin-bottom: 10px;
+        }
+        
+        .page { display: none; }
+        .page.active { display: block; }
+        .page h2 { font-size: 1.8rem; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
+        
+        /* --- DESKTOP LAYOUT (768px and up) --- */
+        @media (min-width: 768px) {
+            #admin-wrapper { display: flex !important; } /* Override JS display none */
+            .sidebar {
+                position: static; /* Un-fix the sidebar */
+                transform: translateX(0); /* Make it permanently visible */
+                flex-shrink: 0;
+            }
+            .sidebar .close-sidebar-btn, #menu-toggle {
+                display: none; /* Hide mobile-only buttons */
+            }
+            .main-content {
+                flex-grow: 1;
+                padding: 30px;
+            }
+        }
+        
+        /* --- OTHER STYLES --- */
+        .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .card h3 { font-size: 1rem; color: #7f8c8d; margin-bottom: 10px; }
+        .card .value { font-size: 2.2rem; font-weight: bold; }
+        .table-wrapper { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { background-color: var(--primary-bg); font-weight: bold; }
+        tr:hover { background-color: #f9f9f9; }
+        .status { padding: 5px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+        .status-Pending { background-color: var(--warning); color: #333; }
+        .status-Confirmed { background-color: var(--success); color: white; }
+        .order-items { list-style: none; font-size: 0.9em; }
+        button.confirm-btn { padding: 8px 12px; border: none; background-color: #27ae60; color: white; border-radius: 4px; cursor: pointer; }
+        button.confirm-btn:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <div id="login-overlay">
+        <div id="login-box">
+            <h2>Admin Panel Login</h2>
+            <input type="password" id="admin-password" placeholder="Enter Admin Password">
+            <button id="login-btn">Login</button>
+            <p id="login-error"></p>
+        </div>
+    </div>
+
+    <div id="admin-wrapper">
+        <aside class="sidebar" id="sidebar">
+            <button class="close-sidebar-btn" id="close-sidebar-btn">&times;</button>
+            <h1>MOMOHOLICS</h1>
+            <nav>
+                <a href="#dashboard" class="nav-link active">Dashboard</a>
+                <a href="#orders" class="nav-link">Orders</a>
+                <a href="#users" class="nav-link">Users</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <button id="menu-toggle">☰ Menu</button>
+            <section id="dashboard" class="page active">
+                <h2>Dashboard</h2>
+                <div id="analytics-grid" class="analytics-grid"></div>
+            </section>
+            <section id="orders" class="page">
+                <h2>Recent Orders</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order ID</th><th>Customer</th><th>Items</th>
+                                <th>Total</th><th>Status</th><th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body"></tbody>
+                    </table>
+                </div>
+            </section>
+            <section id="users" class="page">
+                <h2>Registered Users</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th><th>Name</th><th>Email</th>
+                                <th>Phone</th><th>Address</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const ADMIN_PASSWORD = "admin"; // CHANGE THIS PASSWORD
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof supabaseClient === 'undefined') {
+                document.body.innerHTML = `<div style="padding: 20px; text-align: center; color: red; font-family: sans-serif;"><h1>Configuration Error</h1><p>Could not load the Supabase client. Please check the path to <strong>js/config.js</strong> in your admin.html file.</p></div>`;
+                return;
+            }
+
+            const loginBtn = document.getElementById('login-btn');
+            const passwordInput = document.getElementById('admin-password');
+            const loginError = document.getElementById('login-error');
+
+            loginBtn.addEventListener('click', attemptLogin);
+            passwordInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') attemptLogin();
+            });
+
+            function attemptLogin() {
+                if (passwordInput.value === ADMIN_PASSWORD) {
+                    document.getElementById('login-overlay').style.display = 'none';
+                    document.getElementById('admin-wrapper').style.display = 'block';
+                    initAdminPanel();
+                } else {
+                    loginError.textContent = 'Incorrect Password';
+                }
+            }
+        });
+
+        function initAdminPanel() {
+            // --- NEW: Mobile Sidebar Toggle Logic ---
+            const sidebar = document.getElementById('sidebar');
+            const menuToggle = document.getElementById('menu-toggle');
+            const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+            
+            menuToggle.addEventListener('click', () => sidebar.classList.add('visible'));
+            closeSidebarBtn.addEventListener('click', () => sidebar.classList.remove('visible'));
+
+            const navLinks = document.querySelectorAll('.nav-link');
+            const pages = document.querySelectorAll('.page');
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    pages.forEach(p => p.classList.remove('active'));
+                    link.classList.add('active');
+                    document.querySelector(link.getAttribute('href')).classList.add('active');
+                    sidebar.classList.remove('visible'); // Close sidebar on nav click on mobile
+                });
+            });
+
+            fetchAndRenderData();
+        }
+
+        async function fetchAndRenderData() {
+            try {
+                const [analytics, orders, users] = await Promise.all([ fetchAnalytics(), fetchOrders(), fetchUsers() ]);
+                renderAnalytics(analytics);
+                renderOrders(orders);
+                renderUsers(users);
+            } catch (error) {
+                console.error("Failed to load admin data:", error);
+                alert("Could not load data. Check the console for errors.");
+            }
+        }
+
+        async function fetchAnalytics() {
+            const { data: ordersData, error: ordersError } = await supabaseClient.from('product_placement').select('total_price');
+            if (ordersError) throw ordersError;
+            const { count, error: usersError } = await supabaseClient.from('users').select('*', { count: 'exact', head: true });
+            if (usersError) throw usersError;
+            const totalRevenue = ordersData.reduce((sum, order) => sum + order.total_price, 0);
+            return {
+                totalOrders: ordersData.length,
+                totalRevenue: totalRevenue.toFixed(2),
+                totalUsers: count
+            };
+        }
+
+        async function fetchOrders() {
+            const { data, error } = await supabaseClient.from('product_placement').select('*').order('created_at', { ascending: false });
+            if (error) throw error;
+            return data;
+        }
+
+        async function fetchUsers() {
+            const { data, error } = await supabaseClient.from('users').select('*').order('created_at', { ascending: false });
+            if (error) throw error;
+            return data;
+        }
+
+        function renderAnalytics(analytics) {
+            const grid = document.getElementById('analytics-grid');
+            grid.innerHTML = `<div class="card"><h3>Total Revenue</h3><p class="value">Rs. ${analytics.totalRevenue}</p></div><div class="card"><h3>Total Orders</h3><p class="value">${analytics.totalOrders}</p></div><div class="card"><h3>Total Users</h3><p class="value">${analytics.totalUsers}</p></div>`;
+        }
+
+        function renderOrders(orders) {
+            const tbody = document.getElementById('orders-table-body');
+            tbody.innerHTML = orders.map(order => `
+                <tr>
+                    <td>#${order.order_id}</td>
+                    <td><strong>${order.customer_name}</strong><br><small>${order.customer_phone}</small><br><small>${order.delivery_address}</small></td>
+                    <td><ul class="order-items">${order.items.map(item => `<li>${item.quantity}x ${item.name} (${item.filling})</li>`).join('')}</ul></td>
+                    <td>Rs. ${order.total_price}</td>
+                    <td><span class="status status-${order.status}">${order.status}</span></td>
+                    <td>
+                        ${order.status === 'Pending' ? 
+                          `<button class="confirm-btn" onclick="updateOrderStatus(this, ${order.order_id}, 'Confirmed')">Confirm</button>` :
+                          `<button class="confirm-btn" disabled>Confirmed</button>`
+                        }
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderUsers(users) {
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = users.map(user => `
+                <tr>
+                    <td>${user.id}</td><td>${user.name}</td><td>${user.email}</td>
+                    <td>${user.phone || 'N/A'}</td><td>${user.delivery_address || 'N/A'}</td>
+                </tr>
+            `).join('');
+        }
+
+        async function updateOrderStatus(buttonElement, orderId, newStatus) {
+            buttonElement.disabled = true;
+            buttonElement.textContent = 'Confirming...';
+            const { error } = await supabaseClient.from('product_placement').update({ status: newStatus }).eq('order_id', orderId);
+            if (error) {
+                console.error("Error updating status:", error);
+                alert("Failed to update order status.");
+                buttonElement.disabled = false;
+                buttonElement.textContent = 'Confirm';
+            } else {
+                fetchOrders().then(renderOrders);
+            }
+        }
+    </script>
+</body>
+</html>
