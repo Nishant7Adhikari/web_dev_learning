@@ -1,0 +1,106 @@
+        *{
+    margin: 0;
+    padding: 0;
+    }
+    
+    html{
+    font-family: Poppins;
+    color: #FFFFFF;
+    }
+    
+    body {
+    background-image:url('Bg.jpg');
+    : center;
+    background-size: cover;
+    height: 100vh;
+    color: #FFFFFF;
+    align-content: center;
+    }
+
+    h1{
+    color: ORANGE;
+    }
+    
+    .card{
+        margin: 0 auto;
+        padding: 2px;
+        width: 20em;
+        color: #3bff00;
+        font-size: 15px;
+        background: #111111;
+        background-position: center;
+        background-size: cover;
+        text-align: center;
+        border-radius: 10px; 
+        position: relative;
+        /*visibility: hidden;*/
+    }
+    
+    @property --angle{
+        syntax: "<angle>";
+        initial-value: 0deg;
+        inherits: false;
+    }
+
+    .card::after, .card::before{
+        content: '';
+        position: absolute;
+        height: 100%;
+        width: 101%;
+        background-image: conic-gradient(from                       var(--angle), black,black,white);
+        
+        top: 50%;
+        left: 50%;
+        translate: -50% -50%;
+        z-index:-1;
+        padding: 2px;
+        border-radius: 10px;
+        animation: 3s spn linear infinite;
+    }
+    
+    .card::before{
+        filter: blur(1.5rem);
+        opacity: 0.5;
+    }
+    
+    @keyframes spn{
+        from{ 
+        --angle: 0deg;
+         }
+        to{
+        --angle: 360deg;
+         }
+     }
+     /*
+        navbar #333333
+        text #FFFFFF
+        Icons #111111*/
+  .y{
+            background: #333333;
+            margin: 0;
+            position: absolute;
+            top: 0;
+            width: 100vw;
+            max-height: 4vh;
+            height: 3vh;
+            overflow: hidden;
+        }
+        .x{
+           
+            width: 20vw;
+            
+            height: 5vh;
+            position: absolute;
+            right: 0;
+            top: -1vw;
+            transform: scale(0.5)
+        }
+        .x:hover{
+            transform: scale(1);
+            translate: 3px 3px 10px;
+        }        
+      
+#house{
+     color: #111111;
+     margin: 1vw;
+}

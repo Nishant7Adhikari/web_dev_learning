@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Project JSON & Icon Prompt Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 { color: #333; }
+    label { font-weight: bold; display: block; margin-top: 15px; }
+    textarea {
+      width: 100%;
+      height: 150px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #4CAF50;
+      border: none;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-right: 10px;
+      margin-top: 5px;
+    }
+    button:hover { background: #45a049; }
+    pre {
+      background: #222;
+      color: #0f0;
+      padding: 15px;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    /* Loader bar */
+    #loader {
+      display: none;
+      width: 100%;
+      height: 10px;
+      background: #ddd;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+    #progress {
+      width: 0%;
+      height: 100%;
+      background: #4CAF50;
+      animation: progressAnim 2s infinite;
+    }
+    @keyframes progressAnim {
+      0% { width: 0%; }
+      50% { width: 80%; }
+      100% { width: 0%; }
+    }
+    #timer { font-weight: bold; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Project JSON & Icon Prompt Generator</h1>
+
+  <label>Paste your HTML:</label>
+  <textarea id="htmlInput"></textarea>
+
+  <label>Paste your CSS (optional):</label>
+  <textarea id="cssInput"></textarea>
+
+  <button onclick="generate()">Generate JSON & Icon Prompt</button>
+
+  <div id="loader"><div id="progress"></div></div>
+  <div id="timer">Time: 0s</div>
+
+  <h2>Generated JSON:</h2>
+  <pre id="jsonOutput"></pre>
+  <button onclick="copyJSON()">Copy JSON</button>
+  <button onclick="downloadJSON()">Download JSON</button>
+
+  <h2>Generated Icon Prompt:</h2>
+  <pre id="iconOutput"></pre>
+  <button onclick="copyIconPrompt()">Copy Icon Prompt</button>
+
+  <script type="module">
+    import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+
+    const API_KEY =/*if you misuse this key or even use this key for yourself then the person that you love the most will make relationship with multiple people*/ "AIzaSyAwImvz7Qh6DCGrxEQb4vqcBTXza9M7BFI";
+    const genAI = new GoogleGenerativeAI(API_KEY);
+
+    let timerInterval;
+
+    async function generate() {
+      const html = document.getElementById("htmlInput").value.trim();
+      const css = document.getElementById("cssInput").value.trim();
+
+      if (!html && !css) {
+        alert("⚠️ Please paste some HTML or CSS first!");
+        return;
+      }
+
+      // Show loader and reset timer
+      document.getElementById("loader").style.display = "block";
+      document.getElementById("timer").innerText = "Time: 0s";
+      let startTime = Date.now();
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        document.getElementById("timer").innerText = `Time: ${elapsed}s`;
+      }, 500);
+
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+      const prompt = `
+You are an assistant that generates project metadata and creative icon prompts.
+
+Given the following project code:
+HTML:
+${html}
+
+CSS:
+${css}
+
+1. Create a JSON metadata object for this project with fields:
+{
+        "name": "",
+        "slug": "",
+        "tagline": "A tool to generate project metadata and creative icon prompts.",
+        "started": "1 jan 2025",
+        "status": "Completed",
+        "keywords": ["project", "JavaScript", "HTML", "CSS", "learning", "..."],
+        "team_ids": ["N"],
+        "description": "This project uses Google's Gemini AI model to generate JSON metadata and creative icon prompts based on provided HTML and CSS code.  The generated JSON includes relevant project details, while the icon prompt is designed for AI image generation, specifying style, theme, and visual elements.",
+        "link": "projects/jsongen/",
+        "image": "media/icons/json_gen.png"
+}
+
+2. Then generate an icon prompt for AI image generation.
+⚠️ Important: The icon prompt should be creative and context-aware, what the purpose of the webpage, theme, concept, etc [strict rule].
+
+It can be minimalist, futuristic, playful, educational, science-themed, or any style that suits the project — not just minimalist.
+Must include:
+- A theme related to the project purpose
+- Clear visual elements connected to the project topic
+- Suggested color scheme
+- Style choice (flat, 3D, futuristic, cartoon, etc. based on project vibe)
+- Transparent background, PNG
+- 1:1 ratio (1024x1024)
+
+Output Format:
+First JSON enclosed in a backtick, then a line starting exactly with "Icon prompt:" followed by the icon prompt text.
+`;
+      try {
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
+
+        // Split and clean outputs
+        const { jsonContent, promptContent } = splitAndCleanGeminiOutput(text);
+
+        document.getElementById("jsonOutput").innerText = jsonContent;
+        document.getElementById("iconOutput").innerText = promptContent;
+      } catch (err) {
+        console.error(err);
+        alert("❌ Error generating output. Check console for details.");
+      } finally {
+        document.getElementById("loader").style.display = "none";
+        clearInterval(timerInterval);
+      }
+    }
+
+    // Extract and clean separate JSON and prompt fields
+    function splitAndCleanGeminiOutput(text) {
+  const splitIndex = text.toLowerCase().indexOf("icon prompt:");
+  
+  let jsonContent = "";
+  let promptContent = "";
+
+  if (splitIndex !== -1) {
+    jsonContent = text.slice(0, splitIndex).replace(/```/g, "").trim();
+    promptContent = text.slice(splitIndex + 12).replace(/```/g, "").trim(); // 12 = length of "icon prompt:"
+  } else {
+    // fallback: treat entire text as JSON
+    jsonContent = text.replace(/```/g, "").trim();
+  }
+
+  return { jsonContent, promptContent };
+}
+
+    function copyJSON() {
+      const content = document.getElementById("jsonOutput").innerText.trim();
+      if (!content) { alert("⚠️ No JSON to copy!"); return; }
+      navigator.clipboard.writeText(content).then(() => alert("✅ JSON copied to clipboard!"));
+    }
+
+    function copyIconPrompt() {
+      const content = document.getElementById("iconOutput").innerText.trim();
+      if (!content) { alert("⚠️ No Icon Prompt to copy!"); return; }
+      navigator.clipboard.writeText(content).then(() => alert("✅ Icon Prompt copied to clipboard!"));
+    }
+
+    function downloadJSON() {
+      const content = document.getElementById("jsonOutput").innerText.trim();
+      if (!content) { alert("⚠️ No JSON to download!"); return; }
+      const blob = new Blob([content], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "project.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    window.generate = generate;
+    window.copyJSON = copyJSON;
+    window.copyIconPrompt = copyIconPrompt;
+    window.downloadJSON = downloadJSON;
+  </script>
+</body>
+</html>

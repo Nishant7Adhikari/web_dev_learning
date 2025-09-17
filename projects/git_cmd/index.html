@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git CMD Guide</title>
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 20px;
+        background-color: #20253f;
+        color: #24292f;
+    }
+    h1 {
+        text-align: center;
+        color: #0366d6;
+    }
+    h2 {
+        color: #24292f;
+        margin-top: 40px;
+    }
+    .command-box {
+        background-color: #000000;
+        color: #ffffff;
+        padding: 12px 10px;
+        border-radius: 6px;
+        margin: 12px 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-family: monospace;
+    }
+    .command-text {
+        flex-grow: 1;
+    }
+    button {
+        margin-left: 10px;
+        padding: 5px 10px;
+        border: none;
+        background-color: #28a745;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    button:hover {
+        background-color: #218838;
+    }
+    .part {
+        margin-left: 20px;
+        background-color: #eaeaea;
+        padding: 8px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+    }
+    .tip {
+        background-color: #fff0f5;
+        border-left: 5px solid #ff69b4;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+    }
+    code {
+        background-color: #24292f;
+        color: #ffffff;
+        padding: 2px 5px;
+        border-radius: 3px;
+    }
+</style>
+</head>
+<body>
+
+<h1>Git & Termux Command Guide</h1>
+<p>This guide explains all commands in sequence, with breakdowns, tips, and copy buttons. Color-coded explanations are used for memory psychology.</p>
+<hr>
+
+<h2>1. Navigate to Folder</h2>
+<div class="command-box">
+    <p class="command-text"><code>cd /storage/emulated/0/YourFolder</code></p>
+    <button onclick="navigator.clipboard.writeText('cd /storage/emulated/0/YourFolder')">Copy</button>
+</div>
+<div class="part">
+    <p><strong>cd:</strong> Change directory command in Linux/Termux.</p>
+    <p><strong>/storage/emulated/0/YourFolder:</strong> Path to your folder in Android storage.</p>
+</div>
+<div class="tip">
+    <p>Tips: Use relative or absolute paths. `cd ..` moves one folder up.</p>
+</div>
+
+<h2>2. Initialize Git Repo</h2>
+<div class="command-box">
+    <p class="command-text"><code>git init</code></p>
+    <button onclick="navigator.clipboard.writeText('git init')">Copy</button>
+</div>
+<div class="part">
+    <p><strong>git:</strong> Version control system (tracks changes, allows collaboration).</p>
+    <p><strong>init:</strong> Initializes a new Git repository in the current folder.</p>
+</div>
+<div class="tip">First step to make a folder a Git repository.</div>
+
+<h2>3. Add Remote Repository</h2>
+<div class="command-box">
+    <p class="command-text"><code>git remote add origin https://github.com/YourUsername/YourRepo.git</code></p>
+    <button onclick="navigator.clipboard.writeText('git remote add origin https://github.com/YourUsername/YourRepo.git')">Copy</button>
+</div>
+<div class="part">
+    <p><strong>git:</strong> Git tool.</p>
+    <p><strong>remote:</strong> Manage remote repositories.</p>
+    <p><strong>add:</strong> Add a new remote repository.</p>
+    <p><strong>origin:</strong> Default name for the remote repository.</p>
+    <p><strong>URL:</strong> Your GitHub repo link.</p>
+</div>
+<div class="tip">Use personal access token if GitHub asks for password.</div>
+
+<h2>4. Add Files</h2>
+<div class="command-box">
+    <p class="command-text"><code>git add .</code></p>
+    <button onclick="navigator.clipboard.writeText('git add .')">Copy</button>
+</div>
+<div class="part">
+    <p><strong>git:</strong> Git tool.</p>
+    <p><strong>add:</strong> Stage changes for commit.</p>
+    <p><strong>.</strong> Current folder and all contents.</p>
+</div>
+<div class="tip">Stage before committing.</div>
+
+<h2>5. Commit Changes</h2>
+<div class="command-box">
+    <p class="command-text"><code>git commit -m \"Initial commit\"</code></p>
+    <button onclick="navigator.clipboard.writeText('git commit -m &quot;Initial commit&quot;')">Copy</button>
+</div>
+<div class="part">
+    <p><strong>git:</strong> Git tool.</p>
+    <p><strong>commit:</strong> Record staged changes.</p>
+    <p><strong>-m \"Initial commit\":</strong> Commit message describing changes.</p>
+</div>
+<div class="tip">Use descriptive messages for clarity.</div>
+
+<h2>6. Push to GitHub</h2>
+<div class="command-box">
+    <p class="command-text"><code>git push origin main</code></p>
+    <button onclick="navigator.clipboard.writeText('git push origin main')">Copy</button>
+</div>
+<div class="part">
+    <p><strong>push:</strong> Send commits to remote repository.</p>
+    <p><strong>origin:</strong> Remote repo name.</p>
+    <p><strong>main:</strong> Branch to push to.</p>
+</div>
+<div class="tip">Force push only if rewriting history.</div>
+
+<h2>7. Pull from GitHub</h2>
+<div class="command-box">
+    <p class="command-text"><code>git pull origin main</code></p>
+    <button onclick="navigator.clipboard.writeText('git pull origin main')">Copy</button>
+</div>
+<div class="part">
+    <p><strong>pull:</strong> Fetches and merges remote changes.</p>
+    <p><strong>origin:</strong> Remote repository.</p>
+    <p><strong>main:</strong> Branch to pull from.</p>
+</div>
+<div class="tip">Always pull before making new changes.</div>
+
+<h2>8. List Files Recursively</h2>
+<div class="command-box">
+    <p class="command-text"><code>ls -R</code></p>
+    <button onclick="navigator.clipboard.writeText('ls -R')">Copy</button>
+</div>
+<div class="part">
+    <p><strong>ls:</strong> List files.</p>
+    <p><strong>-R:</strong> Recursive listing of all subfolders.</p>
+</div>
+<div class="tip">Use `ls -a` to include hidden files.</div>
+
+<h2>9. View File Content</h2>
+<div class="command-box">
+    <p class="command-text"><code>cat index.html</code></p>
+    <button onclick="navigator.clipboard.writeText('cat index.html')">Copy</button>
+</div>
+<div class="part">
+    <p><strong>cat:</strong> Display file content.</p>
+    <p><strong>index.html:</strong> File to view.</p>
+</div>
+<div class="tip">Use `less` to scroll, `nano` to edit.</div>
+
+<h2>10. Copy File Content to Clipboard</h2>
+<div class="command-box">
+    <p class="command-text"><code>cat index.html | termux-clipboard-set</code></p>
+    <button onclick="navigator.clipboard.writeText('cat index.html | termux-clipboard-set')">Copy</button>
+</div>
+<div class="part">
+    <p><strong>|</strong> Pipe output to next command.</p>
+    <p><strong>termux-clipboard-set:</strong> Copies content to Android clipboard.</p>
+</div>
+<div class="tip">Requires Termux API.</div>
+
+<h2>11. Move Folder / Files</h2>
+<div class="command-box">
+    <p class="command-text"><code>mv project/* .</code></p>
+    <button onclick="navigator.clipboard.writeText('mv project/* .')">Copy</button>
+</div>
+<div class="part">
+    <p><strong>mv:</strong> Move files/folders.</p>
+    <p><strong>project/*:</strong> All files in project folder.</p>
+    <p><strong>.</strong> Current folder (destination).</p>
+</div>
+<div class="tip">Always move inside repo to preserve Git tracking.</div>
+
+<h2>12. Delete File</h2>
+<div class="command-box">
+    <p class="command-text"><code>rm filename</code></p>
+    <button onclick="navigator.clipboard.writeText('rm filename')">Copy</button>
+</div>
+<div class="part">
+    <p><strong>rm:</strong> Delete file permanently.</p>
+    <p><strong>filename:</strong> File name.</p>
+</div>
+<div class="tip">Git tracks deletion after `git add .`</div>
+
+<h2>13. Delete Folder</h2>
+<div class="command-box">
+    <p class="command-text"><code>rm -r foldername</code></p>
+    <button onclick="navigator.clipboard.writeText('rm -r foldername')">Copy</button>
+</div>
+<div class="part">
+    <p><strong>-r:</strong> Recursive deletion of folder and contents.</p>
+</div>
+<div class="tip">Permanent deletion; be careful.</div>
+
+<h2>14. Reset Last Commit</h2>
+<div class="command-box">
+    <p class="command-text"><code>git reset --soft HEAD~1</code></p>
+    <button onclick="navigator.clipboard.writeText('git reset --soft HEAD~1')">Copy</button>
+</div>
+<div class="part">
+    <p><strong>--soft:</strong> Keep changes but remove commit.</p>
+    <p><strong>HEAD~1:</strong> Last commit.</p>
+</div>
+<div class="tip">Use --hard to discard changes completely. Force push required if already on GitHub.</div>
+
+<h2>15. Delete All Commit History</h2>
+<div class="command-box">
+    <p class="command-text"><code>git checkout --orphan temp_branch &amp;&amp; git add . &amp;&amp; git commit -m \"Initial commit\" &amp;&amp; git branch -D main &amp;&amp; git branch -m main &amp;&amp; git push origin main --force</code></p>
+    <button onclick="navigator.clipboard.writeText('git checkout --orphan temp_branch && git add . && git commit -m &quot;Initial commit&quot; && git branch -D main && git branch -m main && git push origin main --force')">Copy</button>
+</div>
+<div class="part">
+    <p>Sequence to delete all previous commits but keep files.</p>
+</div>
+<div class="tip">Force push updates GitHub repository.</div>
+
+</body>
+</html>

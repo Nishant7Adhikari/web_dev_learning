@@ -1,0 +1,710 @@
+#ff03a9f4
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Keep MovizEZ</title>
+
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+    <!-- PWA Manifest and Theme -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2C3E50"> <!-- Should match manifest.json theme_color -->
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <!-- Supabase JS Client V2 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
+        <p class="mt-3 text-white">Loading...</p>
+    </div>
+    <!-- Theme Change Overlay -->
+    <div id="themeTransitionOverlay" class="theme-transition-overlay"></div>
+
+    <!-- Authentication Container -->
+    <div id="authContainer" class="auth-container">
+        <div class="auth-card">
+            <h4 id="authTitle" class="text-center mb-4">Welcome to KeepMovizEZ!</h4>
+            <p id="authMessage" class="text-muted text-center mb-3">Please sign in or create an account to continue.</p>
+
+            <div id="supabaseAuthForm">
+                <div class="form-group">
+                    <label for="supabaseEmail">Email</label>
+                    <input type="email" id="supabaseEmail" class="form-control" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="supabasePassword">Password</label>
+                    <input type="password" id="supabasePassword" class="form-control" placeholder="Your password" required>
+                </div>
+                <div id="authError" class="alert alert-danger mt-2" style="display:none;"></div>
+                <button id="supabaseLoginBtn" class="btn btn-primary btn-block mt-3">Login</button>
+                <button id="supabaseSignupBtn" class="btn btn-outline-info btn-block mt-2">Sign Up</button>
+                <button id="supabasePasswordResetBtn" class="btn btn-link btn-block mt-2">Forgot Password?</button>
+            </div>
+        </div>
+    </div>
+    <!-- End Authentication Container -->
+
+
+    <!-- Main App Content - Hidden until authenticated -->
+    <div id="appContent" style="display: none;">
+        <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+            <a id="Brand" class="navbar-brand" href="#"><strong id="fthis">Keep MovizEZ</strong></a>
+            <div class="ml-auto d-flex align-items-center">
+                 <span id="loggedInUserEmail" class="navbar-text mr-3 text-white small" style="display: none;"></span>
+                 <span id="onlineStatusIndicator" class="badge badge-pill badge-success mr-2" title="Online Status">Online</span>
+                <button id="supabaseLogoutBtnMain" class="btn btn-sm btn-outline-warning mr-2" title="Logout from Cloud Account">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+                <button id="themeToggleBtn" class="btn btn-sm btn-outline-info"> <i class="fas fa-sun"></i>
+                </button>
+            </div>
+        </nav>
+        <div class="container-fluid mt-4">
+            <div class="row mb-3 align-items-center p-3 rounded shadow-sm fade-up control-panel">
+                <div class="col-md-4 mb-2 mb-md-0">
+                    <div class="input-group">
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="csvFileUploader" accept=".csv,.json">
+                            <label class="custom-file-label" for="csvFileUploader" data-browse="Browse">Append CSV/JSON</label>
+                        </div>   
+                    </div>
+                </div>
+                <div class="col-md-8 text-md-right d-flex justify-content-end align-items-center flex-wrap button-group">
+                    <input type="text" id="filterInput" class="form-control form-control-sm mr-2 mb-2 mb-md-0 filter-input" placeholder="Search Table...">
+                    <button id="statsBtn" class="btn btn-secondary btn-sm mr-1 mb-2 mb-md-0" data-toggle="modal" data-target="#statsModal"><i class="fas fa-chart-bar"></i> Stats
+                    </button>
+                    <button id="syncDataBtn" class="btn btn-primary btn-sm mr-1 mb-2 mb-md-0" title="Sync with Cloud (Two-way Append/Merge)">
+                        <i class="fas fa-sync-alt"></i> Sync
+                    </button>
+                    <button id="downloadCsvActualBtn" class="btn btn-success btn-sm mr-1 mb-2 mb-md-0"><i class="fas fa-download"></i> CSV
+                    </button>
+                    <button id="downloadJsonActualBtn" class="btn btn-info btn-sm mr-2 mb-2 mb-md-0"><i class="fas fa-download"></i> JSON
+                    </button>
+                    <button id="clearLocalStorageBtn" class="btn btn-warning btn-sm mb-2 mb-md-0" title="Erase Data Options"><i class="fas fa-eraser"></i>Erase Data</button>
+                </div>
+            </div>
+            <div id="initialMessage" class="initial-upload-section text-center p-4 rounded shadow-sm">
+                <h4>Welcome to KeepMovizEZ!</h4>
+                <p>Your movie log is currently empty. Add your first entry using the '+' button below, or upload an existing collection using the "Append CSV/JSON" button above.</p>
+                <p class="text-info small mt-3"><strong>Tip:</strong>
+                    You can find a demo CSV file here: <a href="https://drive.google.com/file/d/1Q_qiQuJfY030fOUcv2tdezAh4qPUgZPh/view?usp=drivesdk" target="_blank" rel="noopener noreferrer">Demo CSV</a>.
+                </p>
+            </div>
+            <div class="table-responsive" tabindex="0">
+                <table class="table table-striped table-hover table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th data-column="Name" title="Click to sort by Name">Name <i class="fas fa-sort"></i></th>
+                            <th data-column="Category" title="Click to sort by Category">Category <i class="fas fa-sort"></i></th>
+                            <th>Genre </th>
+                            <th>Status </th>
+                            <th>Recommendation </th>
+                            <th data-column="overallRating" title="Click to sort by Overall Rating">Rating <i class="fas fa-sort"></i></th>
+                            <th data-column="LastWatchedDate" title="Click to sort by Last Watched Date">Last Watched <i class="fas fa-sort"></i></th>
+                            <th>Language</th>
+                            <th data-column="Year" title="Click to sort by Year">Year <i class="fas fa-sort"></i></th>
+                            <th>Country</th>
+                            <th>Description</th>
+                            <th data-column="lastModifiedDate" title="Click to sort by Last Modified Date">Last Modified <i class="fas fa-sort"></i></th>
+                            <th>Edit</th>
+                        </tr>
+                    </thead>
+                    <tbody id="movieTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <nav id="bottomNav" class="navbar fixed-bottom-nav center-add-btn">
+            <div id="multiSelectActionsBar" class="multi-select-actions-bar" style="display: none;">
+                <button id="batchEditSelectedBtn" class="btn btn-info"><i class="fas fa-edit"></i> Edit Selected</button>
+                <button id="batchDeleteSelectedBtn" class="btn btn-danger"><i class="fas fa-trash-alt"></i> Delete Selected</button>
+                <button id="cancelMultiSelectBtn" class="btn btn-secondary"><i class="fas fa-times"></i> Cancel</button>
+                <span id="multiSelectCount" class="text-white ml-2 small">0 selected</span>
+            </div>
+            <button id="addNewEntryBtn" class="btn btn-primary" data-toggle="modal" data-target="#entryModal"> <i class="fas fa-plus-circle"></i> </button>
+        </nav>
+    </div>
+    <!-- End Main App Content -->
+
+    <!-- Entry Modal -->
+    <div class="modal fade" id="entryModal" tabindex="-1" role="dialog" aria-labelledby="entryModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content fade-up">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="entryModalLabel">Add New</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">&times;</span> </button>
+                </div>
+                <div class="modal-body">
+                    <form id="entryForm">
+                        <input type="hidden" id="editEntryId"> <input type="hidden" id="posterUrl">
+                        <input type="hidden" id="tmdbId"> <input type="hidden" id="tmdbMediaType">
+                        <input type="hidden" id="currentWatchHistory" value="[]"> <input type="hidden" id="editingWatchId">
+                        <div class="form-row">
+                            <div class="form-group col-md-6"> <label for="movieName">Name</label> <input type="text" class="form-control form-control-sm" id="movieName" required> </div>
+                            <div class="form-group col-md-6">
+                                <label>Search Online (TMDB)</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control form-control-sm tmdb-year-input" id="tmdbSearchYear" placeholder="Year (Opt.)" min="1888" max="2100">
+                                    <div class="input-group-append"> <button type="button" class="btn btn-info btn-sm" id="searchTmdbBtn"><i class="fas fa-search"></i> Search TMDB</button> </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="tmdbSearchResults" class="list-group mb-3" style="max-height: 150px; overflow-y: auto; display: none;"></div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="category">Category</label>
+                                <select id="category" class="form-control form-control-sm">
+                                    <option value="Movie">Movie</option>
+                                    <option value="Series">Series</option>
+                                    <option value="Documentary">Documentary</option>
+                                    <option value="Special">Special</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="genreInputContainerUserLabel">Genre (Multi Select)</label>
+                                <div id="genreInputContainer" class="form-control form-control-sm" tabindex="0">
+                                    {<!-- Selected genres will appear here as tags -->}
+                                </div>
+                                <div id="genreDropdown" class="list-group mt-1" style="display: none;">
+                                    <input type="text" id="genreSearchInput" class="form-control form-control-sm" placeholder="Search genres...">
+                                    <div id="genreItemsContainer" class="list-group" style="max-height: 150px; overflow-y: auto;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="status">Status</label>
+                                <select id="status" class="form-control form-control-sm">
+                                    <option value="To Watch">To Watch</option>
+                                    <option value="Watched">Watched</option>
+                                    <option value="Continue">Continue</option>
+                                    <option value="Unwatched">Unwatched</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6" id="continueDetailsGroup" style="display: none;"> <label for="continueDetails">Left Time/Episode</label> <input type="text" class="form-control form-control-sm" id="continueDetails"> </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6" id="recommendationGroup" style="display: none;">
+                                <label for="recommendation">My Recommendation</label>
+                                <select id="recommendation" class="form-control form-control-sm">
+                                    <option value="">--Select--</option>
+                                    <option value="Ignore">Ignore</option>
+                                    <option value="Less Recommended">Less Recommended</option>
+                                    <option value="Recommended">Recommended</option>
+                                    <option value="Highly Recommended">Highly Recommended</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6" id="overallRatingGroup" style="display: none;">
+                                <label for="overallRating">My Overall Rating</label>
+                                <select id="overallRating" class="form-control form-control-sm">
+                                    <option value="">--Select--</option>
+                                    <option value="1">1 Star</option>
+                                    <option value="2">2 Stars</option>
+                                    <option value="3">3 Stars</option>
+                                    <option value="4">4 Stars</option>
+                                    <option value="5">5 Stars</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="personalRecommendation">Personal Audience</label>
+                                <select id="personalRecommendation" class="form-control form-control-sm">
+                                    <option value="">--Select--</option>
+                                    <option value="Only Me">R+ (Only Me)</option>
+                                    <option value="Watch with Anyone">R- (Anyone)</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="relatedEntriesNames">Related Entries (Names, comma-separated)</label>
+                                <input type="text" class="form-control form-control-sm" id="relatedEntriesNames" placeholder="e.g., Movie Sequel, Prequel Name">
+                                <div id="relatedEntriesSuggestions" class="list-group mt-1" style="display: none; max-height: 150px; overflow-y: auto;">
+                                </div>
+                            </div>
+                        </div>
+                        <div id="watchHistorySection" style="display: none;">
+                            <h5>Watch History</h5>
+                            <div id="watchHistoryList" class="mb-2"></div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mb-2" id="toggleAddWatchInstanceFormBtn"> <i class="fas fa-plus"></i> Add New Watch Record </button>
+                            <div id="addWatchInstanceForm" class="p-3 border rounded" style="display:none;">
+                                <h6 id="watchInstanceFormTitle" class="mb-3">Add New Watch Record</h6>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6"> <label for="watchDate">Date Watched</label> <input type="date" class="form-control form-control-sm" id="watchDate"> </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="watchRating">Rating for this Watch</label>
+                                        <select id="watchRating" class="form-control form-control-sm">
+                                            <option value="">--Select--</option>
+                                            <option value="1">1 Star</option>
+                                            <option value="2">2 Stars</option>
+                                            <option value="3">3 Stars</option>
+                                            <option value="4">4 Stars</option>
+                                            <option value="5">5 Stars</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group"> <label for="watchNotes">Notes for this Watch</label> <textarea class="form-control form-control-sm" id="watchNotes" rows="2"></textarea> </div>
+                                <button type="button" class="btn btn-success btn-sm mr-2" id="saveWatchInstanceBtn">Save Watch Record</button>
+                                <button type="button" class="btn btn-secondary btn-sm" id="cancelWatchInstanceBtn">Cancel</button>
+                            </div>
+                        </div>
+                        <hr id="watchHistorySeparator" style="display:none;">
+                        <div class="form-row">
+                            <div class="form-group col-md-4"> <label for="language">Language</label> <input type="text" class="form-control form-control-sm" id="language" placeholder="e.g., English, Hindi"> </div>
+                            <div class="form-group col-md-4"> <label for="year">Year of Release</label> <input type="number" class="form-control form-control-sm" id="year" min="1888" max="2100"> </div>
+                            <div class="form-group col-md-4"> <label for="country">Country of Origin (ISO Code)</label> <input type="text" class="form-control form-control-sm" id="country" placeholder="e.g., US, IN"> </div>
+                        </div>
+                        <div class="form-group"> <label for="description">Description</label> <textarea class="form-control form-control-sm" id="description" rows="3"></textarea> </div>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Entry</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Details Modal -->
+    <div class="modal fade" id="detailsModal" tabindex="-1" role="dialog" aria-labelledby="detailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document"> <!-- Increased size for more content -->
+            <div class="modal-content fade-up">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailsModalLabel">Entry Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">&times;</span> </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center mb-3 mb-md-0">
+                            <img id="detailsPoster" src="" alt="Movie Poster" class="tmdb-details-poster d-none img-fluid">
+                            <div id="noPosterMessage" class="text-muted small mt-2">No Poster Available</div>
+                        </div>
+                        <div class="col-md-9">
+                            <h4 id="detailsName" class="mb-3"></h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Category:</strong> <span id="detailsCategory"></span></p>
+                                    <p><strong>Genre:</strong> <span id="detailsGenre"></span></p>
+                                    <p><strong>Status:</strong> <span id="detailsStatus"></span></p>
+                                    <p id="detailsContinueGroup" style="display:none;"><strong>Left Time/Episode:</strong> <span id="detailsContinue"></span></p>
+                                    <p id="detailsRuntimeGroup" style="display:none;"><strong>Runtime:</strong> <span id="detailsRuntime"></span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p id="detailsRecommendationGroup" style="display:none;"><strong>My Recommendation:</strong> <span id="detailsRecommendation"></span></p>
+                                    <p id="detailsOverallRatingGroup" style="display:none;"><strong>My Overall Rating:</strong> <span id="detailsOverallRating"></span></p>
+                                    <p id="detailsPersonalRecommendationGroup" style="display:none;"><strong>Personal Audience:</strong> <span id="detailsPersonalRecommendation"></span></p>
+                                    <p><strong>Language:</strong> <span id="detailsLanguage"></span></p>
+                                    <p><strong>Year:</strong> <span id="detailsYear"></span></p>
+                                    <p><strong>Country:</strong> <span id="detailsCountry"></span></p>
+                                     <p id="detailsTMDBRatingGroup" style="display:none;"><strong>TMDB Rating:</strong> <span id="detailsTMDBRating"></span></p>
+                                </div>
+                            </div>
+                            <p class="mt-2"><strong>Description:</strong> <span id="detailsDescription"></span></p>
+                             <p class="mt-2"><strong>Keywords:</strong> <span id="detailsKeywords" class="text-muted small">N/A</span></p>
+                            <p class="mt-2"><strong>Last Modified:</strong> <span id="detailsLastModified" class="text-muted small"></span></p>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <!-- Cast & Crew Section -->
+                    <div id="detailsCastCrewSection" class="mt-3" style="display:none;">
+                        <h5>Cast & Crew</h5>
+                        <p><strong>Director:</strong> <span id="detailsDirector" class="person-link">N/A</span></p>
+                        <h6>Main Cast:</h6>
+                        <div id="detailsCastList" class="row person-list">
+                            <!-- Cast members will be populated here -->
+                        </div>
+                    </div>
+                    <hr id="castCrewSeparator" style="display:none;">
+                                        <!-- Optional separator -->
+                    <div id="detailsManualLinksGroup" class="related-group mt-3" style.display:none;">
+                        <h5>Related</h5>
+                        <ul id="detailsManualLinksList" class="list-unstyled related-list">
+                            <!-- Manually linked items will be populated here -->
+                        </ul>
+                    </div>
+                    
+<hr id="manualLinksSeparator" style="display:none;"> 
+                    <!-- Enhanced Related Entries Section -->
+                    <div id="detailsEnhancedRelatedSection" class="mt-3" style="display:none;">
+                        <h5>Contextual Links</h5>
+                        <div id="detailsFranchiseGroup" class="related-group" style="display:none;">
+                            <h6>Part of Franchise/Collection: <span id="detailsFranchiseName" class="text-info"></span></h6>
+                            <ul id="detailsFranchiseList" class="list-unstyled related-list"></ul>
+                        </div>
+                        <div id="detailsDirectorGroup" class="related-group mt-2" style="display:none;">
+                            <h6>More by Director <span id="detailsSameDirectorName" class="text-info"></span>:</h6>
+                            <ul id="detailsSameDirectorList" class="list-unstyled related-list"></ul>
+                        </div>
+                        <div id="detailsStudioGroup" class="related-group mt-2" style="display:none;">
+                            <h6>More by Studio: <span id="detailsStudioName" class="text-info"></span></h6>
+                            <ul id="detailsStudioList" class="list-unstyled related-list"></ul>
+                        </div>
+                    </div>
+                    
+                     <hr id="enhancedRelatedSeparator" style="display:none;">
+
+
+                    <div id="detailsWatchHistorySection" class="details-watch-history mt-3" style="display:none;">
+                        <h5>Watch History</h5>
+                        <ul id="detailsWatchHistoryList" class="list-unstyled"></ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info" id="findSimilarBtn" style="display:none;"><i class="fas fa-magic"></i> Find Similar</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Person Details Modal (for Cast/Director) -->
+    <div class="modal fade" id="personDetailsModal" tabindex="-1" role="dialog" aria-labelledby="personDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content fade-up">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="personDetailsModalLabel"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">&times;</span> </button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="personProfileImage" src="" alt="Person Profile" class="person-profile-img img-fluid d-none">
+                    <p id="noPersonImageMessage" class="text-muted small mt-2">No Image Available</p>
+                    <p id="personBio" class="mt-3 text-left small"></p>
+
+                    <hr>
+                    <h5>Filmography in Your Log</h5>
+                    <ul id="personFilmographyList" class="list-unstyled text-left">
+                        <!-- Movies/Shows featuring this person will be listed here -->
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                     <button type="button" class="btn btn-info" id="viewTmdbPersonBtn" target="_blank" rel="noopener noreferrer" style="display:none;"><i class="fas fa-external-link-alt"></i> View on TMDB</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Statistics Modal -->
+    <div class="modal fade" id="statsModal" tabindex="-1" role="dialog" aria-labelledby="statsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content fade-up">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="statsModalLabel">Stats & Insights</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">&times;</span> </button>
+                </div>
+                <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
+                    <ul class="nav nav-tabs mb-3" id="statsTab" role="tablist">
+                        <li class="nav-item"> <a class="nav-link active" id="summary-tab" data-toggle="tab" href="#stats-summary" role="tab" aria-controls="stats-summary" aria-selected="true">Summary</a> </li>
+                        <li class="nav-item"> <a class="nav-link" id="progress-tab" data-toggle="tab" href="#stats-progress" role="tab" aria-controls="stats-progress" aria-selected="false">Progress</a> </li>
+                        <li class="nav-item"> <a class="nav-link" id="temporal-tab" data-toggle="tab" href="#stats-temporal" role="tab" aria-controls="stats-temporal" aria-selected="false">Time Analysis</a> </li>
+                        <li class="nav-item"> <a class="nav-link" id="genre-deep-dive-tab" data-toggle="tab" href="#stats-genre-deep-dive" role="tab" aria-controls="stats-genre-deep-dive" aria-selected="false">Genre Stats</a> </li>
+                        <li class="nav-item"> <a class="nav-link" id="ratings-deep-dive-tab" data-toggle="tab" href="#stats-ratings-deep-dive" role="tab" aria-controls="stats-ratings-deep-dive" aria-selected="false">Rating Insights</a> </li>
+                        <li class="nav-item"> <a class="nav-link" id="people-tab" data-toggle="tab" href="#stats-people" role="tab" aria-controls="stats-people" aria-selected="false">People</a> </li>
+                        <li class="nav-item"> <a class="nav-link" id="geo-lang-tab" data-toggle="tab" href="#stats-geo-lang" role="tab" aria-controls="stats-geo-lang" aria-selected="false">Country & Language</a> </li>
+                        <li class="nav-item"> <a class="nav-link" id="charts-tab" data-toggle="tab" href="#stats-charts" role="tab" aria-controls="stats-charts" aria-selected="false">Charts</a> </li>
+                        <li class="nav-item"> <a class="nav-link" id="recommendations-tab" data-toggle="tab" href="#stats-recommendations" role="tab" aria-controls="stats-recommendations" aria-selected="false">Suggestions</a> </li>
+                    </ul>
+                    <div class="tab-content" id="statsTabContent">
+                        <div class="tab-pane fade show active" id="stats-summary" role="tabpanel" aria-labelledby="summary-tab">
+                            <div class="row">
+                                <div class="col-md-6 stats-section">
+                                    <h6>Overall Summary</h6>
+                                    <p><strong>Total Entries:</strong> <span id="statsTotalEntries">0</span></p>
+                                    <p><strong>Total Titles Watched:</strong> <span id="statsTotalTitlesWatched">0</span></p>
+                                    <p><strong>Total Watch Instances:</strong> <span id="statsTotalWatchInstances">0</span></p>
+                                    <p><strong>Average Overall Rating: </strong> <span id="statsAvgOverallRating">N/A</span></p>
+                                </div>
+                                <div class="col-md-6 stats-section">
+                                    <h6>Entries by Category</h6>
+                                    <ul id="statsByCategory" class="list-group list-group-flush"></ul>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 stats-section">
+                                    <h6>Entries by Status</h6>
+                                    <ul id="statsByStatus" class="list-group list-group-flush"></ul>
+                                </div>
+                                <div class="col-md-6 stats-section">
+                                    <h6>Top 5 Rated Genres (Overall)</h6>
+                                    <ol id="statsTopRatedGenresOverall" class="list-group list-group-flush"></ol>
+                                </div>
+                            </div>
+                             <div class="stats-section mt-4">
+                                <h6>Your Achievements!</h6>
+                                <div id="achievementBadges" class="d-flex flex-wrap justify-content-center">
+                                    <!-- Badges will be dynamically loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="stats-progress" role="tabpanel" aria-labelledby="progress-tab">
+                             <div class="stats-section">
+                                <h6>Your Watchlist Progress</h6>
+                                <p><strong>"To Watch" List Progress:</strong> <span id="statsToWatchCompletion">0%</span></p>
+                                <div class="progress">
+                                    <div id="toWatchProgressBar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <p class="mt-2"><strong>Watched:</strong> <span id="watchedCountProgress">0</span> / <span id="totalRelevantCountProgress">0</span></p>
+                                <hr>
+                                <h6>Watch Pace</h6>
+                                <p><strong>Average entries per month (last 12 months):</strong> <span id="avgMonthlyPace">N/A</span></p>
+                                <p><strong>Estimated time to finish 'To Watch' list:</strong> <span id="estimatedCompletionTime">N/A</span></p>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="stats-temporal" role="tabpanel" aria-labelledby="temporal-tab">
+                            <div class="stats-section">
+                                <h6>Watch Activity by Year</h6>
+                                <p class="small text-muted">Based on individual watch instance dates.</p>
+                                <div id="statsWatchesByYear" class="table-responsive" style="max-height: 300px;">
+                                    <table class="table table-sm table-bordered">
+                                        <thead><tr><th>Year</th><th>Watch Instances</th><th>Unique Titles Watched</th><th>Avg. Rating This Year</th></tr></thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="stats-section mt-4">
+                                <h6>Recent Monthly Watch Activity</h6>
+                                <p class="small text-muted">Based on individual watch instance dates.</p>
+                                <div id="statsWatchesByMonth" class="table-responsive" style="max-height: 300px;">
+                                    <table class="table table-sm table-bordered">
+                                        <thead><tr><th>Month</th><th>Watch Instances</th><th>Unique Titles Watched</th></tr></thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="stats-genre-deep-dive" role="tabpanel" aria-labelledby="genre-deep-dive-tab">
+                            <div class="row">
+                                <div class="col-md-6 stats-section"><h6>Most Frequent Single Genres</h6><ol id="statsTopSingleGenres" class="list-group list-group-flush" style="max-height: 250px; overflow-y:auto;"></ol></div>
+                                <div class="col-md-6 stats-section"><h6>Top 10 Average Rated Genres</h6><ol id="statsAvgRatingByGenre" class="list-group list-group-flush" style="max-height: 250px; overflow-y:auto;"></ol></div>
+                            </div>
+                            <div class="stats-section mt-3"><h6>Most Frequent Genre Combinations</h6><p class="small text-muted">Considers exact combinations.</p><ol id="statsGenreCombinations" class="list-group list-group-flush"></ol></div>
+                        </div>
+                        <div class="tab-pane fade" id="stats-ratings-deep-dive" role="tabpanel" aria-labelledby="ratings-deep-dive-tab">
+                            <div class="row">
+                                <div class="col-md-6 stats-section"><h6>Distribution of Overall Entry Ratings</h6><ul id="statsByOverallRating" class="list-group list-group-flush"></ul></div>
+                                <div class="col-md-6 stats-section"><h6>Distribution of Individual Watch Ratings</h6><ul id="statsByWatchInstanceRating" class="list-group list-group-flush"></ul></div>
+                            </div>
+                            <div class="stats-section mt-3"><h6>Average Overall Rating by Category</h6><ul id="statsAvgOverallRatingByCategory" class="list-group list-group-flush"></ul></div>
+                             <div class="stats-section mt-3"><h6>Average Overall Rating by Studio (Top 5)</h6><ul id="statsAvgRatingByStudio" class="list-group list-group-flush"></ul></div>
+                        </div>
+                        <div class="tab-pane fade" id="stats-people" role="tabpanel" aria-labelledby="people-tab">
+                            <div class="row">
+                                <div class="col-md-6 stats-section">
+                                    <h6>Most Watched Actors (Top 10)</h6>
+                                    <ol id="statsMostWatchedActors" class="list-group list-group-flush" style="max-height: 300px; overflow-y:auto;"></ol>
+                                </div>
+                                <div class="col-md-6 stats-section">
+                                    <h6>Most Watched Directors (Top 10)</h6>
+                                    <ol id="statsMostWatchedDirectors" class="list-group list-group-flush" style="max-height: 300px; overflow-y:auto;"></ol>
+                                </div>
+                            </div>
+                             <div class="stats-section mt-3">
+                                <h6>Most Frequent Production Companies (Top 10)</h6>
+                                <ol id="statsMostFrequentProductionCompanies" class="list-group list-group-flush" style="max-height: 300px; overflow-y:auto;"></ol>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="stats-geo-lang" role="tabpanel" aria-labelledby="geo-lang-tab">
+                            <div class="row">
+                                <div class="col-md-6 stats-section"><h6>Top Countries of Origin</h6><ol id="statsTopCountries" class="list-group list-group-flush" style="max-height: 250px; overflow-y:auto;"></ol></div>
+                                <div class="col-md-6 stats-section"><h6>Top Original Languages</h6><ol id="statsTopLanguages" class="list-group list-group-flush" style="max-height: 250px; overflow-y:auto;"></ol></div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="stats-charts" role="tabpanel" aria-labelledby="charts-tab">
+                            <div class="row">
+                                <div class="col-md-6 stats-chart-container"><h6>Watch Instances by Year</h6><canvas id="chartWatchInstancesByYear"></canvas></div>
+                                <div class="col-md-6 stats-chart-container"><h6>Entries Watched per Genre (Top 10)</h6><canvas id="chartMoviesPerGenre"></canvas></div>
+                                <div class="col-md-6 stats-chart-container"><h6>Overall Entry Rating Distribution</h6><canvas id="chartOverallRatingDistribution"></canvas></div>
+                                <div class="col-md-6 stats-chart-container"><h6>Individual Watch Rating Distribution</h6><canvas id="chartWatchInstanceRatingDistribution"></canvas></div>
+                                <div class="col-md-6 stats-chart-container"><h6>Entry Status Breakdown</h6><canvas id="chartMovieStatusBreakdown"></canvas></div>
+                                <div class="col-md-6 stats-chart-container"><h6>Language Distribution (Top 10 Watched)</h6><canvas id="chartLanguageDistribution"></canvas></div>
+                                <div class="col-md-6 stats-chart-container"><h6>Country Distribution (Top 10 Watched)</h6><canvas id="chartCountryDistribution"></canvas></div>
+                                <div class="col-md-6 stats-chart-container"><h6>Monthly Watch Activity</h6><canvas id="chartWatchActivityOverTime"></canvas></div>
+                                <div class="col-md-6 stats-chart-container"><h6>Monthly Average Rating</h6><canvas id="chartAvgRatingOverTime"></canvas></div>
+                                <div class="col-md-6 stats-chart-container"><h6>Average Overall Rating by Genre (Radar)</h6><canvas id="chartRatingByGenreRadar"></canvas></div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="stats-recommendations" role="tabpanel" aria-labelledby="recommendations-tab">
+                            <div id="dailyRecommendationSection" class="stats-section">
+                                <!-- Daily recommendation will be injected here by JS -->
+                            </div>
+                            
+                            <hr class="my-4">
+
+                            <div id="personalizedRecommendationsContainer" class="stats-section mt-4">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 id="recommendationsListTitle">Personalized Suggestions</h5>
+           <!--                         {/* The ID for refresh button here should match what JS expects */}
+                         -->           <button id="refreshRecommendationsBtnStats" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-sync-alt"></i> Refresh
+                                    </button>
+                                </div>
+                                <p class="text-muted small">Based on your highly rated entries, genres, keywords, and more.</p>
+                                <div id="recommendationsList" class="list-group">
+          <!--                          {/* Personalized recommendations will be injected here */}
+                       -->             <p class="text-center text-muted p-3">Loading suggestions...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="exportStatsPdfBtn"><i class="fas fa-file-pdf"></i> Export as PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content fade-up">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title" id="confirmDeleteModalLabel">Confirm Deletion</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">&times;</span> </button>
+          </div>
+          <div class="modal-body">
+            <p id="deleteModalMessage">Are you sure you want to permanently delete this entry? This action cannot be undone.</p>
+            <div id="batchDeleteOptions" style="display:none;">
+                <p>Delete selected entries from:</p>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="deleteScope" id="deleteLocalOnly" value="local" checked>
+                    <label class="form-check-label" for="deleteLocalOnly">Local Cache Only</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="deleteScope" id="deleteCloudOnly" value="cloud">
+                    <label class="form-check-label" for="deleteCloudOnly">Cloud Only</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="deleteScope" id="deleteBoth" value="both">
+                    <label class="form-check-label" for="deleteBoth">Both Local and Cloud</label>
+                </div>
+            </div>
+          </div>
+          <div class="modal-footer"> <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button> <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button> </div>
+        </div>
+      </div>
+    </div>
+    <!-- Duplicate Name Confirmation Modal -->
+    <div class="modal fade" id="duplicateNameConfirmModal" tabindex="-1" role="dialog" aria-labelledby="duplicateNameConfirmModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content fade-up">
+          <div class="modal-header bg-warning text-dark">
+            <h5 class="modal-title" id="duplicateNameConfirmModalLabel">Duplicate Name Detected</h5>
+            <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">&times;</span> </button>
+          </div>
+          <div class="modal-body"> An entry with this name already exists. Do you want to save this new/edited entry with the same name?</div>
+          <div class="modal-footer"> <button type="button" class="btn btn-secondary" id="cancelDuplicateSaveBtn" data-dismiss="modal">Cancel</button> <button type="button" class="btn btn-primary" id="confirmDuplicateSaveBtn">Save Anyway</button> </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Erase Data Confirmation Modal -->
+    <div class="modal fade" id="confirmEraseDataModal" tabindex="-1" role="dialog" aria-labelledby="confirmEraseDataModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md" role="document"> 
+            <div class="modal-content fade-up">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="confirmEraseDataModalLabel">Confirm Erase Data</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Warning:</strong> This action cannot be undone for the selected scope.</p>
+                    <div class="form-group">
+                        <label for="eraseDataScope">Choose what to erase:</label>
+                        <select class="form-control" id="eraseDataScope">
+                            <option value="local">Erase Local Device Cache Only</option>
+                            <option value="cloud">Erase Cloud Account Data Only</option>
+                            <option value="both">Erase From Both Local Cache and Cloud Account</option>
+                        </select>
+                    </div>
+                    <p id="eraseScopeWarning" class="text-danger small"></p>
+                    <p>Are you absolutely sure you want to proceed?</p>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-secondary" id="checkRepairDataBtn"><i class="fas fa-tools"></i> Check & Repair Data</button>
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger" id="confirmEraseDataBtn">Erase Selected Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Batch Edit Modal -->
+    <div class="modal fade" id="batchEditModal" tabindex="-1" role="dialog" aria-labelledby="batchEditModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content fade-up">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="batchEditModalLabel">Batch Edit Selected Entries</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <form id="batchEditForm">
+                        <p>Only fill fields you want to change for the <strong id="batchEditCount">0</strong> selected entries. Leave fields blank to keep existing values.</p>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="batchEditCategory">Category</label>
+                                <select id="batchEditCategory" class="form-control form-control-sm">
+                                    <option value="">-- No Change --</option>
+                                    <option value="Movie">Movie</option>
+                                    <option value="Series">Series</option>
+                                    <option value="Documentary">Documentary</option>
+                                    <option value="Special">Special</option>
+                                </select>
+                            </div>
+                             <div class="form-group col-md-6">
+                                <label for="batchEditLanguage">Language (ISO Code)</label>
+                                <input type="text" class="form-control form-control-sm" id="batchEditLanguage" placeholder="e.g., en, hi">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="batchEditYear">Year of Release</label>
+                                <input type="number" class="form-control form-control-sm" id="batchEditYear" min="1888" max="2100" placeholder="e.g. 2023">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="batchEditCountry">Country of Origin (ISO Code)</label>
+                                <input type="text" class="form-control form-control-sm" id="batchEditCountry" placeholder="e.g. US, IN">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Apply Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container for notifications -->
+    <div class="toast-container">
+      <div id="appToast" class="toast hide fade-up" role="alert" aria-live="assertive" aria-atomic="true" data-delay="3500">
+        <div class="toast-header">
+            <strong class="mr-auto" id="toastTitle">Notification</strong>
+            <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close"> <span aria-hidden="true">&times;</span> </button>
+        </div>
+        <div class="toast-body" id="toastBody"> Message here. </div>
+      </div>
+    </div>
+
+    <!-- Base libraries first -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- Custom JS modules - ensure correct order -->
+    <script src="js/first.js">
+</script>
+    <script src="js/second.js"></script>
+    <script src="js/third.js"></script>
+   
+    <script src="js/fourth.js"></script>
+    <script src="js/fifth.js"></script> 
+    <script src="js/sixth.js"></script>
+</body>
+</html>

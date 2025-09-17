@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#8a2be2">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/x-icon" href="/media/favicon.ico">
+
+<title>Nishant Adhikari</title>
+<style>
+:root {
+    --bg-color: #f0f2f5;
+    --text-color: #1c1e21;
+    --card-bg: rgba(255, 255, 255, 0.75); /* --- OPTIMIZATION: Increased opacity slightly --- */
+    --border-color: rgba(0, 0, 0, 0.1);
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --accent-color: #1877f2;
+    --accent-text: #ffffff;
+    --link-color: #1877f2;
+}
+[data-theme="dark"] {
+    --bg-color: #121212;
+    --text-color: #e5e5e5;
+    --card-bg: rgba(28, 28, 30, 0.8); /* --- OPTIMIZATION: Increased opacity slightly --- */
+    --border-color: rgba(255, 255, 255, 0.15);
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --accent-color: #64b5f6;
+    --accent-text: #121212;
+    --link-color: #64b5f6;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+    overflow-x: hidden;
+}
+.background-gradient {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: -1;
+    background: linear-gradient(45deg, #ff00ff, #00ffff, #ffc800, #ff00ff);
+    background-size: 400% 400%;
+    /* --- PERFORMANCE OPTIMIZATION: Removed expensive animation and reduced blur --- */
+    filter: blur(40px);
+    opacity: 0.3;
+    /* --- PERFORMANCE OPTIMIZATION: Hint to use GPU --- */
+    transform: translateZ(0); 
+}
+[data-theme="dark"] .background-gradient {
+    opacity: 0.4;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: var(--card-bg);
+    /* --- PERFORMANCE OPTIMIZATION: Reduced blur radius --- */
+    backdrop-filter: blur(5px);
+    border-bottom: 1px solid var(--border-color);
+}
+.logo { font-weight: bold; font-size: 2rem; }
+.menu-toggle { display: none; font-size: 1.5rem; cursor: pointer; }
+nav { display: flex; gap: 1rem; }
+nav a { text-decoration: none; color: var(--text-color); font-weight: bold; cursor: pointer; padding: 0.5rem; border-radius: 5px; transition: background-color 0.2s; }
+nav a:hover { background-color: rgba(0,0,0,0.1); }
+@media (max-width: 700px) {
+    nav { display: none; flex-direction: column; background: var(--card-bg); position: absolute; top: 50px; right: 0; width: 200px; padding: 1rem; box-shadow: 0 4px 8px rgba(0,0,0,0.2); border-radius: 0 0 0 8px; }
+    nav.show { display: flex; }
+    .menu-toggle { display: block; }
+}
+.search-bar { text-align: center; margin: 1rem; }
+.search-bar input { padding: 0.75rem; width: 80%; max-width: 400px; border-radius: 20px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-color); font-size: 1em; }
+
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
+}
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    /* --- PERFORMANCE OPTIMIZATION: Reduced blur radius --- */
+    backdrop-filter: blur(5px);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    cursor: pointer;
+    /* --- PERFORMANCE OPTIMIZATION: Animate only transform --- */
+    transition: transform 0.2s ease-out;
+    /* --- PERFORMANCE OPTIMIZATION: Hint to the browser about upcoming animation --- */
+    will-change: transform;
+    display: flex;
+    flex-direction: column;
+}
+.card:hover { 
+    transform: translateY(-5px); 
+    box-shadow: 0 8px 24px var(--shadow-color); 
+}
+
+.card img { 
+      width: 100%; 
+      height: 100%; 
+      aspect-ratio: 1/1; 
+      object-fit: fill;
+}
+
+.card-body { padding: 1rem; display: flex; flex-direction: column; flex-grow: 1; }
+.card-body h3 { margin-top: 0; margin-bottom: 0.5rem; }
+.card-body p { margin-top: 0; font-size: 0.9em; flex-grow: 1; color: var(--text-color); opacity: 0.8; }
+.status-badge { display: inline-block; padding: 4px 12px; border-radius: 15px; font-size: 0.8em; font-weight: 500; margin-bottom: 0.5rem; }
+.status-completed { background-color: #4caf50; color: white; }
+.status-continue { background-color: #ff9800; color: white; }
+.status-planned { background-color: #f44336; color: white; }
+.card-button { display: block; padding: 10px 15px; background-color: var(--accent-color); color: var(--accent-text); text-decoration: none; border-radius: 8px; font-weight: bold; text-align: center; margin-top: 10px; transition: opacity 0.2s; }
+.card-button:hover { opacity: 0.85; }
+
+footer { text-align: center; padding: 1rem; background: var(--card-bg); margin-top: 1rem; backdrop-filter: blur(5px); border-top: 1px solid var(--border-color); }
+
+/* Modal Styles */
+.modal { display: none; position: fixed; z-index: 2000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); justify-content: center; align-items: center; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal-content { background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; border-radius: 12px; position: relative; animation: slideIn 0.3s ease-out; box-shadow: 0 8px 32px var(--shadow-color); }
+@keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.close-btn { position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 24px; font-weight: bold; }
+.modal-content a { color: var(--link-color); }
+
+/* --- REIMAGINED TEAM MODAL STYLES --- */
+.team-card { background: transparent; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem; border: 1px solid var(--border-color); }
+.team-card:last-child { margin-bottom: 0; }
+.team-card-header { display: flex; align-items: center; gap: 1rem; }
+.team-card-header img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent-color); }
+.team-card-identity h3 { margin: 0; font-size: 1.5rem; }
+.team-card-identity p { margin: 0; font-weight: bold; color: var(--accent-color); opacity: 0.9; }
+.team-card-bio { margin: 0; padding-top: 0.5rem; border-top: 1px solid var(--border-color); }
+.interest-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.tag { background-color: var(--accent-color); color: var(--accent-text); padding: 4px 12px; border-radius: 15px; font-size: 0.8em; font-weight: 500; }
+.social-links { display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color); }
+.social-links img { width: 28px; height: 28px; transition: transform 0.2s; }
+.social-links a:hover img { transform: scale(1.2); }
+[data-theme="dark"] .social-links img { filter: invert(1) brightness(1.5); }
+
+/* Modal Content & Forms */
+#projectDetailContent h2, #teamContent h2, #aboutContent h2, #contactContent h2 { margin-top: 0; }
+.detail-button { display: inline-block; width: 100%; box-sizing: border-box; padding: 10px 20px; background-color: var(--accent-color); color: var(--accent-text); text-decoration: none; border-radius: 5px; font-weight: bold; text-align: center; margin-top: 1rem; transition: background-color 0.2s; border: none; cursor: pointer; }
+.detail-button:hover { opacity: 0.9; }
+.project-meta { font-size: 0.9em; margin: 0.5rem 0; }
+.team-member-link { font-weight: bold; color: var(--link-color); cursor: pointer; text-decoration: underline; }
+#emailForm { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
+#emailForm input, #emailForm textarea { padding: 0.75rem; border-radius: 5px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-color); font-family: inherit; font-size: 1em; }
+.contact-socials { display: flex; justify-content: center; gap: 1.5rem; padding: 1rem 0; }
+.contact-socials img { width: 28px; height: 28px; transition: transform 0.2s; }
+.contact-socials a:hover img { transform: scale(1.2); }
+[data-theme="dark"] .contact-socials img { filter: invert(1); }
+hr { border: none; height: 1px; background-color: var(--border-color); margin: 1.5rem 0; }
+#projectDetailImage { 
+width: 100%; border-radius: 8px; margin-bottom: 1rem; 
+}
+</style>
+</head>
+<body>
+<div class="background-gradient"></div>
+
+<header>
+    <div class="logo">Nishant </div>
+    <div class="menu-toggle" id="menuToggle" aria-label="Menu">☰</div>
+    <nav id="navMenu">
+        <a id="themeToggle" aria-label="Toggle Theme">🌓 Theme</a>
+        <a id="ourTeamBtn">Our Team</a>
+        <a id="aboutBtn">About</a>
+        <a id="contactBtn">Contact</a>
+    </nav>
+</header>
+
+<div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search projects..." aria-label="Search Projects">
+</div>
+
+<main>
+    <section class="projects-grid" id="projectsGrid"></section>
+</main>
+
+<footer>
+    <p>&copy; 2025 Nishant Adhikari</p>
+</footer>
+
+<!-- Modals (HTML structure is unchanged) -->
+<div class="modal" id="teamModal"><div class="modal-content"><span class="close-btn">&times;</span><div id="teamContent"></div></div></div>
+<div class="modal" id="projectModal"><div class="modal-content"><span class="close-btn">&times;</span><div id="projectDetailContent"></div></div></div>
+<div class="modal" id="aboutModal"><div class="modal-content"><span class="close-btn">&times;</span><div id="aboutContent">
+<h2>About This Site</h2>
+<p>Welcome to my personal website. This is a curated collection of my web development projects, showcasing my skills and passion for creating clean, functional, and user-friendly web experiences.</p>
+<p>Each project represents a step in my learning journey. Feel free to explore, and don't hesitate to get in touch!</p>
+</div></div></div>
+
+<div class="modal" id="contactModal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <div id="contactContent">
+            <h2>Get in Touch</h2>
+            <p>Connect with me on social media or send an email directly.</p>
+            <div class="contact-socials" id="contactSocials"></div>
+            <hr>
+            <form id="emailForm">
+                <input type="text" id="emailName" placeholder="Your Name" required>
+                <input type="email" id="emailUser" placeholder="Your Email (for context)" required>
+                <textarea id="emailMessage" placeholder="Your Message" rows="4" required></textarea>
+                <button type="submit" class="detail-button">Send via Email</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// --- JAVASCRIPT IS UNCHANGED FROM THE PREVIOUS VERSION ---
+document.addEventListener('DOMContentLoaded', () => {
+    const projectsGrid = document.getElementById('projectsGrid');
+    const searchInput = document.getElementById('searchInput');
+    let projectsData = [];
+    let teamData = [];
+
+    // --- MODAL & NAVIGATION ELEMENTS ---
+    const modals = {
+        team: document.getElementById('teamModal'),
+        project: document.getElementById('projectModal'),
+        about: document.getElementById('aboutModal'),
+        contact: document.getElementById('contactModal')
+    };
+    const contentAreas = {
+        team: document.getElementById('teamContent'),
+        project: document.getElementById('projectDetailContent'),
+        contactSocials: document.getElementById('contactSocials')
+    };
+    document.getElementById('themeToggle').addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        applyTheme(current === 'dark' ? 'light' : 'dark');
+    });
+    document.getElementById('ourTeamBtn').addEventListener('click', () => showTeamModal());
+    document.getElementById('aboutBtn').addEventListener('click', () => modals.about.style.display = 'flex');
+    document.getElementById('contactBtn').addEventListener('click', () => openContactModal());
+    document.getElementById('menuToggle').addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.getElementById('navMenu').classList.toggle('show');
+    });
+    
+    // --- THEME ---
+    const applyTheme = (theme) => {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+    };
+    applyTheme(localStorage.getItem('theme') || 'dark');
+
+    // --- DATA FETCHING ---
+    Promise.all([
+        fetch('data/projects.json').then(res => res.json()),
+        fetch('data/teams.json').then(res => res.json())
+    ]).then(([projects, teams]) => {
+        projectsData = projects;
+        teamData = teams;
+        loadProjects();
+    }).catch(error => console.error("Failed to load data:", error));
+
+    // --- PROJECT LOADING & SORTING ---
+    function calculateScore(project) {
+        let score = 0;
+        const statusPoints = { 'completed': 3, 'continue': 2, 'planned': 1 };
+        score += statusPoints[project.status.toLowerCase()] || 0;
+        if (project.keywords.map(k => k.toLowerCase()).includes('javascript')) score += 2;
+        if (project.image && !project.image.includes('default')) score += 1;
+        return score;
+    }
+
+    function loadProjects(filter = "") {
+        const lowerCaseFilter = filter.toLowerCase();
+        let filtered = projectsData.filter(p =>
+            p.name.toLowerCase().includes(lowerCaseFilter) ||
+            p.keywords.some(k => k.toLowerCase().includes(lowerCaseFilter))
+        );
+        
+        filtered.sort((a, b) => calculateScore(b) - calculateScore(a));
+
+        if (!filtered.length) {
+            projectsGrid.innerHTML = `<p>No projects found.</p>`;
+            return;
+        }
+
+        const projectsHTML = filtered.map(p => {
+            const statusClass = `status-${p.status.toLowerCase()}`;
+            return `
+            <div class="card" data-slug="${p.slug}">
+                <img src="${p.image || 'media/default.png'}" alt="${p.name}" loading="lazy">
+                <div class="card-body">
+                    <div>
+                        <h3>${p.name}</h3>
+                        <span class="status-badge ${statusClass}">${p.status}</span>
+                        <p>${p.tagline}</p>
+                    </div>
+                    <a href="${p.link}" target="_blank" rel="noopener noreferrer" class="card-button">Open</a>
+                </div>
+            </div>`;
+        }).join('');
+        projectsGrid.innerHTML = projectsHTML;
+    }
+    searchInput.addEventListener('input', e => loadProjects(e.target.value));
+
+    // --- TEAM MODAL & SINGLE MEMBER VIEW ---
+    function getMemberCardHTML(member) {
+        const socialLinksHTML = Object.entries(member.socialLinks)
+            .map(([platform, url]) => (url && url !== '#') ? `
+                <a href="${url}" target="_blank" rel="noopener noreferrer" title="${platform}">
+                    <img src="media/${platform.toLowerCase()}.svg" alt="${platform} icon">
+                </a>` : '').join('');
+
+        const interestHTML = member.interest && member.interest.length > 0
+            ? `<div class="interest-tags">${member.interest.map(skill => `<span class="tag">${skill}</span>`).join('')}</div>` : '';
+
+        return `
+            <div class="team-card">
+                <div class="team-card-header">
+                    <img src="${member.avatar}" alt="${member.name}">
+                    <div class="team-card-identity">
+                        <h3>${member.name}</h3>
+                        <p>${member.title || member.role}</p>
+                    </div>
+                </div>
+                <p class="team-card-bio">${member.bio}</p>
+                ${interestHTML}
+                <div class="social-links">${socialLinksHTML}</div>
+            </div>`;
+    }
+
+    function showTeamModal(memberId = null) {
+        let modalContentHTML;
+        if (memberId) {
+            const member = teamData.find(m => m.id === memberId);
+            if (member) modalContentHTML = getMemberCardHTML(member);
+        } else {
+            const allMembersHTML = teamData.map(getMemberCardHTML).join('');
+            modalContentHTML = `<h2>Our Team</h2>${allMembersHTML}`;
+        }
+        contentAreas.team.innerHTML = modalContentHTML;
+        modals.team.style.display = 'flex';
+    }
+
+    // --- PROJECT DETAIL MODAL ---
+    projectsGrid.addEventListener('click', e => {
+        if (e.target.classList.contains('card-button')) return;
+        const card = e.target.closest('.card');
+        if (!card) return;
+        const project = projectsData.find(p => p.slug === card.dataset.slug);
+        if (!project) return;
+        
+        const teamMembersHTML = project.team_ids.map(id => {
+            const member = teamData.find(m => m.id === id);
+            return member ? `<span class="team-member-link" data-id="${id}">${member.name}</span>` : '';
+        }).join(', ');
+
+        contentAreas.project.innerHTML = `
+            <img id="projectDetailImage" src="${project.image || 'media/default.png'}" alt="Thumbnail">
+            <h2>${project.name}</h2>
+            <p><em>${project.tagline}</em></p>
+            <hr>
+            <p>${project.description}</p>
+            <div class="project-meta">
+                <p><strong>Status:</strong> ${project.status}</p>
+                <p><strong>Team:</strong> ${teamMembersHTML}</p>
+                <p><strong>Keywords:</strong> ${project.keywords.join(', ')}</p>
+            </div>
+            <a href="${project.link}" target="_blank" rel="noopener noreferrer" class="detail-button">Open Project</a>`;
+        modals.project.style.display = 'flex';
+    });
+
+    // --- EVENT DELEGATION FOR TEAM MEMBER LINKS ---
+    modals.project.addEventListener('click', e => {
+        if (e.target.classList.contains('team-member-link')) {
+            const memberId = e.target.dataset.id;
+            modals.project.style.display = 'none'; // Hide project modal
+            showTeamModal(memberId); // Show team modal with single member
+        }
+    });
+
+    // --- CONTACT MODAL ---
+    function openContactModal() {
+        const founder = teamData.find(m => m.role.toLowerCase() === 'founder');
+        if (founder) {
+            contentAreas.contactSocials.innerHTML = Object.entries(founder.socialLinks).map(([k,v]) =>
+                v && v !== '#'?`<a href="${v}" target="_blank" title="${k}"><img src="media/${k}.svg" alt="${k}"></a>`:''
+            ).join('');
+        }
+        modals.contact.style.display = 'flex';
+    }
+    
+    document.getElementById('emailForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const name = document.getElementById('emailName').value;
+        const userEmail = document.getElementById('emailUser').value;
+        const message = document.getElementById('emailMessage').value;
+        const mailtoLink = `mailto:nshntdhkr@gmail.com?subject=${encodeURIComponent(`Contact from nishantadhikari.info.np - ${name}`)}&body=${encodeURIComponent(`Name: ${name}\nFrom: ${userEmail}\n\nMessage:\n${message}`)}`;
+        window.location.href = mailtoLink;
+        modals.contact.style.display = 'none';
+        e.target.reset();
+    });
+
+    // --- GLOBAL MODAL CLOSING LOGIC ---
+    function closeModal(modal) { modal.style.display = 'none'; }
+    Object.values(modals).forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal || e.target.classList.contains('close-btn')) {
+                closeModal(modal);
+            }
+        });
+    });
+    window.addEventListener('click', e => {
+        const navMenu = document.getElementById('navMenu');
+        if (navMenu.classList.contains('show') && !navMenu.contains(e.target) && e.target !== document.getElementById('menuToggle')) {
+            navMenu.classList.remove('show');
+        }
+    });
+});
+
+// --- PWA SERVICE WORKER REGISTRATION ---
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('ServiceWorker registered'))
+        .catch(err => console.log('ServiceWorker registration failed:', err));
+    });
+}
+</script>
+
+</body>
+</html>

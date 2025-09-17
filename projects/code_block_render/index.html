@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Block Renderer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 20px 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #4CAF50;
+            text-align: center;
+        }
+        .controls-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            margin: 5px;
+        }
+        #renderBtn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        #renderBtn:hover {
+            background-color: #45a049;
+        }
+        #pasteBtn {
+            background-color: #5bc0de;
+            color: white;
+        }
+        #pasteBtn:hover {
+            background-color: #31b0d5;
+        }
+        #clearBtn {
+            background-color: #f0ad4e;
+            color: white;
+        }
+        #clearBtn:hover {
+            background-color: #ec971f;
+        }
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: #555;
+            cursor: pointer;
+            font-size: 1.2em;
+            padding: 5px;
+            margin-left: 10px;
+            transition: transform 0.3s ease;
+        }
+        .toggle-btn.rotate {
+            transform: rotate(180deg);
+        }
+        .input-wrapper {
+            max-height: 400px;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            background-color: #f8f8f8;
+        }
+        .input-wrapper.collapsed {
+            max-height: 0;
+            border: none;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            font-family: monospace;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+        .output-container-wrapper {
+            position: relative;
+            max-height: 600px;
+            overflow: auto;
+            transition: max-height 0.5s ease-out;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .output-container-wrapper.collapsed {
+            max-height: 0;
+            border: none;
+        }
+        #output {
+            padding: 20px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.6;
+        }
+        .instructions {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 5px solid #007bff;
+            margin-bottom: 20px;
+        }
+        .toggle-label {
+            font-size: 14px;
+        }
+        .copy-button-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        #copyBtn {
+            background-color: #337ab7;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            display: none; /* Initially hidden */
+        }
+        #copyBtn:hover {
+            background-color: #286090;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>AI Code Block Renderer ✨</h1>
+    <div class="instructions">
+        <p>This tool renders and cleans up AI-generated text. Use the controls to paste, clear, and render the text. The rendered output can be edited directly and collapsed to save space. </p>
+        <p>The **Auto-Paste** toggle enables pasting text from your clipboard automatically when you click the text area or use Ctrl+V/Cmd+V.</p>
+    </div>
+    
+    <div class="controls-container">
+        <button id="pasteBtn" class="button">Paste</button>
+        <button id="clearBtn" class="button">Clear</button>
+        <button id="renderBtn" class="button">Render</button>
+        <div style="display: flex; align-items: center; margin-left: auto;">
+            <label class="toggle-label">Auto-Paste</label>
+            <input type="checkbox" id="autoPasteToggle">
+        </div>
+    </div>
+    
+    <div id="inputWrapper" class="input-wrapper">
+        <textarea id="input" placeholder="Paste your code block here..."></textarea>
+    </div>
+
+    <div class="controls-container">
+        <h2>Rendered Output</h2>
+        <button id="toggleRenderBtn" class="toggle-btn">▼</button>
+    </div>
+    <div id="outputWrapper" class="output-container-wrapper">
+        <div class="copy-button-container">
+            <button id="copyBtn">Copy</button>
+        </div>
+        <div id="output" contenteditable="true"></div>
+    </div>
+</div>
+
+<script>
+    const pasteBtn = document.getElementById('pasteBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const renderBtn = document.getElementById('renderBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const toggleRenderBtn = document.getElementById('toggleRenderBtn');
+    const autoPasteToggle = document.getElementById('autoPasteToggle');
+    const input = document.getElementById('input');
+    const outputWrapper = document.getElementById('outputWrapper');
+    const output = document.getElementById('output');
+
+    pasteBtn.addEventListener('click', pasteContent);
+    clearBtn.addEventListener('click', clearContent);
+    renderBtn.addEventListener('click', renderContent);
+    copyBtn.addEventListener('click', copyOutput);
+    toggleRenderBtn.addEventListener('click', toggleRenderField);
+    
+    input.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'v' || e.metaKey && e.key === 'v') {
+            if (autoPasteToggle.checked) {
+                setTimeout(renderContent, 100); 
+            }
+        }
+    });
+
+    autoPasteToggle.addEventListener('change', () => {
+        if (autoPasteToggle.checked) {
+            input.addEventListener('paste', handleAutoPaste);
+            input.addEventListener('click', handleAutoPasteClick);
+        } else {
+            input.removeEventListener('paste', handleAutoPaste);
+            input.removeEventListener('click', handleAutoPasteClick);
+        }
+    });
+
+    function handleAutoPaste(e) {
+        if (autoPasteToggle.checked) {
+            e.preventDefault();
+            navigator.clipboard.readText().then(text => {
+                input.value = text;
+                renderContent();
+            }).catch(err => {
+                console.error('Failed to read clipboard:', err);
+            });
+        }
+    }
+
+    function handleAutoPasteClick() {
+        if (autoPasteToggle.checked) {
+            navigator.clipboard.readText().then(text => {
+                if (text) {
+                    input.value = text;
+                    renderContent();
+                }
+            }).catch(err => {
+                console.error('Failed to read clipboard:', err);
+            });
+        }
+    }
+
+    function pasteContent() {
+        navigator.clipboard.readText().then(text => {
+            input.value = text;
+        }).catch(err => {
+            console.error('Failed to read clipboard:', err);
+            alert('Could not paste. Please use Ctrl+V or Cmd+V to paste.');
+        });
+        renderContent()
+    }
+
+    function clearContent() {
+        input.value = '';
+        output.innerHTML = '';
+        copyBtn.style.display = 'none';
+    }
+
+    function renderContent() {
+        const inputText = input.value;
+        let escapedInput = inputText.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        
+        const lines = escapedInput.split('\n');
+        let renderedLines = [];
+        
+        lines.forEach(line => {
+            let processedLine = line;
+            
+            if (processedLine.startsWith('###')) {
+                processedLine = `<h4>${processedLine.substring(3).trim()}</h4>`;
+            } else if (processedLine.startsWith('##')) {
+                processedLine = `<h3>${processedLine.substring(2).trim()}</h3>`;
+            } else if (processedLine.startsWith('#')) {
+                processedLine = `<h2>${processedLine.substring(1).trim()}</h2>`;
+            }
+            
+            if (processedLine.trim() === '---' || processedLine.trim() === '***') {
+                processedLine = '<hr>';
+            }
+
+            processedLine = processedLine.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            if (processedLine.trim().startsWith('* ') || processedLine.trim().startsWith('- ')) {
+                processedLine = processedLine.trim().substring(2);
+                processedLine = `&bull; ${processedLine}`;
+            }
+
+            if (processedLine.includes('|')) {
+                processedLine = processedLine.replace(/\|/g, '&nbsp;&nbsp;&nbsp;&nbsp;');
+            }
+
+            renderedLines.push(processedLine);
+        });
+        
+        output.innerHTML = renderedLines.join('<br>');
+        copyBtn.style.display = 'block'; // Show the copy button after rendering
+        copyOutput()
+    }
+
+    function copyOutput() {
+        const range = document.createRange();
+        range.selectNodeContents(output);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        
+        try {
+            document.execCommand('copy');
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+            alert('Could not copy text. Please select and copy manually.');
+        }
+        selection.removeAllRanges();
+    }
+
+    function toggleRenderField() {
+        outputWrapper.classList.toggle('collapsed');
+        toggleRenderBtn.classList.toggle('rotate');
+    }
+</script>
+
+</body>
+</html>

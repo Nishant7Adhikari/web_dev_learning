@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PWA Icon Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Vibrant playful styles -->
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4, #fad390, #a18cd1, #fbc2eb, #84fab0, #8fd3f4);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+    @keyframes gradientBG {
+      0% {background-position:0% 50%}
+      50% {background-position:100% 50%}
+      100% {background-position:0% 50%}
+    }
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+      background: rgba(255,255,255,0.9);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+    input[type="file"] {
+      margin: 20px 0;
+      padding: 10px;
+      border: 2px dashed #666;
+      border-radius: 10px;
+      background: #f7f7f7;
+      cursor: pointer;
+    }
+    .preview {
+      margin: 20px auto;
+    }
+    canvas {
+      margin: 10px;
+      border-radius: 10px;
+      background: #eee;
+    }
+    .btn {
+      display: inline-block;
+      margin: 8px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #fff;
+      font-weight: bold;
+      transition: transform 0.2s ease;
+    }
+    .btn:hover {
+      transform: scale(1.05);
+    }
+    .btn-download { background: #ff6f61; }
+    .btn-zip { background: #28a745; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎨 PWA Icon Generator</h1>
+    <p>Upload an image and download PWA icons in multiple sizes.</p>
+    <input type="file" id="upload" accept="image/*"><br>
+    <div id="preview" class="preview"></div>
+    <button class="btn btn-zip" id="downloadAll" style="display:none;">⬇️ Download All as ZIP</button>
+  </div>
+
+  <!-- JSZip for ZIP downloads -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script>
+    const sizes = [48, 72, 96, 128, 144, 192, 256, 384, 512];
+    const upload = document.getElementById('upload');
+    const preview = document.getElementById('preview');
+    const downloadAllBtn = document.getElementById('downloadAll');
+
+    upload.addEventListener('change', handleImage);
+
+    function handleImage(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const img = new Image();
+      const reader = new FileReader();
+      reader.onload = evt => {
+        img.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+
+      img.onload = () => {
+        preview.innerHTML = '';
+        sizes.forEach(size => {
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0,0,size,size);
+          ctx.drawImage(img, 0, 0, size, size);
+
+          const container = document.createElement('div');
+          container.style.display = "inline-block";
+          container.style.margin = "10px";
+          container.style.textAlign = "center";
+
+          container.appendChild(canvas);
+
+          const btn = document.createElement('a');
+          btn.className = 'btn btn-download';
+          btn.textContent = `Download ${size}x${size}`;
+          btn.download = `icon-${size}x${size}.png`;
+          btn.href = canvas.toDataURL("image/png");
+          container.appendChild(document.createElement('br'));
+          container.appendChild(btn);
+
+          preview.appendChild(container);
+        });
+        downloadAllBtn.style.display = 'inline-block';
+        downloadAllBtn.onclick = () => downloadAll(img);
+      };
+    }
+
+    async function downloadAll(img) {
+      const zip = new JSZip();
+      for (let size of sizes) {
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0,0,size,size);
+        ctx.drawImage(img, 0, 0, size, size);
+        const data = canvas.toDataURL("image/png").split(',')[1];
+        zip.file(`icon-${size}x${size}.png`, data, {base64: true});
+      }
+      const content = await zip.generateAsync({type:"blob"});
+      saveAs(content, "pwa-icons.zip");
+    }
+  </script>
+</body>
+</html>
