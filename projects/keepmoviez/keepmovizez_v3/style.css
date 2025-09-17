@@ -1,0 +1,1648 @@
+css
+/*style.css*/
+
+       /*css start*/
+* {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+}
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+html {
+    font-size: 100%;
+    -webkit-text-size-adjust: 100%;
+}
+
+
+
+  :root {
+  --body-bg-gradient-start: #F9F9F9;
+  --body-bg-gradient-end: #FaFaFa;
+  --body-text-color: #303030;
+
+  --card-bg: #f0f0f0;
+  --navbar-bg: #2C3E50; /* Midnight Blue for navbar in light theme */
+  --navbar-border: #E0E0E0;
+  --table-header-bg: #EAEAEA;
+  --table-border-color: #D6D6D6;
+
+  --input-bg: #d2d2d2;
+  --input-focus-bg: #F0F0F2;
+
+  --tdcolor: #555555;
+  --table-header-color: #303030;
+  --modal-title: #a2d5f3;
+
+  --primary-color: #007B8A;
+  --primary-hover-color: #00636E;
+  --secondary-color: #d72462;
+  --secondary-hover-color: #4A5D6F; 
+  
+  --info-color: #00b0ff;
+  --info-hover-color: #0094cc;
+  --success-color: #00ff94;
+  --success-text-color: #0A0A0A;
+  --warning-color: #ffc107;
+  --warning-text-color: #1C1C1C;
+  --danger-color: #ff1744;
+  --danger-hover-color: #d50032;
+
+  --box-shadow-subtle: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --input-shadow-inset-1: inset 1px 1px 3px rgba(0, 0, 0, 0.04);
+  --input-shadow-inset-2: inset -1px -1px 3px rgba(255, 255, 255, 0.7);
+  --shadow-light-focus: 0 0 0 3px rgba(93, 138, 168, 0.3);
+  --button-shadow-1: rgba(0, 0, 0, 0.05);
+  --button-shadow-2: rgba(255, 255, 255, 0.6);
+
+  --toast-header-success: var(--success-color);
+  --toast-header-danger: var(--danger-color);
+  --toast-header-warning: var(--warning-color);
+  --toast-header-info: var(--info-color);
+  --toast-header-primary: var(--primary-color);
+
+  --link-color: var(--primary-color); /* Links use primary color */
+  --link-hover-color: var(--primary-hover-color);
+
+
+  --border-radius-lg: 1.25rem;
+  --border-radius-md: 0.875rem;
+  --border-radius-sm: 0.5rem;
+  --border-radius-xs: 0.25rem;
+
+  /* Theme Toggle Button Colors (Light Theme) */
+  --theme-toggle-bg-light: #f0f0f0; /* Light grey for the button background */
+  --theme-toggle-icon-light: var(--secondary-color); /* Midnight blue icon in light theme */
+
+  --selected-row-bg: #b8daff; /* Light blue for selected rows in light theme */
+  --selected-row-text: #004085;
+}
+
+/**********************************/
+/**********************************/
+/**********************************/
+/**********************************/
+
+.dark-theme {
+  --body-bg-gradient-start: #2A2A2A;
+  --body-bg-gradient-end: #1E1E1E;
+  --body-text-color: #F0F0F0;
+
+  --card-bg: #3C3C3C;
+  --navbar-bg: #1E1E1E; /* Very dark grey for navbar in dark theme */
+  --navbar-border: #4A4A4A;
+  --table-bg: var(--card-bg);
+  --table-header-bg: #2B2B2B;
+  --tdcolor: #DDDDDD;
+  --table-header-color: #FFFFFF;
+  --table-border-color: #555555;
+  --modal-title: #283745;
+
+  --input-bg: #2F2F2F;
+  --input-focus-bg: #3A3A3A;
+
+  --primary-color: #007B8A;
+  --primary-hover-color: #00636E;
+  --secondary-color: #d72462;
+  --secondary-hover-color: #4A5D6F;
+
+  --info-color: #00b0ff;
+  --info-hover-color: #0094cc;
+  --success-color: #00ff94;
+  --success-text-color: #0A0A0A;
+  --warning-color: #ffc107;
+  --warning-text-color: #1C1C1C;
+  --danger-color: #ff1744;
+  --danger-hover-color: #d50032;
+
+  --box-shadow-subtle: 0 4px 12px rgba(0, 0, 0, 0.08); /* Dark theme subtle shadow */
+  --input-shadow-inset-1: inset 1px 1px 3px rgba(0, 0, 0, 0.2); /* Darker inset shadow */
+  --input-shadow-inset-2: inset -1px -1px 3px rgba(255, 255, 255, 0.1); /* Darker inset highlight */
+  --shadow-light-focus: 0 0 0 3px rgba(109, 218, 218, 0.3); /* Teal focus glow for dark theme */
+  --button-shadow-1: rgba(0, 0, 0, 0.3); /* Dark theme button shadow */
+  --button-shadow-2: rgba(255, 255, 255, 0.05); /* Dark theme button highlight */
+
+  --toast-header-success: #00ff94;
+  --toast-header-danger: #ff1744;
+  --toast-header-warning: #ffc107;
+  --toast-header-info: #00b0ff;
+  --toast-header-primary: #f59e0b;
+
+  --link-color: var(--primary-color);
+  --link-hover-color: var(--primary-hover-color);
+
+  /* Theme Toggle Button Colors (Dark Theme) */
+  --theme-toggle-bg-dark: #686868; /* Dark grey, matches table header bg */
+  --theme-toggle-icon-dark: #95f5ff; /* Gold/Orange icon in dark theme */
+
+  --selected-row-bg: #2a5270; /* Darker blue for selected rows in dark theme */
+  --selected-row-text: #e0f2fe;
+}
+
+
+body {
+    background: linear-gradient(to bottom right, var(--body-bg-gradient-start), var(--body-bg-gradient-end));
+    color: var(--body-text-color);
+    font-family: "Poppins", sans-serif;
+    padding-top: 70px; /* Make space for the fixed top navbar */
+    padding-bottom: 70px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+/* Typography Polish */
+h1,
+h2,
+h3 {
+    font-weight: 700;
+}
+h4,
+h5,
+h6 {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+p {
+    line-height: 1.6;
+}
+/* ==== Navbar ==== */
+.navbar.fixed-top {
+    height: auto; /* Allow height to adjust based on content */
+    min-height: 50px; /* Ensure a minimum height */
+    background-color: var(--navbar-bg) !important;
+    border-bottom: 1px solid var(--navbar-border);
+    z-index: 1030;
+    padding-top: 0.5rem;    /* Add some padding */
+    padding-bottom: 0.5rem; /* Add some padding */
+    display: flex;          /* Use flexbox for alignment */
+    flex-wrap: wrap;        /* Allow items to wrap on smaller screens */
+    justify-content: space-between; /* Space out brand and controls */
+    align-items: center;    /* Vertically align items */
+}
+.navbar-brand {
+    color: var(--primary-color) !important;
+    font-weight: 900;
+    font-size: 1.5rem;
+    margin-right: auto; /* Push other items to the right */
+}
+
+/* Styling for the right-aligned items in navbar */
+.navbar .ml-auto { /* This is the div holding email, logout, theme toggle */
+    display: flex;
+    align-items: center;
+    flex-shrink: 0; /* Prevent this group from shrinking too much */
+}
+
+#loggedInUserEmail {
+    font-size: 0.8rem;   /* Make email text smaller */
+    margin-right: 0.75rem; /* Space before logout button */
+    color: var(--body-text-color); /* Use body text color for better theme consistency */
+    white-space: nowrap;   /* Prevent email from wrapping */
+    overflow: hidden;      /* Hide overflow if too long */
+    text-overflow: ellipsis; /* Show ellipsis if too long */
+    max-width: 150px;      /* Max width for email before ellipsis on small screens */
+}
+.dark-theme #loggedInUserEmail {
+    color: var(--body-text-color); /* Ensure correct color in dark theme */
+}
+
+/* Online Status Indicator */
+#onlineStatusIndicator {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    margin-right: 0.5rem;
+    line-height: 1; /* Adjust for better vertical alignment */
+}
+
+#onlineStatusIndicator.badge-success {
+    background-color: #28a745 !important; /* Standard Bootstrap green */
+    color: white;
+}
+
+#onlineStatusIndicator.badge-danger {
+    background-color: #dc3545 !important; /* Standard Bootstrap red */
+    color: white;
+}
+
+#supabaseLogoutBtnMain,
+#themeToggleBtn {
+    flex-shrink: 0; /* Prevent buttons from shrinking */
+}
+
+/* Ensure #fthis (brand text) doesn't cause overflow issues on its own */
+#fthis {
+   font-size: 1.5rem; /* Adjusted for balance */
+   white-space: nowrap;
+}
+
+/* Specific adjustments for theme toggle to ensure it's visually distinct and properly placed */
+#themeToggleBtn {
+   /* Removed absolute positioning */
+   margin-left: 0.5rem; /* Add some space if next to logout */
+   background-color: var(--theme-toggle-bg-light) !important;
+   color: var(--theme-toggle-icon-light) !important;
+   border: none !important;
+   box-shadow: 3px 3px 6px var(--button-shadow-1), -3px -3px 6px var(--button-shadow-2) !important;
+   padding: 0.4rem 0.6rem !important;
+   font-size: 1rem !important;
+   border-radius: var(--border-radius-md) !important;
+   transition: all 0.2s ease-in-out !important;
+}
+
+
+.fixed-bottom-nav {
+    height: 70px;
+    position: fixed;
+    bottom: 0;
+    left:0; /* ensure it spans full width */
+    right:0; /* ensure it spans full width */
+    width: 100%;
+    background-color: var(--navbar-bg);
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.08); /* More prominent shadow for bottom nav */
+    z-index: 1040;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    padding: 0 15px; /* Add some padding for smaller screens */
+}
+.fixed-bottom-nav .btn {
+    font-size: 1.1rem;
+    padding: 10px 20px;
+    border-radius: var(--border-radius-md) !important; /* Shadow handled by theme variables */
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+    transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.fixed-bottom-nav .btn:hover {
+    transform: translateY(-3px); /* Slightly more pronounced lift for the main action button */
+    box-shadow: var(--box-shadow-subtle); /* Use subtle shadow variable for general buttons */
+    background-color: var(--primary-hover-color);
+    border-color: var(--primary-hover-color);
+}
+.dark-theme .fixed-bottom-nav .btn:hover {
+    /* Use a stronger shadow for dark theme, if --shadow-dark-outer is not defined */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Multi-select action bar styles */
+.multi-select-actions-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Align items to the start */
+    gap: 10px; /* Space between buttons */
+    padding: 0 10px; /* Padding inside the bar */
+}
+
+.multi-select-actions-bar .btn {
+    font-size: 0.9rem; /* Smaller font for action bar buttons */
+    padding: 8px 15px; /* Adjust padding */
+}
+
+/* Center the add new entry button if action bar is not visible */
+.fixed-bottom-nav.center-add-btn #addNewEntryBtn {
+    margin: 0 auto; /* Center the button */
+}
+
+
+/*== Content & Control Panel ==*/
+.initial-upload-section {
+    padding-top: 70px;
+    margin-top: 50px;
+}
+/* Card-like elements */
+.row.mb-3.align-items-center.p-3, /* Control panel */ .stats-section, /* Stats modal sections */ .stats-chart-container, /* Stats modal chart containers */ .recommendation-item {
+    /* Recommendation items */
+    border-radius: var(--border-radius-md);
+    background-color: var(--card-bg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Transition for theme change */
+}
+/* Re-applying margin for the first control panel row as it overrides the default row margin */
+.row.mb-3.align-items-center {
+    margin-bottom: 1.5rem !important;
+}
+/* ==== Table Styling ==== */
+.table-responsive {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 50px; /* Adjusted to stick right below the fixed navbar */
+    z-index: 100;
+    max-height: calc(100vh - 50px - 70px - 20px); /* Adjust max-height accordingly (Navbar height + Bottom nav height + some margin) */
+    overflow-y: auto;
+    overflow-x: auto;
+    background-color: transparent; /* Match body gradient underneath */
+    margin-top: 20px;
+    border-radius: var(--border-radius-md);
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+.table-responsive.active-drag-scroll {
+    cursor: grabbing;
+}
+.table {
+    background-color: var(--table-bg);
+    width: 100%;
+    margin-bottom: 0;
+    border-radius: var(--border-radius-md); /* Ensure table inside also has radius */
+    transition: background-color 0.3s ease;
+}
+.table thead th {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0; /* Stays sticky to the top of its parent, which is now 50px from viewport top */
+    z-index: 10;
+    background-color: var(--table-header-bg);
+    border-bottom: 1px solid var(--table-border-color) !important; /* Important to override bootstrap */
+    font-weight: 600;
+    color: var(--table-header-color);
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    white-space: nowrap; /* Prevent headers from wrapping */
+}
+/* Interactive Table Enhancements */
+.table-hover tbody tr:hover:not(.selected) { /* Don't apply hover if already selected */
+    background-color: var(--warning-color);
+    color: var(--warning-text-color); /* Ensure text is readable on hover */
+    cursor: pointer;
+    transition: background-color 0.1s ease, color 0.1s ease; /* Quick hover feedback */
+}
+.table tbody tr.selected {
+    background-color: var(--selected-row-bg) !important;
+    color: var(--selected-row-text) !important;
+}
+.table tbody tr.selected td {
+    color: var(--selected-row-text) !important;
+}
+
+.table td,
+.table th {
+    border-color: var(--table-border-color) !important;
+    padding: 0.8rem;
+    transition: border-color 0.3s ease;
+}
+/* Sort icons in table headers */
+.table th i.fas {
+    margin-left: 5px;
+    font-size: 0.8em;
+    opacity: 0.6;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.table td{
+    color: var(--tdcolor);
+}
+.table th:hover i.fas {
+    opacity: 1;
+    transform: scale(1.1);
+}
+/* Watch Later Button */
+.watch-later-btn {
+    opacity: 1; /* Hidden by default */
+    transition: opacity 0.2s ease-in-out;
+}
+
+tr:hover .watch-later-btn {
+    opacity: 1; /* Show on row hover */
+}
+/* ==== Input Fields & Buttons (Neumorphic) ==== */
+.form-control,
+#genreInputContainer {
+    border-radius: var(--border-radius-sm);
+    border: none;
+    background-color: var(--input-bg);
+    color: var(--body-text-color);
+    padding: 0.75rem 1rem; /* Adjust padding for better look */
+    min-height: calc(1.5em + 1.5rem); /* Bootstrap default is smaller, ensure consistency */
+}
+.form-control:focus,
+.custom-file-label:focus,
+#genreInputContainer.focus-within {
+    border-color: transparent;
+    background-color: var(--input-focus-bg);
+    outline: none;
+    box-shadow: var(--shadow-light-focus);
+    color: var(--body-text-color);
+}
+.form-control::placeholder {
+    color: var(--body-text-color);
+    opacity: 0.7;
+}
+.form-control {
+    color: var(--body-text-color);
+}
+.dark-theme select.form-control {
+    color: var(--body-text-color);
+}
+/* Custom file input label fix */
+.custom-file-label {
+    line-height: normal; /* Override Bootstrap line-height for custom file input */
+}
+#genreInputContainer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    overflow-x: hidden;
+    min-height: calc(1.5em + 2em); /* Maintain Bootstrap's min-height */
+    cursor: text;
+}
+#genreSearchInput {
+    border: none !important; /* Remove individual border for search input inside dropdown */
+    box-shadow: none !important; /* Remove individual shadow for search input inside dropdown */
+    background-color: transparent !important; /* Transparent background */
+    padding: 0.375rem 0.75rem !important; /* Match default input padding */
+    height: auto;
+    color: var(--body-text-color);
+    transition: none; /* No transition for this specific input */
+}
+#genreSearchInput:focus {
+    background-color: transparent !important;
+    outline: none;
+    box-shadow: none !important;
+}
+.btn {
+    border-radius: var(--border-radius-md) !important;
+    transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    border: none !important; /* Remove Bootstrap's default border */
+    font-weight: 500;
+    color: white; /* Default to white text for primary/success/info */
+    white-space: nowrap; /* Prevent button text from wrapping too early */
+}
+.btn:hover {
+    transform: translateY(-2px); /* Subtle lift effect */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Stronger general shadow on hover */
+}
+.dark-theme .btn:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+/* Adjusting specific button colors to the new scheme */
+.btn-primary {
+    background-color: var(--primary-color);
+}
+.btn-primary:hover {
+    background-color: var(--primary-hover-color);
+}
+.btn-secondary {
+    background-color: var(--secondary-color);
+}
+.btn-secondary:hover {
+    background-color: var(--secondary-hover-color);
+}
+.btn-success {
+    background-color: var(--success-color);
+    color: var(--success-text-color);
+}
+.btn-success:hover {
+    background-color: var(--success-color);
+}
+.btn-info {
+    background-color: var(--info-color);
+}
+.btn-info:hover {
+    background-color: var(--info-hover-color);
+}
+.btn-danger {
+    background-color: var(--danger-color);
+}
+.btn-danger:hover {
+    background-color: var(--danger-hover-color);
+}
+.btn-warning {
+    background-color: var(--warning-color);
+    color: var(--warning-text-color);
+}
+.btn-warning:hover {
+    background-color: var(--warning-color);
+}
+.btn-outline-primary {
+    border-color: var(--primary-color) !important;
+    color: var(--primary-color) !important;
+    background-color: transparent;
+}
+.btn-outline-primary:hover {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+}
+.btn-outline-info {
+    border-color: var(--info-color) !important;
+    color: var(--info-color) !important;
+    background-color: transparent !important;
+}
+.btn-outline-info:hover {
+    background-color: var(--info-color) !important;
+    color: white !important;
+}
+.btn-outline-danger {
+    border-color: var(--danger-color) !important;
+    color: var(--danger-color) !important;
+    background-color: transparent;
+}
+
+.btn-outline-danger:hover {
+    background-color: var(--danger-color) !important;
+    color: white !important;
+}
+/* Cute Buttons with Icon Animations */
+.btn i {
+    transition: transform 0.15s ease; /* Subtle icon animation */
+}
+.btn:hover i {
+    transform: scale(1.1) rotate(2deg); /* Slightly less dramatic */
+}
+/* More prominent for primary action buttons */
+#addNewEntryBtn i {
+    transition: transform 0.2s ease;
+}
+#addNewEntryBtn:hover i {
+    transform: scale(1.2) rotate(5deg);
+}
+/* Small Buttons (e.g. table actions) */
+.btn-sm {
+    padding: 0.25rem 0.6rem; /* Adjust padding for sm buttons */
+    font-size: 0.85rem;
+    border-radius: 0.75rem !important; /* Slightly less rounded than full buttons */
+    box-shadow: 3px 3px 6px var(--button-shadow-1), -3px -3px 6px var(--button-shadow-2); /* Smaller shadow */
+}
+.btn-sm:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1); /* Lighter hover shadow for sm buttons */
+}
+.dark-theme .btn-sm:hover {
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+/* ==== Modals & Toasts ==== */
+.modal-content {
+    border-radius: var(--border-radius-lg);
+    border: none;
+    background-color: var(--card-bg);
+    animation: fadeUp 0.3s ease-out;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+.modal-header {
+    background-color: var(--primary-color);
+    color: white;
+    border-top-left-radius: var(--border-radius-lg);
+    border-top-right-radius: var(--border-radius-lg);
+    border-bottom: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+.modal-header .close {
+    color: white;
+    opacity: 0.9;
+    text-shadow: none;
+    transition: opacity 0.15s ease, color 0.15s ease;
+}
+.modal-header .close:hover {
+    opacity: 1;
+}
+/* Ensure close button is visible on warning header in both themes */
+.modal-header.bg-warning .close {
+    color: var(--warning-text-color) !important;
+}
+/* Modals that use specific Bootstrap background colors in their header */
+.modal-header.bg-primary { background-color: var(--primary-color) !important; color: white !important;}
+.modal-header.bg-secondary { background-color: var(--secondary-color) !important; color: white !important;}
+.modal-header.bg-success { background-color: var(--success-color) !important; color: var(--success-text-color) !important;}
+.modal-header.bg-info { background-color: var(--info-color) !important; color: white !important;}
+.modal-header.bg-danger { background-color: var(--danger-color) !important; color: white !important;}
+.modal-header.bg-warning { background-color: var(--warning-color) !important; color: var(--warning-text-color) !important;}
+
+.modal-footer {
+    border-top: none;
+    background-color: var(--card-bg); /* Match modal body */
+    border-bottom-left-radius: var(--border-radius-lg);
+    border-bottom-right-radius: var(--border-radius-lg);
+    transition: background-color 0.3s ease;
+}
+/* Toast Notifications */
+.toast-container {
+position: absolute;
+z-index: 9999;
+    top: 20px;
+    right: 20px;
+    color: black;
+}
+.toast {
+    border-radius: var(--border-radius-sm);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    animation: fadeUp 0.3s ease-out;
+    transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+.toast-header {
+    font-weight: 600;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    /* Added to align items when a button is present dynamically */
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Distribute items */
+    padding-right: 0.75rem; /* Ensure padding for the main close button */
+}
+.toast-header .close { /* Style for original Bootstrap close button */
+    margin-left: auto; /* Push to the right */
+    padding: 0; /* Remove default padding for Bootstrap close */
+    line-height: 1; /* Adjust line height to prevent misalignment */
+    font-size: 1.25rem; /* Larger icon for better click target */
+}
+
+/* Specific styling for the 'do not show again' button */
+.toast-header .dynamic-toast-buttons .btn-link {
+    font-size: 0.9rem; /* Smaller font for icon */
+    padding: 0;
+    margin-right: 0.5rem; /* Space between dynamic button and main close button */
+    /* text-decoration: none; */ /* Ensure no underline */
+}
+.toast.bg-success .toast-header {
+    background-color: var(--toast-header-success);
+    color: var(--success-text-color);
+}
+.toast.bg-danger .toast-header {
+    background-color: var(--toast-header-danger);
+    color: white;
+}
+.toast.bg-warning .toast-header {
+    background-color: var(--toast-header-warning);
+    color: var(--warning-text-color); /* Corrected from text-dark to use variable */
+}
+.toast.bg-info .toast-header {
+    background-color: var(--toast-header-info);
+    color: white;
+}
+.toast.bg-primary .toast-header {
+    background-color: var(--toast-header-primary);
+    color: white;
+}
+.toast-header .close {
+    color: inherit;
+    opacity: 1;
+}
+/* TMDB Poster in Details Modal */
+.tmdb-details-poster {
+    width: 100%;
+    max-width: 150px;
+    height: auto;
+    display: block;
+    margin: 0 auto 15px auto;
+    border-radius: 5px; /* Smaller radius for image */
+    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1), -3px -3px 6px rgba(255, 255, 255, 0.8); /* Subtle shadow for image */
+    transition: box-shadow 0.3s ease;
+}
+.dark-theme .tmdb-details-poster {
+    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.1);
+}
+/* Genre Tags */
+.genre-tag {
+    background-color: var(--primary-color);
+    color: white; /* Ensure text is white for primary color */
+    border-radius: var(--border-radius-xs);
+    padding: 0.25em 0.7em;
+    font-weight: 500;
+    display: inline-flex; /* To align close button */
+    align-items: center;
+    margin: 0.25rem; /* Small margin between tags */
+    transition: background-color 0.15s ease, transform 0.15s ease;
+}
+.genre-tag:hover {
+    transform: translateY(-1px);
+    background-color: var(--primary-hover-color);
+}
+.genre-tag .close {
+    font-size: 1rem;
+    margin-left: 0.4rem;
+    color: inherit; /* Inherit color from tag */
+    opacity: 0.8;
+    transition: opacity 0.15s ease;
+}
+.genre-tag .close:hover {
+    opacity: 1;
+}
+/* Watch History Items */
+.watch-history-item,
+.details-watch-history li {
+    background-color: var(--card-bg);
+    border: 1px solid var(--table-border-color);
+    border-radius: 0.5rem;
+    padding: 10px 15px;
+    margin-bottom: 0.5rem; /* Space between items */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+#addWatchInstanceForm {
+    border: 1px dashed var(--primary-color);
+    background-color: var(--table-header-bg);
+    border-radius: var(--border-radius-sm);
+    padding: 1rem;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+/* Statistics Modal (Charts & Recommendations) */
+.stats-tab-content {
+    padding-top: 1rem;
+}
+.stats-section h6 {
+    border-bottom: 1px solid var(--table-border-color);
+    color: var(--primary-color);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    transition: border-color 0.3s ease, color 0.3s ease;
+}
+.stats-chart-container {
+    background-color: var(--table-bg);
+    padding: 1rem;
+    border-radius: var(--border-radius-md);
+    margin-bottom: 1.5rem;
+    min-height: 280px;
+    height: 300px; /* Fixed height for charts to prevent growing */
+    position: relative; /* For absolute positioning of message */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+.stats-chart-container canvas {
+    height: 100% !important; /* Ensure canvas fills container */
+    width: 100% !important; /* Ensure canvas fills container */
+}
+
+/* NEW CSS for stats modal lists to ensure dark theme compatibility */
+.stats-section .list-group-item {
+    background-color: var(--card-bg);
+    color: var(--body-text-color);
+    border-color: var(--table-border-color);
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Override for 'list-group-flush' style lists (e.g., top rated genres in summary) */
+.stats-section .list-group-flush .list-group-item {
+    background-color: transparent;
+    border: none;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+
+/* Style for message when chart has no data */
+.chart-no-data-message {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    font-style: italic;
+    text-align: center;
+    width: 100%;
+    position: absolute; /* Center within the container */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.stats-chart-container canvas {
+    max-width: 100%;
+    max-height: 100%;
+    display: block; /* Ensure canvas takes up space and behaves */
+}
+/* Recommendation Item Styling */
+.recommendation-item {
+    border: 1px solid var(--table-border-color);
+    background-color: var(--table-bg);
+    border-radius: var(--border-radius-sm);
+    margin-bottom: 1rem;
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.recommendation-item h6 {
+    color: var(--info-color);
+}
+.recommendation-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.dark-theme .recommendation-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+/* Scrollbars */
+::-webkit-scrollbar {
+    width: 8px; /* Vertical scrollbar width */
+    height: 8px; /* Horizontal scrollbar height */
+}
+::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Light track background */
+    border-radius: 5px;
+}
+.dark-theme::-webkit-scrollbar-track {
+    background: #2d3748; /* Dark track background */
+}
+::-webkit-scrollbar-thumb {
+    background: var(--info-color);
+    border-radius: 5px;
+    border: 1px solid var(--navbar-bg); /* Border to stand out from track */
+    transition: background 0.3s ease, border-color 0.3s ease;
+}
+.dark-theme::-webkit-scrollbar-thumb {
+    border: 1px solid var(--navbar-bg);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, var(--info-hover-color), var(--primary-hover-color));
+}
+/* Link colors for general links */
+a {
+    color: var(--link-color);
+    transition: color 0.15s ease;
+}
+a:hover {
+    color: var(--link-hover-color);
+    text-decoration: none; /* Keep links clean */
+}
+/* ==== Micro-Interactions & Animations ==== */ /* Fade-Up for modals and toasts (intentional, not global) */
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.fade-up {
+    animation: fadeUp 0.3s ease-out forwards; /* Faster and stays in end state */
+}
+/* Star Rating Icons */
+.star-rating i.fas {
+    color: #ffd700; /* Gold color for filled stars */
+    transition: color 0.1s ease;
+}
+.star-rating i.far {
+    color: #cccccc; /* Gray for empty stars */
+    transition: color 0.1s ease;
+}
+.dark-theme .star-rating i.far {
+    color: #6b7280; /* Darker gray for empty stars in dark theme */
+}
+/* Bootstrap Nav Tabs Customization */
+.nav-tabs .nav-link {
+    color: var(--secondary-color); /* Default tab text color */
+    background-color: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-right: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-weight: 500;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+.nav-tabs .nav-link:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+.nav-tabs .nav-link.active {
+    color: var(--primary-color);
+    background-color: transparent;
+    border-color: var(--primary-color) !important;
+    font-weight: 600;
+}
+.nav-tabs .nav-link.active:focus {
+    outline: none;
+    box-shadow: none;
+}
+.modal-body .nav-tabs {
+    border-bottom: 1px solid var(--table-border-color); /* Border for tab group */
+}
+/* ==== Responsive Layout Adjustments ==== */
+@media (max-width: 768px) { /* Adjusted breakpoint for better control */
+    .navbar.fixed-top {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    .navbar-brand {
+        font-size: 1.2rem; /* Slightly smaller brand on mobile */
+        margin-right: 0.5rem; /* Reduce margin to give more space */
+    }
+    #fthis { /* The brand text itself */
+        font-size: 1.2rem;
+    }
+    #loggedInUserEmail {
+        max-width: 100px; /* Further restrict email width on small screens */
+        font-size: 0.7rem;
+        margin-right: 0.5rem;
+    }
+    #onlineStatusIndicator {
+        display: none; /* Hide status indicator on smaller screens to save space */
+    }
+    #supabaseLogoutBtnMain, #themeToggleBtn {
+        padding: 0.3rem 0.5rem !important; /* Smaller padding for buttons */
+        font-size: 0.8rem !important;  /* Smaller font for buttons */
+    }
+    #supabaseLogoutBtnMain i, #themeToggleBtn i {
+        font-size: 0.9em; /* Smaller icons in buttons */
+    }
+
+    .fixed-bottom-nav .btn,
+    .fixed-bottom-nav .multi-select-actions-bar .btn {
+        font-size: 0.8rem; /* Smaller buttons on small screens */
+        padding: 6px 10px;
+        margin: 2px; /* Add small margin for stacked buttons */
+    }
+    .fixed-bottom-nav {
+        flex-wrap: wrap; /* Allow buttons to wrap */
+        height: auto; /* Allow height to adjust to content */
+        padding-bottom: 5px; /* Add some bottom padding */
+    }
+     .multi-select-actions-bar {
+        width: 100%;
+        justify-content: space-around; /* Spread out buttons */
+        padding-bottom: 5px;
+    }
+    #addNewEntryBtn {
+        margin-top: 5px; /* Space if action bar wraps */
+    }
+
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+    /* Ensure columns stack correctly on small screens */
+    .col-md-6,
+    .col-md-4,
+    .col-md-8,
+    .col-md-3 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        margin-bottom: 1rem !important; /* Add some space when stacked */
+    }
+    .input-group {
+        width: 100%;
+        margin-bottom: 1em;
+    }
+    .text-md-right,
+    .justify-content-end {
+        justify-content: center !important;
+        text-align: center !important;
+    }
+    .mr-1,
+    .mr-2,
+    .mr-md-0,
+    .mb-2,
+    .mb-md-0 {
+        margin-right: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    .w-auto {
+        width: 100% !important;
+    }
+    .initial-upload-section {
+        margin-top: 20px;
+        padding-top: 20px;
+    }
+    .table-responsive {
+        top: 10px; /* This might need adjustment if navbar height changes significantly */
+        max-height: calc(100vh - 50px - 70px - 20px - 20px); /* Navbar - BottomNav - TopMargin - ControlPanel Approx */
+    }
+    /* Adjust sticky table for small screens */
+    .stats-chart-container {
+        margin-bottom: 1rem;
+    }
+    .stats-section {
+        padding: 1rem;
+    }
+    /* Reduce padding on small screens */
+    .btn-sm {
+        margin-bottom: 0.5rem;
+    }
+    /* Ensure buttons in row stack */
+    #filterInput {
+        margin-bottom: 0.5rem !important;
+    }
+    /* Filter input needs bottom margin too */
+}
+
+/* Further adjustments for very small screens if needed */
+@media (max-width: 400px) {
+    #loggedInUserEmail {
+        display: none; /* Hide email on very small screens if it still causes issues */
+    }
+    .navbar-brand {
+        font-size: 1rem;
+    }
+    #fthis {
+        font-size: 1rem;
+    }
+}
+
+
+@media (min-width: 1200px) {
+    .container-fluid {
+        max-width: 95%; /* Wider container on large screens */
+    }
+}
+/* Hide Description Column from Main Table (kept as original, no change) */
+.table th:nth-child(2),
+.table td:nth-child(2) {
+    display: none;
+}
+.table th:nth-child(3),
+.table td:nth-child(3) {
+    display: none;
+}
+.table th:nth-child(5),
+.table td:nth-child(5) {
+    display: none;
+}
+.table th:nth-child(6),
+.table td:nth-child(6) {
+    display: none;
+}
+.table th:nth-child(7),
+.table td:nth-child(7) {
+    display: none;
+}
+.table th:nth-child(8),
+.table td:nth-child(8) {
+    display: none;
+}
+.table th:nth-child(4),
+.table td:nth-child(4) {
+    display: none;
+}
+.table th:nth-child(10),
+.table td:nth-child(10) {
+    display: none;
+}
+.table th:nth-child(11),
+.table td:nth-child(11) {
+    display: none;
+}
+.table th:nth-child(12),
+.table td:nth-child(12) {
+    display: none;
+}
+ .table th:nth-child(9),
+.table td:nth-child(9) {
+    display: none;
+}
+
+.modal-body .row > .col-md-3 {
+    overflow: hidden;
+    padding-bottom: 15px;
+}
+.stats-chart-container canvas {
+    max-width: 100%;
+    max-height: 100%;
+}
+.chart-no-data-message {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    font-style: italic;
+    text-align: center;
+    width: 100%;
+}
+/* TMDB search results thumbnail */
+.tmdb-poster-thumb {
+    width: 40px; /* Small thumbnail size */
+    height: auto;
+    border-radius: 3px;
+    margin-right: 10px;
+    display: inline-block;
+    vertical-align: middle;
+}
+.list-group-item.search-results-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    background-color: var(--card-bg);
+    color: var(--body-text-color);
+    transition: background-color 0.15s ease;
+}
+.list-group-item.search-results-item:hover {
+    background-color: var(--table-header-bg); /* Lighter background on hover */
+}
+.list-group-item.search-results-item strong {
+    color: var(--primary-color);
+}
+.list-group-item.search-results-item i {
+    font-size: 0.9em;
+    vertical-align: middle;
+}
+/* Watch History Item in Details Modal (ul li) */
+.details-watch-history ul {
+    list-style: none; /* Remove default bullet points */
+    padding: 0;
+}
+.details-watch-history li {
+    margin-bottom: 0.75rem; /* Space between list items */
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    background-color: var(--table-header-bg);
+/* Slightly different background for sub-items */
+    border: 1px solid var(--table-border-color);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+/* NEW: Loading Overlay Styles */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--card-bg);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1500; /* Ensure it's above everything, including fixed navs (1030, 1040) */
+    transition: opacity 0.3s ease-out; /* Smooth fade in/out */
+    opacity: 99999; /* Initially visible */
+    visibility: visible;
+}
+
+.loading-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none; /* Allows clicks on elements underneath when hidden */
+}
+
+/* Dark theme specific for loading text/spinner if needed, though white usually works */
+.dark-theme .loading-overlay .text-primary {
+    color: var(--primary-color) !important; /* Ensure primary color for spinner */
+}
+/* NEW: Theme Transition Overlay Styles */
+.theme-transition-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Initially transparent and hidden, but will be shown/animated by JS */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none; /* Allows clicks on elements underneath when hidden */
+    z-index: 1051; /* Higher than loadingOverlay (1050) to ensure it's on top */
+    /* Only transition background-color and opacity for the animation effect */
+    transition: background-color 0.4s ease-in-out, opacity 0.4s ease-out, visibility 0.4s;
+}
+
+/* Ensure the overlay is fully visible when activated by JS */
+.theme-transition-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto; /* Block interaction during transition */
+}
+/* END NEW: Theme Transition Overlay Styles */
+
+#detailsModalLabel, #entryModalLabel, #statsModalLabel, #personDetailsModalLabel {
+  color: var(--modal-title);
+}
+
+.modal-title{
+   color: var(--modal-title);
+}
+.table td {
+  transition: color 0.3s ease; /* Explicitly allow color transition */
+}
+/* Ensure theme-transition-overlay retains its own transition */
+.theme-transition-overlay {
+    transition: background-color 0.4s ease-in-out, opacity 0.4s ease-out, visibility 0.4s;
+}
+
+/* Theme Toggle Button Specific Styling (Re-applied to ensure it's not overridden) */
+.dark-theme #themeToggleBtn {
+    background-color: var(--theme-toggle-bg-dark) !important;
+    color: var(--theme-toggle-icon-dark) !important;
+    box-shadow: 3px 3px 6px rgba(0,0,0,0.4), -3px -3px 6px rgba(255,255,255,0.1) !important;
+}
+
+#themeToggleBtn:hover {
+    transform: translateY(-2px) !important;
+    background-color: var(--primary-color) !important;
+    color: white !important;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.dark-theme #themeToggleBtn:hover {
+    background-color: var(--primary-color) !important;
+    color: var(--body-text-color) !important;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+
+/* NEW: Auth Overlay Styles */
+.auth-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom right, var(--body-bg-gradient-start), var(--body-bg-gradient-end));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050; /* Above regular modals */
+    transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
+    color: var(--body-text-color);
+}
+
+.auth-card {
+    background-color: var(--card-bg);
+    padding: 2.5rem;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--box-shadow-subtle);
+    max-width: 450px;
+    width: 90%;
+    animation: fadeUp 0.3s ease-out;
+}
+
+.auth-card .form-control {
+    background-color: var(--input-bg);
+    color: var(--body-text-color);
+}
+.auth-card .btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+.auth-card .btn-primary:hover {
+    background-color: var(--primary-hover-color);
+    border-color: var(--primary-hover-color);
+}
+.auth-card .btn-link {
+    color: var(--link-color);
+}
+.auth-card .btn-link:hover {
+    color: var(--link-hover-color);
+}
+/* Ensure main content is hidden initially */
+#appContent {
+    display: none; /* Controlled by JS after auth */
+}
+
+#passwordSetupSection{
+   height: 100%;
+}
+
+/* Achievement Badges */
+.achievement-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin: 10px;
+    padding: 10px;
+    border-radius: var(--border-radius-md);
+    background-color: var(--table-header-bg);
+    box-shadow: var(--box-shadow-subtle);
+    width: 120px; /* Fixed width */
+    height: 120px; /* Fixed height for consistent layout */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    flex-shrink: 0; /* Prevent shrinking in flex container */
+    color: var(--body-text-color);
+}
+
+.achievement-badge:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.achievement-badge i.fa-trophy {
+    font-size: 2.5rem;
+    color: gold; /* Default gold for trophy */
+    margin-bottom: 5px;
+}
+
+.achievement-badge.locked i.fa-trophy {
+    color: #a0a0a0; /* Grey for locked */
+}
+
+.achievement-badge.locked span {
+    filter: blur(1px); /* Blur locked text */
+}
+
+.achievement-badge span {
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.achievement-badge small {
+    font-size: 0.7em;
+    color: var(--tdcolor);
+}
+
+
+/* Person Details Modal Image */
+.person-profile-img {
+    max-width: 150px;
+    height: auto;
+    border-radius: 50%; /* Circular image */
+    box-shadow: var(--box-shadow-subtle);
+    margin: 0 auto 15px auto; /* Center it */
+}
+
+/* Person Filmography List */
+#personFilmographyList li {
+    margin-bottom: 5px;
+    padding: 5px 0;
+    border-bottom: 1px dashed var(--table-border-color); /* Subtle separator */
+}
+
+#personFilmographyList li:last-child {
+    border-bottom: none;
+}
+.table .actions-cell .watch-later-btn{
+   color: var(--warning-color);
+   
+}
+.mark-watched-btn{
+   color: var(--success-color);
+}
+/* ==== Navbar Adjustments for Hamburger & Search ==== */
+.navbar.fixed-top {
+    min-height: 56px; /* Standard Bootstrap navbar height */
+    flex-wrap: nowrap; /* Prevent wrapping of direct children like toggler, brand, search */
+    justify-content: space-between; /* Ensure toggler is left, brand middle, search right */
+}
+
+.navbar-toggler {
+    border-color: rgba(255,255,255,0.1);
+    margin-right: 0.5rem; /* Space between toggler and brand */
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 0.8)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+.navbar-brand {
+    font-size: 1.4rem; /* Slightly adjust if needed */
+    margin-right: auto; /* Push search to the right */
+    flex-shrink: 0; /* Prevent brand from shrinking too much */
+}
+
+#fthis { /* Brand text */
+   font-size: 1.4rem;
+   white-space: nowrap;
+}
+
+/* Search input in Navbar */
+#filterInputNavbar {
+    max-width: 250px; /* Limit width on larger screens */
+    width: auto; /* Allow to shrink on smaller screens */
+    background-color: var(--input-bg);
+    color: var(--body-text-color);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    padding: 0.375rem 0.75rem; /* Bootstrap sm padding */
+    transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+#filterInputNavbar:focus {
+    background-color: var(--input-focus-bg);
+    box-shadow: var(--shadow-light-focus);
+    color: var(--body-text-color);
+}
+#filterInputNavbar::placeholder {
+    color: var(--body-text-color);
+    opacity: 0.7;
+}
+/* Make sure search bar is always visible even on small screens, adjust as needed */
+.navbar .form-inline {
+    flex-grow: 0; /* Don't let it grow too much if there's space */
+}
+@media (max-width: 768px) {
+    #filterInputNavbar {
+        max-width: 150px; /* Smaller on mobile */
+    }
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+    #fthis {
+        font-size: 1.2rem;
+    }
+}
+
+
+/* --- Off-Canvas Menu Styles --- */
+:root {
+  /* Add these to your existing :root */
+  --offcanvas-bg: var(--card-bg);
+  --offcanvas-text-color: var(--body-text-color);
+  --offcanvas-border-color: var(--table-border-color);
+  --offcanvas-header-bg: var(--navbar-bg);
+  --offcanvas-header-text-color: white;
+  --offcanvas-item-hover-bg: var(--primary-color);
+  --offcanvas-item-hover-text: white;
+  --offcanvas-width: 280px; /* Adjust as needed */
+}
+
+.dark-theme {
+  /* Add these to your existing .dark-theme */
+  --offcanvas-bg: #2E2E2E;
+  --offcanvas-text-color: var(--body-text-color);
+  --offcanvas-border-color: #404040;
+  --offcanvas-header-bg: #1A1A1A;
+  --offcanvas-header-text-color: var(--body-text-color);
+  --offcanvas-item-hover-bg: var(--primary-hover-color);
+  --offcanvas-item-hover-text: white;
+}
+
+.offcanvas-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--offcanvas-width);
+    height: 100vh;
+    background-color: var(--offcanvas-bg);
+    color: var(--offcanvas-text-color);
+    z-index: 1045; /* Higher than navbar, lower than modals */
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; /* For scrollable menu content */
+}
+.offcanvas-menu.show {
+    transform: translateX(0);
+    box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+}
+
+.offcanvas-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 1040; /* Below menu but above main content */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+}
+.offcanvas-backdrop.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.offcanvas-header {
+    background-color: var(--offcanvas-header-bg);
+    color: var(--offcanvas-header-text-color);
+    border-bottom: 1px solid var(--offcanvas-border-color);
+    flex-shrink: 0; /* Prevent header from shrinking */
+}
+.offcanvas-header .close {
+    color: var(--offcanvas-header-text-color);
+    opacity: 0.8;
+    text-shadow: none;
+}
+.offcanvas-header .close:hover {
+    opacity: 1;
+}
+
+.offcanvas-body {
+    flex-grow: 1;
+    overflow-y: auto; /* Enable scrolling for long menus */
+    padding-bottom: 1rem; /* Space at the bottom of scrollable area */
+}
+
+.user-section {
+    border-bottom: 1px solid var(--offcanvas-border-color);
+    flex-shrink: 0;
+}
+#menuLoggedInUserEmail {
+    font-weight: 600;
+    color: var(--primary-color); /* Use primary color to stand out */
+    word-break: break-all; /* Prevent long emails from breaking layout */
+}
+.dark-theme #menuLoggedInUserEmail {
+    color: var(--primary-color); /* Ensure primary color in dark theme too */
+}
+#menuOnlineStatusIndicator.badge-success { background-color: #28a745 !important; color: white; }
+#menuOnlineStatusIndicator.badge-danger { background-color: #dc3545 !important; color: white; }
+
+.offcanvas-menu .list-group-item {
+    background-color: transparent;
+    color: var(--offcanvas-text-color);
+    border: none; /* Remove default bootstrap borders */
+    border-bottom: 1px solid var(--offcanvas-border-color);
+    padding: 0.85rem 1.25rem; /* Consistent padding */
+    font-size: 0.95rem;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+.offcanvas-menu .list-group-item:last-child {
+    border-bottom: none;
+}
+.offcanvas-menu .list-group-item:hover,
+.offcanvas-menu .list-group-item:focus {
+    background-color: var(--offcanvas-item-hover-bg);
+    color: var(--offcanvas-item-hover-text);
+    text-decoration: none;
+}
+.offcanvas-menu .list-group-item.text-danger:hover {
+    background-color: var(--danger-hover-color);
+    color: white; /* Ensure text is readable on danger hover */
+}
+.offcanvas-menu .list-group-item i.fas {
+    width: 20px; /* Align icons */
+    text-align: center;
+    margin-right: 0.75rem !important; /* Ensure space after icon */
+}
+
+.offcanvas-footer {
+    background-color: var(--offcanvas-bg); /* Match menu body */
+    border-top: 1px solid var(--offcanvas-border-color);
+    flex-shrink: 0; /* Prevent footer from shrinking */
+}
+#menuSupabaseLogoutBtn { /* Specific styling for logout button if needed */
+    border-color: var(--warning-color);
+    color: var(--warning-color);
+}
+#menuSupabaseLogoutBtn:hover {
+    background-color: var(--warning-color);
+    color: var(--warning-text-color);
+}
+
+
+/* Adjustments for initial upload message since control panel is gone */
+.initial-upload-section {
+    padding-top: 20px; /* Reduced top padding */
+    margin-top: 20px; /* Reduced top margin */
+}
+
+/* Table responsive top position needs to consider navbar height */
+.table-responsive {
+    top: 56px; /* Standard Bootstrap navbar height */
+    max-height: calc(100vh - 56px - 70px - 20px); /* Navbar height + Bottom nav height + some margin */
+}
+
+
+/* Ensure modals appear above the offcanvas backdrop */
+.modal {
+    z-index: 1050; /* Bootstrap's default is 1050 */
+}
+.modal-backdrop {
+    z-index: 1040; /* This might need to be adjusted if it conflicts with offcanvas backdrop.
+                      Bootstrap's default is 1040. For offcanvas, backdrop is 1040, menu is 1045.
+                      So modals should generally be fine, but check if any issues.
+                      If modals are opened FROM the offcanvas, Bootstrap JS should handle z-indexes. */
+}
+#themeTransitionOverlay {
+    z-index: 1060; /* Ensure theme transition is above modals and offcanvas */
+}
+#loadingOverlay {
+    z-index: 1500; 
+    color: black;/* Still the highest */
+}
+.auth-container {
+    z-index: 1055; /* Above modals, but below loading/theme transition */
+}
+
+/* Ensure menu items with data-toggle="modal" close the menu (JS will handle this, but for cursor: */
+.offcanvas-menu [data-toggle="modal"] {
+    cursor: pointer;
+}
+
+/* Old theme toggle button style - might need to be removed or adapted if #themeToggleBtn is reused */
+/*
+#themeToggleBtn {
+   margin-left: 0.5rem;
+   background-color: var(--theme-toggle-bg-light) !important;
+   color: var(--theme-toggle-icon-light) !important;
+   border: none !important;
+   box-shadow: 3px 3px 6px var(--button-shadow-1), -3px -3px 6px var(--button-shadow-2) !important;
+   padding: 0.4rem 0.6rem !important;
+   font-size: 1rem !important;
+   border-radius: var(--border-radius-md) !important;
+   transition: all 0.2s ease-in-out !important;
+}
+.dark-theme #themeToggleBtn {
+    background-color: var(--theme-toggle-bg-dark) !important;
+    color: var(--theme-toggle-icon-dark) !important;
+    box-shadow: 3px 3px 6px rgba(0,0,0,0.4), -3px -3px 6px rgba(255,255,255,0.1) !important;
+}
+
+#themeToggleBtn:hover {
+    transform: translateY(-2px) !important;
+    background-color: var(--primary-color) !important;
+    color: white !important;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.dark-theme #themeToggleBtn:hover {
+    background-color: var(--primary-color) !important;
+    color: var(--body-text-color) !important;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4) !important;
+}
+*/
+
+/* Specific styling for the theme toggle button if it's inside the menu */
+#menuThemeToggleBtn i.fas {
+    transition: transform 0.3s ease;
+}
+.dark-theme #menuThemeToggleBtn i.fa-sun { /* Example of icon change if needed */
+    /* transform: rotate(180deg); */
+}
+.text-white{
+   color: red;
+}
+
+
+
+
+
+/*css finish*/

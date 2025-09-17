@@ -1,0 +1,67 @@
+[
+  {
+    "id": "steam",
+    "name": "Steam Momo",
+    "description": "Soft, slightly chewy outer dough with a juicy and flavorful filling inside.",
+    "imagePath": "media/steam.jpg",
+    "modalImagePath": "media/Momo_4.jpg",
+    "prices": {
+      "Buff": 120,
+      "Chicken": 150,
+      "Veg": 110,
+      "Pork": 150
+    }
+  },
+  {
+    "id": "fried",
+    "name": "Fried Momo",
+    "description": "Crispy, golden-brown outer layer with a crunchy texture.",
+    "imagePath": "media/fried.png",
+    "modalImagePath": "media/fried.png",
+    "prices": {
+      "Buff": 140,
+      "Chicken": 170,
+      "Veg": 130,
+      "Pork": 170
+    }
+  },
+  {
+    "id": "kothey",
+    "name": "Kothey Momo",
+    "description": "Crispy and golden on one side, soft and juicy on the other.",
+    "imagePath": "media/kothey.jpg",
+    "modalImagePath": "media/kothey.jpg",
+    "prices": {
+      "Buff": 130,
+      "Chicken": 160,
+      "Veg": 120,
+      "Pork": 160
+    }
+  },
+  {
+    "id": "chilli",
+    "name": "Chilli Momo",
+    "description": "Spicy, tangy, and saucy version of momo, bursting with bold flavors.",
+    "imagePath": "media/chilli.png",
+    "modalImagePath": "media/chilli.png",
+    "prices": {
+      "Buff": 180,
+      "Chicken": 200,
+      "Veg": 160,
+      "Pork": 200
+    }
+  },
+  {
+    "id": "jhol",
+    "name": "Jhol Momo",
+    "description": "Warms your day with spicy, tangy, and slightly creamy soup (jhol).",
+    "imagePath": "media/jholmomo.jpeg",
+    "modalImagePath": "media/jholmomo.jpeg",
+    "prices": {
+      "Buff": 165,
+      "Chicken": 185,
+      "Veg": 150,
+      "Pork": 185
+    }
+  }
+]

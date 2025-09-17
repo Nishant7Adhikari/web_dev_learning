@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wishlist Pro</title>
+    <meta name="description" content="A powerful, offline-first wishlist and goal planning application.">
+    
+    <!-- PWA and Mobile Theming -->
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1e1e1e" media="(prefers-color-scheme: dark)">
+
+    <!-- External Stylesheets -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="css.css">
+    <style>
+       /* Wishlist Pro - Vibrant & Colorful Redesign */
+
+/* --- 1. FONTS & ROOT VARIABLES --- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Color Palette (Light Theme) */
+  --c-primary: #0077ff;
+  --c-primary-light: #e6f2ff;
+  --c-accent: #ff2d88;
+  --c-accent-light: #ffeaf3;
+  --c-background: #f0f2f5;
+  --c-surface: #ffffff;
+  --c-text-primary: #0f172a;
+  --c-text-secondary: #64748b;
+  --c-border: #e2e8f0;
+  --c-success: #10b981;
+  --c-shadow: rgba(140, 152, 169, 0.15);
+
+  /* Sizing & Typography */
+  --font-family: 'Poppins', sans-serif;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --shadow-sm: 0 2px 4px var(--c-shadow);
+  --shadow-md: 0 4px 12px var(--c-shadow);
+  --shadow-lg: 0 10px 30px var(--c-shadow);
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+[data-theme="dark"] {
+  --c-primary: #389bff;
+  --c-primary-light: #1f3a5a;
+  --c-accent: #ff5c9d;
+  --c-accent-light: #522234;
+  --c-background: #121212;
+  --c-surface: #1e1e1e;
+  --c-text-primary: #e4e6eb;
+  --c-text-secondary: #a8b3cf;
+  --c-border: #3a3b3c;
+  --c-success: #16a34a;
+  --c-shadow: rgba(0, 0, 0, 0.25);
+}
+
+/* --- 2. GENERAL STYLES & RESETS --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--c-background);
+  color: var(--c-text-primary);
+  line-height: 1.6;
+  font-size: 16px;
+  transition: background-color 0.3s, color 0.3s;
+  padding-top: 80px; /* Space for fixed top nav */
+  padding-bottom: 90px; /* Space for fixed bottom nav */
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--c-text-primary);
+}
+
+h2 { font-size: clamp(1.5rem, 4vw, 2rem); }
+h3 { font-size: clamp(1.1rem, 3vw, 1.25rem); }
+
+a {
+  color: var(--c-primary);
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* --- 3. LAYOUT & NAVIGATION --- */
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.top-nav, .bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  background-color: var(--c-surface);
+  box-shadow: var(--shadow-md);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+}
+
+.top-nav {
+  top: 0;
+  height: 60px;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.bottom-nav {
+  bottom: 0;
+  height: 70px;
+  border-top: 1px solid var(--c-border);
+  padding: 0 1.5rem;
+}
+
+.total-price {
+  font-weight: 600;
+  background-image: linear-gradient(45deg, var(--c-primary), var(--c-accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.total-price span:first-child {
+    color: var(--c-text-secondary);
+    font-weight: 500;
+    margin-right: 0.25rem;
+}
+
+/* --- 4. BUTTONS & CONTROLS --- */
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-text-secondary);
+  font-size: 1.2rem;
+  transition: var(--transition);
+}
+.icon-btn:hover, .icon-btn:focus-visible {
+  color: var(--c-primary);
+  background-color: var(--c-primary-light);
+}
+
+.fab {
+  background-image: linear-gradient(45deg, var(--c-primary), var(--c-accent));
+  color: white;
+  border: none;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  font-size: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(255, 45, 136, 0.4);
+  transform: translateY(-25%);
+  transition: var(--transition);
+  /* --- ADD THESE TWO LINES TO FIX THE OVERLAP --- */
+  position: relative;
+  z-index: 1;
+  /* ------------------------------------------ */
+}
+.fab:hover {
+  transform: translateY(-30%) scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 119, 255, 0.4);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: var(--font-family);
+  font-size: 1rem;
+}
+.btn-primary {
+  background-color: var(--c-primary);
+  color: white;
+}
+.btn-primary:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+.btn-secondary {
+  background-color: var(--c-primary-light);
+  color: var(--c-primary);
+  border: 1px solid var(--c-primary-light);
+}
+.btn-secondary:hover {
+  background-color: var(--c-surface);
+  border-color: var(--c-primary);
+}
+
+/* --- 5. FORMS & INPUTS --- */
+.form-control, .form-control-file {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  background-color: var(--c-background);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+  color: var(--c-text-primary);
+}
+.form-control:focus, .form-control:focus-visible {
+  outline: none;
+  border-color: var(--c-primary);
+  box-shadow: 0 0 0 3px var(--c-primary-light);
+}
+.form-group {
+    margin-bottom: 1.5rem;
+}
+.form-group > label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--c-text-secondary);
+}
+.form-control-file {
+    display: none;
+}
+.file-input-label {
+    display: inline-block;
+    margin-bottom: 1rem;
+}
+.image-preview {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    margin-top: 1rem;
+    display: none;
+    border: 1px dashed var(--c-border);
+}
+
+/* --- 6. FILTER & SORT CONTROLS --- */
+.filter-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.filter-controls > * {
+    flex: 1 1 200px;
+}
+
+/* --- 7. WISH LIST & CARDS --- */
+#wishlist-container {
+  display: grid;
+  gap: 1.5rem;
+}
+.grid-view {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+.list-view {
+    grid-template-columns: 1fr;
+}
+.list-view .wish-card {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    grid-template-rows: auto;
+    align-items: center;
+    gap: 1rem;
+}
+.list-view .wish-card-img {
+    width: 120px;
+    height: 100%;
+    aspect-ratio: 1/1;
+}
+
+.wish-card {
+  background-color: var(--c-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition);
+}
+.wish-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.wish-card-img {
+  width: 100%;
+  aspect-ratio: 16/10;
+  object-fit: cover;
+}
+
+.wish-card-content {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+.wish-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.wish-card-name {
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+.wish-card-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.9rem;
+  color: var(--c-text-secondary);
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+.wish-card-meta strong {
+    color: var(--c-primary);
+    font-weight: 700;
+}
+.wish-card-meta .fa-solid {
+    margin-right: 0.25rem;
+}
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.tag, .filter-tag {
+  padding: 0.25rem 0.75rem;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  cursor: pointer;
+}
+
+/* Dynamic Tag Colors */
+.tag-list .tag { color: var(--c-text-primary); }
+.tag-list .tag:nth-child(6n + 1) { background-color: #ffd6d6; }
+.tag-list .tag:nth-child(6n + 2) { background-color: #d1eaff; }
+.tag-list .tag:nth-child(6n + 3) { background-color: #d1f7e8; }
+.tag-list .tag:nth-child(6n + 4) { background-color: #fff4d1; }
+.tag-list .tag:nth-child(6n + 5) { background-color: #f3d6ff; }
+.tag-list .tag:nth-child(6n + 0) { background-color: #e0e0e0; }
+
+[data-theme="dark"] .tag-list .tag { color: #e4e6eb; }
+[data-theme="dark"] .tag-list .tag:nth-child(6n + 1) { background-color: #581818; }
+[data-theme="dark"] .tag-list .tag:nth-child(6n + 2) { background-color: #0d2c4e; }
+[data-theme="dark"] .tag-list .tag:nth-child(6n + 3) { background-color: #0b452f; }
+[data-theme="dark"] .tag-list .tag:nth-child(6n + 4) { background-color: #4d3c0c; }
+[data-theme="dark"] .tag-list .tag:nth-child(6n + 5) { background-color: #4b1a5e; }
+[data-theme="dark"] .tag-list .tag:nth-child(6n + 0) { background-color: #424242; }
+
+.wish-card-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+.card-actions {
+    display: flex;
+    align-items: center;
+}
+.card-actions .icon-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+    color: var(--c-text-secondary);
+}
+.card-actions .icon-btn:hover,
+.card-action-btn:hover {
+    color: var(--c-primary);
+    background-color: var(--c-primary-light);
+}
+.card-actions .icon-btn[data-action="delete"]:hover {
+    color: #ef4444;
+    background-color: #fee2e2;
+}
+.card-actions .icon-btn[data-action="complete"]:hover {
+    color: var(--c-success);
+    background-color: #d1fae5;
+}
+
+/* --- 8. TAG FILTERS --- */
+.tag-filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+.filter-tag {
+    background-color: var(--c-surface);
+    border: 1px solid var(--c-border);
+    color: var(--c-text-secondary);
+    transition: var(--transition);
+}
+.filter-tag:hover {
+    border-color: var(--c-primary);
+    color: var(--c-primary);
+}
+.filter-tag.active {
+    background-color: var(--c-primary);
+    color: white;
+    border-color: var(--c-primary);
+    box-shadow: 0 2px 5px rgba(0,119,255,0.3);
+}
+
+/* --- 9. MODALS (DIALOGS) --- */
+dialog {
+  border: none;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 0;
+  width: 90vw;
+  max-width: 600px;
+  background: var(--c-surface);
+  color: var(--c-text-primary);
+  animation: modal-fade-in 0.3s ease-out;
+}
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  animation: backdrop-fade-in 0.3s ease-out;
+}
+dialog[open] { display: flex; flex-direction: column; } /* Fix for scrolling */
+dialog[open]:not(.closing) { animation: modal-fade-in 0.3s ease-out forwards; }
+dialog.closing { animation: modal-fade-out 0.3s ease-in forwards; }
+dialog.closing::backdrop { animation: backdrop-fade-out 0.3s ease-in forwards; }
+
+@keyframes modal-fade-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); }}
+@keyframes modal-fade-out { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); }}
+@keyframes backdrop-fade-in { from { opacity: 0; } to { opacity: 1; }}
+@keyframes backdrop-fade-out { from { opacity: 1; } to { opacity: 0; }}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--c-border);
+}
+.modal-title {
+    font-size: 1.25rem;
+}
+.modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--c-border);
+  background-color: var(--c-background);
+  border-bottom-left-radius: var(--radius-lg);
+  border-bottom-right-radius: var(--radius-lg);
+}
+
+/* --- 10. SPECIFIC COMPONENT STYLES --- */
+
+/* Empty State */
+.empty-state, #empty-state-message {
+  text-align: center;
+  padding: 4rem 1rem;
+  background-color: var(--c-surface);
+  border-radius: var(--radius-lg);
+  margin-top: 2rem;
+}
+.empty-state p, #empty-state-message p {
+  color: var(--c-text-secondary);
+  max-width: 400px;
+  margin: 0.5rem auto 0;
+}
+
+/* Toast Notification */
+#toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translate(-50%, 150%);
+  background-color: var(--c-text-primary);
+  color: var(--c-surface);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  z-index: 9999;
+  font-weight: 500;
+}
+#toast.show {
+  transform: translate(-50%, 0);
+}
+
+/* Profile Modal */
+.profile-list {
+    display: grid;
+    gap: 1rem;
+}
+.profile-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--c-border);
+    cursor: pointer;
+    transition: var(--transition);
+}
+.profile-card:hover {
+    border-color: var(--c-primary);
+    background-color: var(--c-primary-light);
+}
+.profile-card.active {
+    border-color: var(--c-primary);
+    background-color: var(--c-primary-light);
+    box-shadow: 0 0 0 3px var(--c-primary-light);
+    font-weight: 600;
+}
+.profile-card .fa-solid {
+    font-size: 1.5rem;
+    color: var(--c-accent);
+}
+.add-profile-form {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+.divider {
+    border: none;
+    height: 1px;
+    background-color: var(--c-border);
+    margin: 2rem 0;
+}
+
+/* Analytics Modal */
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+.stat-card {
+    background: linear-gradient(135deg, var(--c-primary-light), var(--c-accent-light));
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    text-align: center;
+}
+.stat-card .value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--c-primary);
+    margin-bottom: 0.5rem;
+}
+.stat-card .label {
+    font-size: 0.9rem;
+    color: var(--c-text-secondary);
+    font-weight: 500;
+}
+[data-theme="dark"] .stat-card {
+  background: linear-gradient(135deg, var(--c-primary-light), var(--c-accent-light));
+}
+[data-theme="dark"] .stat-card .value { color: var(--c-text-primary); }
+
+/* Dynamic Price/Link entries in form */
+.dynamic-entry {
+    display: grid;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    grid-template-columns: 1fr auto;
+}
+#prices-container .dynamic-entry { grid-template-columns: 1fr 100px 30px auto; }
+#links-container .dynamic-entry { grid-template-columns: 1fr 1fr auto; }
+.dynamic-entry .icon-btn {
+    color: #f43f5e;
+}
+.dynamic-entry .icon-btn:hover {
+    background-color: #ffe4e6;
+}
+
+/* Link Choice Modal */
+.link-list {
+    list-style: none;
+}
+.link-list li a {
+    display: block;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    transition: var(--transition);
+}
+.link-list li a:hover {
+    background-color: var(--c-primary-light);
+}
+
+/* --- 11. RESPONSIVE DESIGN --- */
+@media (min-width: 768px) {
+  body {
+    padding-top: 70px;
+    padding-bottom: 0;
+  }
+  .main-content {
+    padding: 2rem;
+  }
+  .bottom-nav {
+    display: none; /* Hide bottom nav on desktop, actions move elsewhere or are assumed */
+  }
+  .top-nav {
+    height: 70px;
+    padding: 0 2rem;
+  }
+  #add-wish-btn { /* Re-style FAB for desktop */
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 1000;
+    transform: none; /* Reset mobile transform */
+  }
+}
+    </style>
+</head>
+<body>
+    <header class="top-nav">
+        <button id="theme-toggle" class="icon-btn" aria-label="Toggle theme"><i class="fa-solid fa-circle-half-stroke"></i></button>
+        <div class="total-price"><span>Total:</span> <span id="total-price-display">Rs 0.00</span></div>
+        <button id="settings-btn" class="icon-btn" aria-label="Open settings"><i class="fa-solid fa-bars"></i></button>
+    </header>
+
+    <main class="main-content">
+        <h2 id="profile-name-header" style="margin-bottom: 1.5rem; color: var(--text-secondary);">Loading...</h2>
+        
+        <div class="filter-controls">
+            <input type="search" id="search-input" class="form-control" placeholder="Search wishes..." style="min-width: 150px;">
+            <div style="display: flex; gap: 1rem; flex-grow:1;">
+                <select id="sort-select" class="form-control" style="flex-grow:1;">
+                    <option value="createdAt-desc">Recently Added</option>
+                    <option value="price-asc">Price: Low to High</option>
+                    <option value="price-desc">Price: High to Low</option>
+                    <option value="name-asc">Name (A-Z)</option>
+                    <option value="goalDate-asc">Goal Date</option>
+                </select>
+                <button id="view-toggle-btn" class="icon-btn" aria-label="Toggle view"><i class="fa-solid fa-grip"></i></button>
+            </div>
+        </div>
+        <div id="tag-filter-container" class="tag-filter-container"></div>
+        <div id="wishlist-container" class="grid-view"></div>
+        <div id="empty-state-message" class="empty-state"></div>
+    </main>
+
+    <nav class="bottom-nav">
+        <button id="completed-btn" class="icon-btn" aria-label="View completed wishes"><i class="fa-solid fa-clipboard-check"></i></button>
+        <button id="add-wish-btn" class="fab" aria-label="Add a new item"><i class="fa-solid fa-plus"></i></button>
+        <button id="profile-btn" class="icon-btn" aria-label="Switch profile"><i class="fa-solid fa-users"></i></button>
+    </nav>
+    
+    <!-- Add/Edit Modal -->
+    <dialog id="add-edit-modal">
+        <form id="add-edit-form" novalidate>
+            <header class="modal-header">
+                <h2 id="modal-title" class="modal-title">Add Wish</h2>
+                <button type="button" class="icon-btn" data-close-modal aria-label="Close dialog"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            <div class="modal-body">
+                <input type="hidden" id="edit-item-id">
+                <div class="form-group">
+                    <label for="productName">Product Name</label>
+                    <input type="text" id="productName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="imageUpload">Image</label>
+                    <input type="file" id="imageUpload" class="form-control-file" accept="image/*">
+                    <label for="imageUpload" class="file-input-label btn btn-secondary"><i class="fa-solid fa-upload"></i> Choose Image</label>
+                    <img id="image-preview" src="" alt="Image Preview" class="image-preview">
+                </div>
+                <div class="form-group">
+                    <label for="goalDate">My Goal (Date)</label>
+                    <input type="date" id="goalDate" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="tags">Tags (comma separated)</label>
+                    <input type="text" id="tags" class="form-control" placeholder="e.g. electronics, birthday, home">
+                </div>
+                <div class="form-group">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Prices</label>
+                    <div id="prices-container">
+                        <!-- JS will populate this. Example structure:
+                        <div class="dynamic-input-group">
+                            <input type="text" class="form-control" placeholder="Store Name (e.g. Amazon)">
+                            <input type="number" class="form-control" placeholder="Price (e.g. 299.99)">
+                            <button class="icon-btn remove-btn"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        -->
+                    </div>
+                    <button type="button" id="add-price-btn" class="btn btn-secondary"><i class="fa-solid fa-plus"></i> Add Price</button>
+                </div>
+                <div class="form-group">
+                    <label>Store Links</label>
+                    <div id="links-container"></div>
+                    <button type="button" id="add-link-btn" class="btn btn-secondary"><i class="fa-solid fa-plus"></i> Add Link</button>
+                </div>
+            </div>
+            <footer class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-close-modal>Cancel</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </footer>
+        </form>
+    </dialog>
+    
+    <!-- Other Modals -->
+    <dialog id="completed-modal">
+        <header class="modal-header"><h2 class="modal-title">Completed Wishes</h2><button type="button" class="icon-btn" data-close-modal aria-label="Close dialog"><i class="fa-solid fa-xmark"></i></button></header>
+        <div class="modal-body"><div id="completed-list-container"></div></div>
+    </dialog>
+
+    <dialog id="settings-modal">
+        <header class="modal-header"><h2 class="modal-title">Settings & Info</h2><button type="button" class="icon-btn" data-close-modal aria-label="Close dialog"><i class="fa-solid fa-xmark"></i></button></header>
+        <div class="modal-body">
+            <h4>About Us</h4><p style="color: var(--text-secondary); margin-bottom: 2rem;">A powerful, offline-first wishlist and goal planning application.</p>
+            <h4>Analytics</h4><button id="analytics-btn" class="btn btn-secondary"><i class="fa-solid fa-chart-pie"></i> View Wishlist Stats</button>
+            <h4>Contact</h4><div style="font-size: 1.5rem; display: flex; gap: 1rem;"><a href="https://github.com" target="_blank" class="icon-btn"><i class="fa-brands fa-github"></i></a><a href="https://twitter.com" target="_blank" class="icon-btn"><i class="fa-brands fa-twitter"></i></a><a href="mailto:example@email.com" class="icon-btn"><i class="fa-solid fa-envelope"></i></a></div>
+        </div>
+    </dialog>
+    
+    <dialog id="profile-modal">
+        <header class="modal-header"><h2 class="modal-title">Switch Profile</h2><button type="button" class="icon-btn" data-close-modal aria-label="Close dialog"><i class="fa-solid fa-xmark"></i></button></header>
+        <div class="modal-body">
+            <div id="profile-list" class="profile-list">
+                <!-- JS will populate this. Example structure:
+                <div class="profile-item">
+                    <span>My Wishlist</span>
+                    <div class="profile-actions">
+                        <span class="active-profile-tag">Active</span>
+                        <button class="icon-btn delete-profile-btn" aria-label="Delete profile"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
+                </div>
+                -->
+            </div>
+            <hr class="divider">
+            <h4>Add New Profile</h4>
+            <form id="add-profile-form" class="add-profile-form">
+                <input type="text" id="new-profile-name" class="form-control" placeholder="Profile Name" required>
+                <button type="submit" class="btn btn-primary">Add</button>
+            </form>
+        </div>
+    </dialog>
+
+    <dialog id="link-choice-modal"><header class="modal-header"><h2 class="modal-title">Choose a Link</h2><button type="button" class="icon-btn" data-close-modal aria-label="Close dialog"><i class="fa-solid fa-xmark"></i></button></header><div class="modal-body"><ul id="link-choice-list" class="link-list"></ul></div></dialog>
+    <dialog id="notes-modal"><header class="modal-header"><h2 class="modal-title">Notes</h2><button type="button" class="icon-btn" data-close-modal aria-label="Close dialog"><i class="fa-solid fa-xmark"></i></button></header><div class="modal-body"><p id="notes-content"></p></div></dialog>
+    <dialog id="analytics-modal"><header class="modal-header"><h2 class="modal-title">Wishlist Analytics</h2><button type="button" class="icon-btn" data-close-modal aria-label="Close dialog"><i class="fa-solid fa-xmark"></i></button></header><div class="modal-body"><div id="analytics-grid" class="analytics-grid"></div></div></dialog>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="script.js" defer></script>
+</body>
+</html></html>

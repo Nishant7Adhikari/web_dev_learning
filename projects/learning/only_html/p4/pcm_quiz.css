@@ -1,0 +1,34 @@
+body{
+        background: #f4ffaa;
+        margin: 0;
+        padding: 0;
+        position: relative;
+        justify-content: center;
+    }
+    form{
+        border: 2px solid #353535;
+        border-radius; 20px;
+        margin: 20px;
+        padding: 20px;
+    }
+    label {
+        display: block;
+        background: #8a8a8a;
+        color: #f4ffaa;
+    }
+    #removeBG label{
+        background: none;
+        color: #000;
+        margin: 0;
+    }
+    fieldset label, fieldset{
+        margin-bottom: 12px;
+    }
+    #submit{
+        cursor: pointer;
+        background: #8a8a8a;
+        box-shadow: 0 0 13px #55a98e;
+        color: White;
+        padding: 12px;
+        border-radius: 12px;
+    }

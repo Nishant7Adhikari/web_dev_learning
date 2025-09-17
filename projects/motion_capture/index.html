@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Peace Sign Live Tracker — Nishant Demo</title>
+<style>
+  /* Basic reset */
+  html,body { height:100%; margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial; }
+  body {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: linear-gradient(180deg,#0f172a 0%, #0b1220 100%); /* dark default */
+    transition: background 300ms ease;
+  }
+
+  /* Container for the 'video-call' look */
+  .call-window {
+    width: 880px;
+    max-width:95vw;
+    height: 560px;
+    background: rgba(255,255,255,0.03);
+    border-radius:16px;
+    box-shadow: 0 10px 30px rgba(2,6,23,0.7);
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 0;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  /* The main video area */
+  .video-area {
+    position: relative;
+    background: #111827;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  /* Video element (hidden visually - we draw it on canvas) */
+  video#input_video {
+    display: none;
+  }
+
+  /* Canvas overlays the video and shows landmarks */
+  canvas#output_canvas {
+    width: 100%;
+    height: 100%;
+    display:block;
+    object-fit: cover;
+  }
+
+  /* Right panel: controls / tiny preview */
+  .side-panel {
+    padding: 16px;
+    color: #e6eef8;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  }
+
+  .status {
+    padding:10px 12px;
+    border-radius:10px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.03);
+  }
+
+  .label { font-weight:600; font-size:13px; color:#cfe3ff; margin-bottom:6px; }
+  .small-video {
+    width:100%;
+    height:160px;
+    background:#0b1220;
+    border-radius:10px;
+    overflow:hidden;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .btn {
+    background:#0b1220;
+    border:1px solid rgba(255,255,255,0.03);
+    padding:10px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    color:#dbeafe;
+  }
+
+  .hint { font-size:13px; color:#9fb7ff; }
+
+  /* Green 'peace' background variant applied to <body> via class */
+  body.peace-background {
+    background: linear-gradient(180deg,#0b8a3e 0%, #05944b 100%);
+  }
+
+  /* Small badge at bottom-left of canvas to simulate call overlay info */
+  .badge {
+    position:absolute;
+    left:10px;
+    bottom:10px;
+    background: rgba(0,0,0,0.45);
+    color: #e6eef8;
+    padding:8px 10px;
+    border-radius:10px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    font-size:13px;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  .hand-count { font-weight:700; color:#caffdd; }
+</style>
+</head>
+<body>
+  <div class="call-window" id="callWindow">
+    <div class="video-area">
+      <!-- Hidden native video (we will draw this into canvas for overlays) -->
+      <video id="input_video" autoplay playsinline></video>
+      <!-- Canvas used to display camera image + landmark drawings -->
+      <canvas id="output_canvas"></canvas>
+
+      <!-- small overlay badge -->
+      <div class="badge" id="badge">
+        <div>Hands:</div>
+        <div class="hand-count" id="handCount">0</div>
+      </div>
+    </div>
+
+    <div class="side-panel">
+      <div class="status">
+        <div class="label">Live Gesture Status</div>
+        <div id="gestureLabel">No gesture</div>
+      </div>
+
+      <div>
+        <div class="label">Preview</div>
+        <div class="small-video" id="previewBox">
+          <!-- We'll copy a small frame of canvas here to simulate call preview -->
+          <canvas id="miniCanvas" width="300" height="160" style="display:block; width:100%; height:100%;"></canvas>
+        </div>
+      </div>
+
+      <div>
+        <div class="label">Instructions</div>
+        <div class="hint">
+          - Show your hand (palm facing camera). <br>
+          - Make the "peace / victory" sign (index + middle extended, ring & pinky folded). <br>
+          - When detected, the page background will turn green.
+        </div>
+      </div>
+
+      <div style="margin-top:auto;">
+        <button class="btn" id="toggleCam">Stop Camera</button>
+      </div>
+    </div>
+  </div>
+
+<!-- MediaPipe scripts from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+
+<script>
+/*
+  Nishant: detailed, line-by-line comments below to explain each part.
+  This script:
+   1. Starts camera
+   2. Pipes frames to MediaPipe Hands
+   3. Draws results on a canvas
+   4. Detects a "peace" sign and toggles page background
+*/
+
+/* -------------------------
+   Grab DOM elements
+   ------------------------- */
+const videoElement = document.getElementById('input_video'); // native <video> that receives camera stream
+const canvasElement = document.getElementById('output_canvas'); // full-size canvas for drawing
+const canvasCtx = canvasElement.getContext('2d'); // 2D drawing context
+const miniCanvas = document.getElementById('miniCanvas'); // small preview canvas (simulated PIP)
+const miniCtx = miniCanvas.getContext('2d');
+
+const gestureLabel = document.getElementById('gestureLabel'); // text display of detected gesture
+const handCountEl = document.getElementById('handCount'); // number of hands visible
+const toggleCamBtn = document.getElementById('toggleCam'); // toggle camera button
+
+let camera = null; // will hold MediaPipe Camera helper instance
+let camOn = true;   // camera state
+
+/* -------------------------
+   Utility: resize canvas to match displayed size
+   ------------------------- */
+function resizeCanvases() {
+  // Set canvas internal pixel size to match displayed size for crispness
+  const rect = canvasElement.getBoundingClientRect();
+  canvasElement.width = rect.width * devicePixelRatio;
+  canvasElement.height = rect.height * devicePixelRatio;
+
+  const miniRect = miniCanvas.getBoundingClientRect();
+  miniCanvas.width = miniRect.width * devicePixelRatio;
+  miniCanvas.height = miniRect.height * devicePixelRatio;
+}
+
+/* Resize on load and on window resize */
+window.addEventListener('load', resizeCanvases);
+window.addEventListener('resize', () => {
+  resizeCanvases();
+});
+
+/* -------------------------
+   Helper: Determine if a finger is "extended"
+   - MediaPipe hand landmarks indices:
+     Thumb: 4 (tip) / 3 (ip) / 2 (mcp)
+     Index: 8 (tip) / 6 (pip)
+     Middle: 12 (tip) / 10 (pip)
+     Ring: 16 (tip) / 14 (pip)
+     Pinky: 20 (tip) / 18 (pip)
+   - Image coordinates: y increases downward. For upright hand with palm facing camera,
+     a finger is "extended" when tip.y < pip.y (tip is higher on the image).
+   - This simple test works well for common upright poses.
+   ------------------------- */
+function fingerExtended(landmarks, tipIndex, pipIndex) {
+  // Compare y coordinates of tip and pip. Multiply by -1 to avoid relying on handedness.
+  return landmarks[tipIndex].y < landmarks[pipIndex].y;
+}
+
+/* More robust thumb test: check x-position relative to IP joint for typical frontal view */
+function thumbExtended(landmarks) {
+  // For a typical camera with palm facing camera, thumb extension can be approximated by:
+  // tip.x < ip.x for right hand (thumb to the left), or tip.x > ip.x for left hand.
+  // We'll detect extension by comparing horizontal distance between tip and ip.
+  const tip = landmarks[4];
+  const ip  = landmarks[3];
+  return Math.abs(tip.x - ip.x) > 0.04; // threshold in normalized coords
+}
+
+/* -------------------------
+   Peace sign detector
+   Returns true if the landmarks look like a peace sign:
+    - index extended
+    - middle extended
+    - ring folded
+    - pinky folded
+    - optional: thumb not strongly extended
+   'landmarks' is an array of 21 points with normalized {x,y,z}.
+   ------------------------- */
+function isPeaceSign(landmarks) {
+  if (!landmarks || landmarks.length !== 21) return false;
+
+  const indexExt  = fingerExtended(landmarks, 8, 6);  // index tip vs pip
+  const middleExt = fingerExtended(landmarks, 12, 10);// middle tip vs pip
+  const ringExt   = fingerExtended(landmarks, 16, 14); // ring
+  const pinkyExt  = fingerExtended(landmarks, 20, 18); // pinky
+  const thumbExt  = thumbExtended(landmarks);
+
+  // Peace: index & middle extended, ring & pinky folded, thumb not strongly extended.
+  // Optional additional checks: ensure index and middle are separated enough.
+  const tipsDistance = Math.hypot(
+    (landmarks[8].x - landmarks[12].x),
+    (landmarks[8].y - landmarks[12].y)
+  );
+
+  return indexExt && middleExt && !ringExt && !pinkyExt && !thumbExt && tipsDistance > 0.04;
+}
+
+/* -------------------------
+   MediaPipe Hands setup
+   - We set options: max 2 hands, moderate complexity
+   - onResults callback will run every frame with processed results
+   ------------------------- */
+const hands = new Hands({
+  locateFile: (file) => {
+    // Point to CDN — MediaPipe will fetch model files as needed
+    return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+  }
+});
+
+hands.setOptions({
+  maxNumHands: 2,                 // detect up to 2 hands
+  modelComplexity: 1,             // 0 (light) or 1 (full)
+  minDetectionConfidence: 0.6,    // how confident the detector should be
+  minTrackingConfidence: 0.6      // how confident the tracker should be
+});
+
+/* -------------------------
+   When Hands produces results, draw them and run gesture detection
+   'results' contains:
+     - results.image: an HTMLImage/HTMLVideo/HTMLCanvas element with the current frame
+     - results.multiHandLandmarks: array of landmarks (for each detected hand)
+     - results.multiHandedness: array with right/left labels
+   ------------------------- */
+hands.onResults(results => {
+  // Ensure canvas size matches the displayed area
+  resizeCanvases();
+
+  // Clear canvas and paint camera frame
+  canvasCtx.save();
+  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+  // Draw the camera image to the canvas stretching to fill the canvas
+  canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+  // Draw landmarks and connections if hands found
+  const multiHandLandmarks = results.multiHandLandmarks || [];
+  const multiHandedness = results.multiHandedness || [];
+
+  // Update hand count badge
+  handCountEl.textContent = multiHandLandmarks.length;
+
+  // Default gesture states
+  let foundPeace = false;
+  let whichHand = null;
+
+  for (let i = 0; i < multiHandLandmarks.length; i++) {
+    const landmarks = multiHandLandmarks[i];
+
+    // Draw connectors (bones) and landmarks (joints)
+    drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { lineWidth: 2, color: '#00e5ff' });
+    drawLandmarks(canvasCtx, landmarks, { lineWidth: 1.5, color: '#ffb703' });
+
+    // Check if these landmarks form a peace sign
+    if (isPeaceSign(landmarks)) {
+      foundPeace = true;
+      // multiHandedness gives label info like "Right" or "Left"
+      whichHand = (multiHandedness[i] && multiHandedness[i].label) ? multiHandedness[i].label : `hand ${i+1}`;
+
+      // Highlight the tips of index and middle with a green circle
+      const scaleX = canvasElement.width; // because landmarks are normalized (0..1)
+      const scaleY = canvasElement.height;
+      canvasCtx.beginPath();
+      canvasCtx.fillStyle = 'rgba(0,200,80,0.9)';
+      canvasCtx.arc(landmarks[8].x * scaleX, landmarks[8].y * scaleY, 12 * devicePixelRatio, 0, Math.PI*2);
+      canvasCtx.fill();
+      canvasCtx.beginPath();
+      canvasCtx.arc(landmarks[12].x * scaleX, landmarks[12].y * scaleY, 12 * devicePixelRatio, 0, Math.PI*2);
+      canvasCtx.fill();
+    }
+  }
+
+  // Update UI: gesture label & background change
+  if (foundPeace) {
+    gestureLabel.textContent = `✌️ Peace detected — ${whichHand}`;
+    document.body.classList.add('peace-background'); // switch page to green gradient
+  } else {
+    gestureLabel.textContent = 'No gesture';
+    document.body.classList.remove('peace-background');
+  }
+
+  // Copy a small scaled-down rectangle from the main canvas into the mini preview canvas
+  // This simulates a picture-in-picture "call preview" feel.
+  // We'll copy centered area (you can change this to a corner crop)
+  const previewW = miniCanvas.width;
+  const previewH = miniCanvas.height;
+  // draw scaled image
+  miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
+  miniCtx.drawImage(canvasElement,
+                   canvasElement.width - previewW - 40, // crop area (from right)
+                   canvasElement.height - previewH - 40,
+                   previewW, previewH,
+                   0, 0,
+                   previewW, previewH);
+
+  canvasCtx.restore();
+});
+
+/* -------------------------
+   Start camera using MediaPipe Camera utils
+   - cameraUtils.Camera captures frames from the <video> element and calls hands.send()
+   ------------------------- */
+async function startCamera() {
+  // Guard: if camera already running, do nothing
+  if (camera) return;
+
+  // Use the device's camera
+  camera = new Camera(videoElement, {
+    onFrame: async () => {
+      // Send the current video frame to MediaPipe Hands for processing
+      await hands.send({ image: videoElement });
+    },
+    width: 1280,
+    height: 720
+  });
+
+  camera.start();
+  camOn = true;
+  toggleCamBtn.textContent = 'Stop Camera';
+}
+
+/* Stop camera helper */
+function stopCamera() {
+  if (camera) {
+    camera.stop();
+    camera = null;
+  }
+  camOn = false;
+  toggleCamBtn.textContent = 'Start Camera';
+}
+
+/* Toggle button handler */
+toggleCamBtn.addEventListener('click', () => {
+  if (camOn) stopCamera();
+  else startCamera();
+});
+
+/* -------------------------
+   Kick things off: request permission & start
+   Note: getUserMedia is handled internally by MediaPipe Camera helper
+   But for friendly error handling we check for permissions.
+   ------------------------- */
+(async () => {
+  try {
+    // Check for camera availability
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert('getUserMedia not supported in this browser. Use Chrome, Edge, or Firefox on desktop/mobile.');
+      return;
+    }
+    // Start the camera and MediaPipe pipeline
+    await startCamera();
+  } catch (err) {
+    console.error('Camera start failed:', err);
+    alert('Could not start camera. Allow camera access and use HTTPS or localhost.');
+  }
+})();
+</script>
+</body>
+</html>

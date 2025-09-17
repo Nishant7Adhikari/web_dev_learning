@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI-Powered Code Extractor</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-color: #1e293b;
+      --text-color: #e2e8f0;
+      --accent-color: #22c55e;
+      --accent-dark: #15803d;
+      --border-color: #334155;
+      --error-color: #ef4444;
+      --font-main: 'Segoe UI', sans-serif;
+      --font-mono: 'Courier New', Courier, monospace;
+    }
+
+    body {
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-family: var(--font-main);
+      padding: 2rem;
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    h2 {
+      color: var(--accent-color);
+      margin-bottom: 1rem;
+    }
+    
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    textarea, input, select {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+      background: var(--card-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      border-radius: 6px;
+      box-sizing: border-box; /* Ensures padding doesn't increase width */
+      font-family: var(--font-mono);
+    }
+    
+    input, select {
+        font-family: var(--font-main);
+    }
+
+    input[type="file"] {
+        padding: 0.5rem;
+    }
+
+    button {
+      background: var(--accent-color);
+      color: #fff;
+      border: none;
+      padding: 0.7rem 1rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background 0.2s ease-in-out;
+    }
+
+    button:hover:not(:disabled) {
+      background: var(--accent-dark);
+    }
+    button:disabled {
+        background: #4b5563;
+        cursor: not-allowed;
+    }
+
+    .button-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .search-container {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+    .search-container input {
+        flex-grow: 1;
+        margin-bottom: 0;
+    }
+    .search-container button {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.9rem;
+        margin-top: 0;
+    }
+
+    .options-container {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+        align-items: center;
+    }
+    .options-container > div {
+        flex-grow: 1;
+    }
+    .options-container input { display: none; } /* Hide custom inputs by default */
+
+    #output {
+        margin-top: 2rem;
+    }
+    
+    /* Collapsible Block Styles */
+    details.code-details {
+        background: var(--card-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-top: 1.5rem;
+        position: relative;
+    }
+    details[open] {
+        padding-bottom: 1rem;
+    }
+    summary {
+        padding: 1rem;
+        cursor: pointer;
+        list-style: none; /* Remove default marker */
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
+    summary::-webkit-details-marker {
+        display: none; /* Hide for Chrome/Safari */
+    }
+    .summary-content {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-grow: 1;
+        min-width: 200px;
+    }
+    .toggle-icon {
+        font-weight: bold;
+        transition: transform 0.2s;
+    }
+    details[open] .toggle-icon {
+        transform: rotate(90deg);
+    }
+    .sneak-peek {
+        font-family: var(--font-mono);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        opacity: 0.8;
+        max-width: 400px; /* Adjust as needed */
+    }
+    .block-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .block-actions button {
+      margin: 0;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.85rem;
+    }
+
+    .code-body {
+        padding: 0 1rem;
+    }
+    .code-block-content {
+      background: var(--bg-color);
+      color: #e2e8f0;
+      padding: 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      white-space: pre-wrap;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      position: relative;
+    }
+    
+    /* AI Features */
+    .ai-disclaimer {
+        background: var(--card-color);
+        border-left: 4px solid var(--error-color);
+        padding: 1rem;
+        margin: 1.5rem 0;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+    .ai-update-panel {
+        display: none; /* Hidden by default */
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        background: var(--bg-color);
+        border-radius: 6px;
+    }
+    .ai-update-panel input {
+        margin-bottom: 0.5rem;
+    }
+    .ai-update-panel button {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+        margin-top: 0;
+    }
+    .processing-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(15, 23, 42, 0.8);
+        color: var(--accent-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.2rem;
+        z-index: 10;
+        border-radius: 8px;
+    }
+
+    /* Modal Styles (from original file, no changes needed) */
+    .modal-overlay { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; }
+    .modal-content { background-color: var(--card-color); margin: auto; padding: 2rem; border: 1px solid var(--border-color); border-radius: 8px; width: 90%; max-width: 450px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); color: var(--text-color); }
+    .modal-content h3 { margin-top: 0; color: var(--accent-color); margin-bottom: 1.5rem; }
+    .modal-content label { display: block; margin-bottom: 0.5rem; }
+    .modal-content input, .modal-content select { margin-bottom: 1rem; }
+    .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 1.5rem; }
+    .modal-buttons button { margin: 0; }
+    #cancelDownloadBtn { background: #dc2626; }
+    #cancelDownloadBtn:hover { background: #b91c1c; }
+
+    @media (max-width: 768px) {
+      body { padding: 1rem; }
+      .summary { flex-direction: column; align-items: flex-start; }
+      .sneak-peek { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>AI-Powered Code Extractor</h2>
+
+  <textarea id="inputText" rows="12" placeholder="Paste mixed text and code here..."></textarea>
+  
+  <div class="search-container">
+      <input type="text" id="searchInput" placeholder="Search within text...">
+      <button onclick="findInTextarea('next')">Find Next ↓</button>
+      <button onclick="findInTextarea('prev')">Find Prev ↑</button>
+  </div>
+
+
+  <div style="margin-top: 1.5rem;">
+    <label for="fileUploadInput">Or upload a file:</label>
+    <input type="file" id="fileUploadInput" accept=".txt, .js, .py, .html, .css, .json, .xml, .java, .c, .cpp, .cs, .php, .rb, .go, .sh, .md, .yml, .toml, .sql, .ts, .jsx, .tsx, .vue, .kt, .swift, .rs, .pl, .lua, .r, .dockerfile, .gitignore, .env, .bat, .ps1">
+    <div class="button-group">
+        <button onclick="loadFileContent()">Load from File</button>
+        <button onclick="clearInputText()">Clear Input</button>
+    </div>
+  </div>
+
+  <div class="options-container">
+    <div>
+        <label for="delimType">Code block type:</label>
+        <select id="delimType" onchange="toggleCustomDelimiters()">
+            <option value="```">Backticks (```)</option>
+            <option value="~~~">Tildes (~~~)</option>
+            <option value="custom">Custom Delimiters</option>
+            <option value="indent">Indented Code (4 spaces)</option>
+        </select>
+    </div>
+    <div id="customDelimContainer" style="display: none;">
+        <input id="customStart" placeholder="Start delimiter" />
+        <input id="customEnd" placeholder="End delimiter" />
+    </div>
+  </div>
+  
+  <button onclick="processText()" style="width: 100%; margin-top: 1rem;">Extract Code Blocks</button>
+
+  <div class="ai-disclaimer">
+    <strong>AI Feature Disclaimer:</strong> When using AI features (Format, Fix, Update), your code will be sent to Google's servers for processing via the Gemini API. Do not send sensitive or private code.
+  </div>
+
+  <div id="output"></div>
+
+  <!-- Download Modal -->
+  <div id="downloadModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3>Download Code Block</h3>
+      <label for="fileNameInput">File Name:</label>
+      <input type="text" id="fileNameInput" value="code_block" />
+
+      <label for="fileExtensionSelect">Extension:</label>
+      <select id="fileExtensionSelect"></select>
+
+      <div class="modal-buttons">
+        <button id="confirmDownloadBtn">Download</button>
+        <button id="cancelDownloadBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <script>
+    // --- START OF AI CONFIGURATION ---
+    const CONFIG = {
+        // IMPORTANT: Replace with your actual Gemini API Key.
+        // WARNING: Exposing an API key on the client-side is a security risk.
+        // For production, use a backend proxy to protect your key.
+        GEMINI_API_KEY: "AIzaSyC7BzaxemU8srEeolxR6txMr9J3Gny72Rg",
+        GEMINI_URL: "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key="
+    };
+    // --- END OF AI CONFIGURATION ---
+
+    const fileUploadInput = document.getElementById('fileUploadInput');
+    const inputTextarea = document.getElementById('inputText');
+    const outputDiv = document.getElementById('output');
+    const searchInput = document.getElementById('searchInput');
+    let searchState = { lastIndex: -1, currentTerm: '' };
+
+    // --- Core UI and File Logic ---
+
+    function loadFileContent() {
+      const file = fileUploadInput.files[0];
+      if (!file) { alert('Please select a file first.'); return; }
+      const reader = new FileReader();
+      reader.onload = (e) => { inputTextarea.value = e.target.result; };
+      reader.onerror = (e) => { alert('Error reading file: ' + e.target.error.name); };
+      reader.readAsText(file);
+    }
+
+    function clearInputText() {
+        inputTextarea.value = '';
+        outputDiv.innerHTML = ''; // Also clear output
+    }
+
+    function toggleCustomDelimiters() {
+        const type = document.getElementById('delimType').value;
+        document.getElementById('customDelimContainer').style.display = (type === 'custom') ? 'block' : 'none';
+    }
+
+    // --- Search Logic ---
+    function findInTextarea(direction) {
+        const term = searchInput.value;
+        if (!term) return;
+
+        const content = inputTextarea.value;
+        inputTextarea.focus();
+
+        if (term !== searchState.currentTerm) {
+            searchState.currentTerm = term;
+            searchState.lastIndex = -1;
+        }
+
+        let newIndex = -1;
+        const currentSelectionStart = inputTextarea.selectionStart;
+
+        if (direction === 'next') {
+            const startIndex = (searchState.lastIndex !== -1 && currentSelectionStart > searchState.lastIndex) 
+                                ? currentSelectionStart 
+                                : searchState.lastIndex;
+            newIndex = content.indexOf(term, startIndex + 1);
+            if (newIndex === -1) { // Wrap around
+                newIndex = content.indexOf(term, 0);
+            }
+        } else { // prev
+            const startIndex = (searchState.lastIndex !== -1 && currentSelectionStart > 0) ? currentSelectionStart : content.length;
+            newIndex = content.lastIndexOf(term, startIndex - 1);
+             if (newIndex === -1) { // Wrap around
+                newIndex = content.lastIndexOf(term, content.length);
+            }
+        }
+
+        if (newIndex !== -1) {
+            inputTextarea.setSelectionRange(newIndex, newIndex + term.length);
+            searchState.lastIndex = newIndex;
+        } else {
+            alert(`'${term}' not found.`);
+            searchState.lastIndex = -1; // Reset on not found
+        }
+    }
+
+
+    // --- Main Extraction Logic ---
+    function escapeRegex(s) {
+      return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function processText() {
+      const input = inputTextarea.value;
+      const type = document.getElementById('delimType').value;
+      const startDelim = document.getElementById('customStart').value;
+      const endDelim = document.getElementById('customEnd').value;
+      outputDiv.innerHTML = '';
+      let blocks = [];
+
+      if (type === 'indent') {
+        // Improved indented code block detection
+        const lines = input.split('\n');
+        let currentBlock = [];
+        for (const line of lines) {
+            if (line.startsWith('    ') || (line.trim() === '' && currentBlock.length > 0)) {
+                currentBlock.push(line.substring(4));
+            } else {
+                if (currentBlock.length > 0) {
+                    blocks.push(currentBlock.join('\n'));
+                    currentBlock = [];
+                }
+            }
+        }
+        if (currentBlock.length > 0) blocks.push(currentBlock.join('\n'));
+
+      } else {
+        let start = '', end = '';
+        if (type === '```') {
+          start = '```'; end = '```';
+        } else if (type === '~~~') {
+          start = '~~~'; end = '~~~';
+        } else if (type === 'custom' && startDelim && endDelim) {
+          start = startDelim; end = endDelim;
+        }
+
+        if (start && end) {
+          // Regex now captures language hint (e.g., ```javascript) but doesn't include it in the result
+          const regex = new RegExp(escapeRegex(start) + `(?:\\w+)?\\n(.*?)\\n` + escapeRegex(end), 'gs');
+          const matches = [...input.matchAll(regex)];
+          matches.forEach(m => blocks.push(m[1]));
+        }
+      }
+      
+      blocks.forEach((code, index) => createCodeBlockElement(code, index));
+
+      if (blocks.length === 0) {
+        outputDiv.innerHTML = '<p style="margin-top: 1.5rem;">No code blocks found.</p>';
+      }
+    }
+    
+    // --- Create HTML for Code Blocks ---
+    function createCodeBlockElement(code, index) {
+        const blockId = `code-block-${index}`;
+        
+        // Main container
+        const details = document.createElement('details');
+        details.className = 'code-details';
+        details.open = true; // Start expanded
+
+        // Header
+        const summary = document.createElement('summary');
+        
+        const summaryContent = document.createElement('div');
+        summaryContent.className = 'summary-content';
+
+        const toggleIcon = document.createElement('span');
+        toggleIcon.className = 'toggle-icon';
+        toggleIcon.textContent = '▶';
+        
+        const sneakPeek = document.createElement('span');
+        sneakPeek.className = 'sneak-peek';
+        sneakPeek.textContent = code.split('\n')[0] || '[Empty Line]';
+        
+        summaryContent.append(toggleIcon, sneakPeek);
+
+        // Action Buttons
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'block-actions';
+        
+        const copyBtn = document.createElement('button');
+        copyBtn.textContent = 'Copy';
+        copyBtn.onclick = (e) => {
+            e.preventDefault(); // Prevent summary toggle
+            navigator.clipboard.writeText(code);
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => copyBtn.textContent = 'Copy', 1200);
+        };
+
+        const downloadBtn = document.createElement('button');
+        downloadBtn.textContent = 'Download';
+        downloadBtn.onclick = (e) => {
+            e.preventDefault();
+            showDownloadModal(code, `code_block_${index + 1}`);
+        };
+        
+        // AI Buttons
+        const formatBtn = document.createElement('button');
+        formatBtn.textContent = 'Format';
+        formatBtn.title = 'Format code with AI';
+        formatBtn.onclick = (e) => { e.preventDefault(); handleAiAction(blockId, 'format'); };
+
+        const fixBtn = document.createElement('button');
+        fixBtn.textContent = 'Fix';
+        fixBtn.title = 'Fix errors in code with AI';
+        fixBtn.onclick = (e) => { e.preventDefault(); handleAiAction(blockId, 'fix'); };
+
+        const updateBtn = document.createElement('button');
+        updateBtn.textContent = 'Update';
+        updateBtn.title = 'Request an update with AI';
+        updateBtn.onclick = (e) => { 
+            e.preventDefault(); 
+            document.getElementById(`${blockId}-ai-panel`).style.display = 'block';
+        };
+
+        actionsDiv.append(downloadBtn, copyBtn, formatBtn, fixBtn, updateBtn);
+        summary.append(summaryContent, actionsDiv);
+        
+        // Body
+        const codeBody = document.createElement('div');
+        codeBody.className = 'code-body';
+        
+        // AI Update Panel
+        const aiPanel = document.createElement('div');
+        aiPanel.className = 'ai-update-panel';
+        aiPanel.id = `${blockId}-ai-panel`;
+        const aiInput = document.createElement('input');
+        aiInput.type = 'text';
+        aiInput.placeholder = "e.g., 'add comments' or 'convert to an arrow function'";
+        const aiSubmitBtn = document.createElement('button');
+        aiSubmitBtn.textContent = 'Submit Update to AI';
+        aiSubmitBtn.onclick = () => handleAiAction(blockId, 'update');
+        aiPanel.append(aiInput, aiSubmitBtn);
+        
+        // Code Content
+        const pre = document.createElement('pre');
+        pre.className = 'code-block-content';
+        pre.id = blockId;
+        pre.textContent = code;
+
+        codeBody.append(aiPanel, pre);
+        details.append(summary, codeBody);
+        outputDiv.appendChild(details);
+    }
+
+    // --- AI Integration Logic ---
+    async function handleAiAction(blockId, action) {
+        if (!CONFIG.GEMINI_API_KEY || CONFIG.GEMINI_API_KEY === 'YOUR_API_KEY_HERE') {
+            alert("ERROR: Gemini API key is not configured. Please edit the script and add your key.");
+            return;
+        }
+
+        const codeElement = document.getElementById(blockId);
+        const codeText = codeElement.textContent;
+        let userPrompt = '';
+        let systemInstruction = '';
+        
+        switch (action) {
+            case 'format':
+                systemInstruction = `You are a code formatter. Reformat the following code according to standard conventions for its language. Only return the formatted code inside a single markdown code block. Do not add any explanation.`;
+                break;
+            case 'fix':
+                systemInstruction = `You are a code corrector. Find and fix any bugs or syntax errors in the following code. Only return the corrected code inside a single markdown code block. Do not add any explanation.`;
+                break;
+            case 'update':
+                const updateInput = document.querySelector(`#${blockId}-ai-panel input`);
+                userPrompt = updateInput.value;
+                if (!userPrompt) {
+                    alert('Please describe the update you want to make.');
+                    return;
+                }
+                systemInstruction = `You are a code modification assistant. Apply the following update to the code: "${userPrompt}". Only return the updated code inside a single markdown code block. Do not add any explanation.`;
+                document.getElementById(`${blockId}-ai-panel`).style.display = 'none'; // Hide panel after submitting
+                break;
+        }
+        
+        const fullPrompt = `${systemInstruction}\n\n\`\`\`\n${codeText}\n\`\`\``;
+        
+        showProcessingOverlay(codeElement, true);
+        try {
+            const newCode = await callGeminiAPI(fullPrompt);
+            const extractedCode = extractCodeFromMarkdown(newCode);
+            codeElement.textContent = extractedCode;
+
+            // Also update the 'sneak-peek'
+            const sneakPeekEl = codeElement.closest('.code-details').querySelector('.sneak-peek');
+            if(sneakPeekEl) sneakPeekEl.textContent = extractedCode.split('\n')[0] || '[Empty Line]';
+
+        } catch (error) {
+            console.error('Gemini API Error:', error);
+            alert(`An error occurred with the AI request: ${error.message}`);
+        } finally {
+            showProcessingOverlay(codeElement, false);
+        }
+    }
+
+    async function callGeminiAPI(prompt) {
+        const response = await fetch(CONFIG.GEMINI_URL + CONFIG.GEMINI_API_KEY, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                "contents": [{
+                    "parts": [{ "text": prompt }]
+                }]
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.candidates[0].content.parts[0].text;
+    }
+    
+    function extractCodeFromMarkdown(markdownText) {
+        // AI might return ```language\ncode\n``` or just ```\ncode\n```
+        const match = markdownText.match(/```(?:.*\n)?([\s\S]*?)```/);
+        return match ? match[1].trim() : markdownText.trim(); // Fallback to returning the whole text if no block is found
+    }
+
+    function showProcessingOverlay(element, show) {
+        const existingOverlay = element.querySelector('.processing-overlay');
+        if (show) {
+            if (!existingOverlay) {
+                const overlay = document.createElement('div');
+                overlay.className = 'processing-overlay';
+                overlay.textContent = 'Processing...';
+                element.style.position = 'relative'; // Ensure parent is positioned for overlay
+                element.appendChild(overlay);
+            }
+        } else {
+            if (existingOverlay) {
+                existingOverlay.remove();
+            }
+        }
+    }
+
+    // --- Download Modal Logic (from original file, with minor improvements) ---
+    let currentCodeToDownload = ''; 
+    const downloadModal = document.getElementById('downloadModal');
+    const fileNameInput = document.getElementById('fileNameInput');
+    const fileExtensionSelect = document.getElementById('fileExtensionSelect');
+    const confirmDownloadBtn = document.getElementById('confirmDownloadBtn');
+    const cancelDownloadBtn = document.getElementById('cancelDownloadBtn');
+    
+    const extensions = [ { name: 'Plain Text', ext: 'txt' }, { name: 'JavaScript', ext: 'js' }, { name: 'TypeScript', ext: 'ts' }, { name: 'Python', ext: 'py' }, { name: 'HTML', ext: 'html' }, { name: 'CSS', ext: 'css' }, { name: 'JSON', ext: 'json' }, { name: 'XML', ext: 'xml' }, { name: 'Java', ext: 'java' }, { name: 'C', ext: 'c' }, { name: 'C++', ext: 'cpp' }, { name: 'C#', ext: 'cs' }, { name: 'PHP', ext: 'php' }, { name: 'Ruby', ext: 'rb' }, { name: 'Go', ext: 'go' }, { name: 'Shell Script', ext: 'sh' }, { name: 'Markdown', ext: 'md' }, { name: 'YAML', ext: 'yml' }, { name: 'TOML', ext: 'toml' }, { name: 'SQL', ext: 'sql' }, { name: 'JSX (React)', ext: 'jsx' }, { name: 'TSX (React + TS)', ext: 'tsx' }, { name: 'Vue', ext: 'vue' }, { name: 'Kotlin', ext: 'kt' }, { name: 'Swift', ext: 'swift' }, { name: 'Rust', ext: 'rs' }, { name: 'Perl', ext: 'pl' }, { name: 'Lua', ext: 'lua' }, { name: 'R', ext: 'r' }, { name: 'Dockerfile', ext: 'dockerfile' }, { name: 'Gitignore', ext: 'gitignore' }, { name: 'Env', ext: 'env' }, { name: 'Batch (Windows)', ext: 'bat' }, { name: 'PowerShell', ext: 'ps1' }, { name: 'INI', ext: 'ini' }, { name: 'CSV', ext: 'csv' }, { name: 'SVG', ext: 'svg' } ];
+
+    function populateExtensions() {
+      fileExtensionSelect.innerHTML = '';
+      extensions.sort((a, b) => a.name.localeCompare(b.name)).forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.ext;
+        option.textContent = `${item.name} (.${item.ext})`;
+        fileExtensionSelect.appendChild(option);
+      });
+      fileExtensionSelect.value = 'txt'; 
+    }
+
+    function showDownloadModal(code, defaultFileName) {
+      currentCodeToDownload = code;
+      fileNameInput.value = defaultFileName;
+      downloadModal.style.display = 'flex';
+    }
+
+    confirmDownloadBtn.onclick = () => {
+      const fileName = fileNameInput.value.trim();
+      const fileExt = fileExtensionSelect.value;
+      if (!fileName) { alert('Please enter a file name.'); return; }
+      const fullFileName = `${fileName}.${fileExt}`;
+      const blob = new Blob([currentCodeToDownload], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fullFileName;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url); 
+      downloadModal.style.display = 'none';
+    };
+
+    cancelDownloadBtn.onclick = () => {
+      downloadModal.style.display = 'none';
+    };
+    downloadModal.addEventListener('click', (e) => {
+        if (e.target === downloadModal) downloadModal.style.display = 'none';
+    });
+
+    // Initial setup
+    populateExtensions();
+    toggleCustomDelimiters(); // Set initial state of custom inputs
+  </script>
+</body>
+</html>
