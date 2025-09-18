@@ -6,16 +6,16 @@ const urlsToCache = [
   '/data/teams.json',
   '/media/icon-512x512.png',
   '/media/icon-192x192.png',
-  '/media/default.png',
-  '/media/keepmoviez.png',
+  '/media/icons/default.png',
+  '/media/icons/keepmoviez.png',
   '/media/male.svg',
   '/media/female.svg',
-  '/media/discord.svg',
-  '/media/github.svg',
-  '/media/twitter.svg',
-  '/media/instagram.svg',
-  '/media/facebook.svg',
-  '/media/linkedin.svg'
+  '/media/social/discord.svg',
+  '/media/social/github.svg',
+  '/media/social/twitter.svg',
+  '/media/social/instagram.svg',
+  '/media/social/facebook.svg',
+  '/media/social/linkedin.svg'
 ];
 
 // Install a service worker
