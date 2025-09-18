@@ -25,17 +25,19 @@
         "id": "S",
         "name": "Sulav",
         "role": "Contributor",
-        "title": "Friend & Collaborator",
-        "avatar": "media/female.svg",
-        "bio": "A friend who occasionally helps with brainstorming, testing, and contributing ideas to various projects.",
+        "title": "Collaborator",
+        "avatar": "media/male.svg",
+        "bio": ".",
         "interest": [
             "Gaming",
             "Music",
-            "Tech Ideas"
+            ""
         ],
         "socialLinks": {
             "github": "#",
-            "instagram": "#"
+            "instagram": "#",
+            "discord": "#",
+            "facebook": "#"
         }
     }
 ]

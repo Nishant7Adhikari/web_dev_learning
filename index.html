@@ -166,13 +166,21 @@ hr { border: none; height: 1px; background-color: var(--border-color); margin: 1
 #projectDetailImage { 
 width: 100%; border-radius: 8px; margin-bottom: 1rem; 
 }
+#myLogo{
+    width: 10%; 
+    aspect-ratio: 1/1; 
+    object-fit: cover;
+    margin-bottom: -10px;
+    margin-top: -10px;
+}
+
 </style>
 </head>
 <body>
 <div class="background-gradient"></div>
 
 <header>
-    <div class="logo">Nishant </div>
+    <div class="logo"> <img id="myLogo" src="media/icon-512x512.png" alt="Nishant Adhikari"> </div>
     <div class="menu-toggle" id="menuToggle" aria-label="Menu">☰</div>
     <nav id="navMenu">
         <a id="themeToggle" aria-label="Toggle Theme">🌓 Theme</a>
@@ -318,7 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const socialLinksHTML = Object.entries(member.socialLinks)
             .map(([platform, url]) => (url && url !== '#') ? `
                 <a href="${url}" target="_blank" rel="noopener noreferrer" title="${platform}">
-                    <img src="media/${platform.toLowerCase()}.svg" alt="${platform} icon">
+                    <img src="media/social/${platform.toLowerCase()}.svg" alt="${platform} icon">
                 </a>` : '').join('');
 
         const interestHTML = member.interest && member.interest.length > 0
