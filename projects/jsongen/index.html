@@ -131,15 +131,15 @@ ${css}
 1. Create a JSON metadata object for this project with fields:
 {
         "name": "App name from head_tag*",
-        "slug": "",
+        "slug": "App_Name (use "_" instead of space and all small letters)",
         "tagline": "short description.",
-        "started": "1 jan 2025*(make it 2025)",
+        "started": "2025*",
         "status": "Completed",
-        "keywords": ["project", "JavaScript", "HTML", "CSS", "learning", "..."],
+        "keywords": ["project", "JavaScript", "HTML", "CSS", "learning", "..upto 6.."],
         "team_ids": ["N"*],
         "description": "This project uses Google's Gemini AI model to generate JSON metadata and creative icon prompts based on provided HTML and CSS code.  The generated JSON includes relevant project details, while the icon prompt is designed for AI image generation, specifying style, theme, and visual elements.",
-        "link": "projects/*",
-        "image": "media/icons/placeholder.jpg*"
+        "link": "projects/{slug}/",
+        "image": "media/icons/{slug}.jpg*"
 }
 the value with * mean necessary. remember (only the word not whole sentence)
 2. Then generate an icon prompt for AI image generation.

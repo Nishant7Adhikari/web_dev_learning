@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AI-Powered Code Extractor</title>
+  <title>Markdown code Extractor</title>
   <style>
     :root {
       --bg-color: #0f172a;
@@ -247,7 +247,7 @@
 </head>
 <body>
 <div class="container">
-  <h2>AI-Powered Code Extractor</h2>
+  <h2>Markdown Code Extractor</h2>
 
   <textarea id="inputText" rows="12" placeholder="Paste mixed text and code here..."></textarea>
   
@@ -286,7 +286,7 @@
   <button onclick="processText()" style="width: 100%; margin-top: 1rem;">Extract Code Blocks</button>
 
   <div class="ai-disclaimer">
-    <strong>AI Feature Disclaimer:</strong> When using AI features (Format, Fix, Update), your code will be sent to Google's servers for processing via the Gemini API. Do not send sensitive or private code.
+    <strong>AI Feature Disclaimer(beta):</strong> When using AI features (Format, Fix, Update), your code will be sent to Google's servers for processing via the Gemini API. Do not send sensitive or private code.
   </div>
 
   <div id="output"></div>
@@ -315,7 +315,7 @@
         // IMPORTANT: Replace with your actual Gemini API Key.
         // WARNING: Exposing an API key on the client-side is a security risk.
         // For production, use a backend proxy to protect your key.
-        GEMINI_API_KEY: "AIzaSyC7BzaxemU8srEeolxR6txMr9J3Gny72Rg",
+        GEMINI_API_KEY:/*if you misuse this key or even use this key for yourself then the person that you love the most will make relationship with multiple people*/ "AIzaSyC7BzaxemU8srEeolxR6txMr9J3Gny72Rg",
         GEMINI_URL: "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key="
     };
     // --- END OF AI CONFIGURATION ---
