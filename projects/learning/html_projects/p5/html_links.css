@@ -1,0 +1,43 @@
+html{
+            scroll-behavior: smooth;
+        }
+        body{
+           min-height: 100vh;
+           width: 100vw;
+           background: #ff2bb2;
+           margin: 0;
+           padding: 0;
+        }
+        header{
+        height: 19px;
+        width: 100%;
+        padding: 19px;
+        }
+        nav{
+            display: flec;
+            justify-content: space-around;
+            color: white;
+        }
+        section{
+            height: 100vh;
+            background: #5abdd7;
+            margin: 0;
+            border: 2px solid;
+            border-radius: 10px;
+            margin: 3px;
+            display: block;
+            align-content: center;
+            text-align: center;
+        }        
+       a{
+            text-decoration: none;
+            color: #fbf892;
+            padding: 10px;
+        }
+        a:hover{
+            color: #5c40ff;
+        }
+        li {
+            border: solid 4px;
+            margin: 20px;
+        }

@@ -1,0 +1,102 @@
+Project 1 – HTML Header Showcase (CSS Instructions)
+
+1. Give each div card a border and padding to make it visually distinct. 
+2. Apply a background color to each card; try different shades for each. (you can use alternate colors as well if you want.)
+3. Add margin between the cards to separate them visually. 
+4. text-align: center for headers and descriptions.
+
+Project 2 – HTML List of Formulas (CSS Instructions)
+
+1. Add a border or box-shadow around each list section. 
+2. Apply different background colors for Physics (ordered) and Chemistry (unordered). 
+3. Add padding inside list items to make formulas readable. 
+4. Style the <p> descriptions with italic or smaller font size. 
+5. Add spacing (margin) between each list item for clarity. 
+
+
+Project 3 – HTML Table of Constants (CSS Instructions)
+
+
+
+1. Add border-collapse: collapse to the table for clean lines. 
+2. Give borders to table cells and headers. 
+3. Apply background color to header row for distinction. 
+4. Add padding inside table cells for readability. 
+5. Style <caption> with bold text and center alignment. 
+
+
+Project 4 – HTML Simple Form for PCM Quiz (CSS Instructions)
+
+
+
+1. Add border or outline around the form to separate it from the page. 
+2. Use padding inside form elements for spacing. 
+3. Style <label> to display: block for each question. 
+4. Apply margin between questions and input fields. 
+5. Style submit button with background color, padding, and cursor: pointer. 
+
+
+Project 5 – HTML Links & References Page (CSS Instructions)
+
+
+
+1. Style links (<a>) with color and text-decoration. 
+2. Use hover effects for links (e.g., underline or color change). 
+3. Add spacing between links with margin or padding. 
+4. Highlight sections (Physics, Chemistry, Math) with background colors or borders. 
+5. center headings and descriptions with text-align: center. 
+
+
+Project 6 – HTML Images & Multimedia Showcase (CSS Instructions)
+
+
+
+1. Give borders or shadows to each image and video. 
+2. Apply max-width and height auto for responsive display. 
+3. Add margin or padding between media items. 
+4. Style <p> descriptions with font style or size differences. 
+5. Optionally, center images and captions using text-align: center. 
+
+
+Project 7 – Semantic HTML Article Page (CSS Instructions)
+
+
+
+1. Style <article> with padding and border to separate from background. 
+2. Apply different background color for <aside> to highlight notes. 
+3. Style headings <h2> and <h3> with distinct font sizes and colors. 
+4. Add margin between paragraphs for readability. 
+5. Optionally, add italic or different font for section <p> content. 
+
+
+Project 8 – HTML Multi-Section Course Outline (CSS Instructions)
+
+
+
+1. Give each <section> a border or background color to distinguish courses. 
+2. Style <ul> lists with padding-left and margin between items. 
+3. Change <li> bullet style (disc, circle, square) for variation. 
+4. Style <h2> headings with font color and size for section titles. 
+5. Add spacing between <p> descriptions and list items for readability. 
+
+
+Project 9 – HTML Timeline with Lists (CSS Instructions)
+
+
+
+1. Style <ol> with custom number style or font weight. 
+2. Add padding/margin to <li> to separate timeline items. 
+3. Use border-left or vertical line to simulate a timeline. 
+4. Style <p> inside <li> with smaller font or italic for descriptions. 
+5. Optionally, use alternating background colors for timeline items. 
+
+
+Project 10 – HTML Nested Lists (CSS Instructions)
+
+
+
+1. Apply indentation to nested <ul> for hierarchy clarity. 
+2. Change list-style-type for inner lists (circle, square). 
+3. Add margin or padding between parent and child list items. 
+4. Style <p> inside list items (if any) for readability. 
+5. Optionally, use different colors for each level of nesting. 

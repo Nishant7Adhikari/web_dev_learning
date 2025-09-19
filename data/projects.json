@@ -61,7 +61,7 @@
 },
 {
         "name": "PCM Quiz",
-        "slug": "pcm-quiz",
+        "slug": "pcm_quiz",
         "tagline": "A simple quiz focusing on Physics, Chemistry, and Math.",
         "started": "October 26, 2023",
         "status": "Completed",
@@ -73,7 +73,7 @@
 },
 {
     "name": "Git CMD Guide",
-    "slug": "git-cmd-guide",
+    "slug": "git_cmd_guide",
     "tagline": "A handy cheat sheet for Git commands.",
     "started": "26 Sept 2025",
     "status": "Completed",
@@ -85,7 +85,7 @@
 },
 {
     "name": "Border Animation",
-    "slug": "border-animation",
+    "slug": "border_animation",
     "tagline": "A simple CSS project showcasing animated borders around a text card.",
     "started": "2024",
     "status": "Completed",
@@ -96,15 +96,15 @@
     "image": "media/icons/border_animation.jpg"
 },
 {
-    "name": "AI Code Block Renderer",
-    "slug": "ai-code-block-renderer",
-    "tagline": "A tool to render and clean up AI-generated code snippets with formatting and a clean UI.",
+    "name": "Markdown Renderer",
+    "slug": "markdown_renderer",
+    "tagline": "A tool to render and clean up AI-generated markdown code snippets with formatting and a clean UI.",
     "started": "2025",
     "status": "Completed",
-    "keywords": ["code", "renderer", "AI", "HTML", "CSS", "JavaScript", "formatting"],
+    "keywords": ["markdown", "AI", "HTML", "CSS", "JavaScript", "formatting"],
     "team_ids": ["N"],
     "description": "A web-based tool that takes AI-generated Markdown code snippets and renders them with better formatting in a user-friendly interface. Features: Paste, clear, and render code, Toggle for auto-pasting, Copy rendered output to clipboard. ",
-    "link": "projects/code_block_renderer",
-    "image": "media/icons/code_block_renderer.jpg"
+    "link": "projects/markdown_render",
+    "image": "media/icons/markdown_render.jpg"
     }
 ]
