@@ -22,22 +22,23 @@
         }
     },
     {
-        "id": "S",
-        "name": "Sulav",
-        "role": "Contributor",
-        "title": "Collaborator",
-        "avatar": "media/male.svg",
-        "bio": ".",
-        "interest": [
-            "Gaming",
-            "Music",
-            ""
-        ],
-        "socialLinks": {
-            "github": "#",
-            "instagram": "#",
-            "discord": "#",
-            "facebook": "#"
-        }
-    }
+  "id": "S",
+  "name": "Sulav Neupane",
+  "role": "Co-Partneer",
+  "title": "AI Engineer",
+  "avatar": "media/male.svg",
+  "bio": "AI Student and technology enthusiast, passionate about programming and building projects, learning new things. ",
+  "interests": [
+    "AI",
+    "Science",
+    "Music",
+    "Cooking"
+  ],
+  "socialLinks": {
+    "discord": "https://discord.gg/Byjhha8D",
+    "github": "https://github.com/Sulav-droid",
+    "instagram": "https://www.instagram.com/sul_avneupane",
+    "facebook": "https://www.facebook.com/sulav.neupane.9250"
+  }
+  }
 ]
