@@ -1,0 +1,164 @@
+:root {
+    --bg-color: #f0f2f5;
+    --text-color: #1c1e21;
+    --card-bg: rgba(255, 255, 255, 0.75); /* --- OPTIMIZATION: Increased opacity slightly --- */
+    --border-color: rgba(0, 0, 0, 0.1);
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --accent-color: #1877f2;
+    --accent-text: #ffffff;
+    --link-color: #1877f2;
+}
+[data-theme="dark"] {
+    --bg-color: #121212;
+    --text-color: #e5e5e5;
+    --card-bg: rgba(28, 28, 30, 0.8); /* --- OPTIMIZATION: Increased opacity slightly --- */
+    --border-color: rgba(255, 255, 255, 0.15);
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --accent-color: #64b5f6;
+    --accent-text: #121212;
+    --link-color: #64b5f6;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+    overflow-x: hidden;
+}
+.background-gradient {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: -1;
+    background: linear-gradient(45deg, #ff00ff, #00ffff, #ffc800, #ff00ff);
+    background-size: 400% 400%;
+    /* --- PERFORMANCE OPTIMIZATION: Removed expensive animation and reduced blur --- */
+    filter: blur(40px);
+    opacity: 0.3;
+    /* --- PERFORMANCE OPTIMIZATION: Hint to use GPU --- */
+    transform: translateZ(0); 
+}
+[data-theme="dark"] .background-gradient {
+    opacity: 0.4;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: var(--card-bg);
+    /* --- PERFORMANCE OPTIMIZATION: Reduced blur radius --- */
+    backdrop-filter: blur(5px);
+    border-bottom: 1px solid var(--border-color);
+}
+.logo { font-weight: bold; font-size: 2rem; }
+.menu-toggle { display: none; font-size: 1.5rem; cursor: pointer; }
+nav { display: flex; gap: 1rem; }
+nav a { text-decoration: none; color: var(--text-color); font-weight: bold; cursor: pointer; padding: 0.5rem; border-radius: 5px; transition: background-color 0.2s; }
+nav a:hover { background-color: rgba(0,0,0,0.1); }
+@media (max-width: 700px) {
+    nav { display: none; flex-direction: column; background: var(--card-bg); position: absolute; top: 50px; right: 0; width: 200px; padding: 1rem; box-shadow: 0 4px 8px rgba(0,0,0,0.2); border-radius: 0 0 0 8px; }
+    nav.show { display: flex; }
+    .menu-toggle { display: block; }
+}
+.search-bar { text-align: center; margin: 1rem; }
+.search-bar input { padding: 0.75rem; width: 80%; max-width: 400px; border-radius: 20px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-color); font-size: 1em; }
+
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
+}
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    /* --- PERFORMANCE OPTIMIZATION: Reduced blur radius --- */
+    backdrop-filter: blur(5px);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    cursor: pointer;
+    /* --- PERFORMANCE OPTIMIZATION: Animate only transform --- */
+    transition: transform 0.2s ease-out;
+    /* --- PERFORMANCE OPTIMIZATION: Hint to the browser about upcoming animation --- */
+    will-change: transform;
+    display: flex;
+    flex-direction: column;
+}
+.card:hover { 
+    transform: translateY(-5px); 
+    box-shadow: 0 8px 24px var(--shadow-color); 
+}
+
+.card img { 
+      width: 100%; 
+      height: 100%; 
+      aspect-ratio: 1/1; 
+      object-fit: fill;
+}
+
+.card-body { padding: 1rem; display: flex; flex-direction: column; flex-grow: 1; }
+.card-body h3 { margin-top: 0; margin-bottom: 0.5rem; }
+.card-body p { margin-top: 0; font-size: 0.9em; flex-grow: 1; color: var(--text-color); opacity: 0.8; }
+.status-badge { display: inline-block; padding: 4px 12px; border-radius: 15px; font-size: 0.8em; font-weight: 500; margin-bottom: 0.5rem; }
+.status-completed { background-color: #4caf50; color: white; }
+.status-continue { background-color: #ff9800; color: white; }
+.status-planned { background-color: #f44336; color: white; }
+.card-button { display: block; padding: 10px 15px; background-color: var(--accent-color); color: var(--accent-text); text-decoration: none; border-radius: 8px; font-weight: bold; text-align: center; margin-top: 10px; transition: opacity 0.2s; }
+.card-button:hover { opacity: 0.85; }
+
+footer { text-align: center; padding: 1rem; background: var(--card-bg); margin-top: 1rem; backdrop-filter: blur(5px); border-top: 1px solid var(--border-color); }
+
+/* Modal Styles */
+.modal { display: none; position: fixed; z-index: 2000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); justify-content: center; align-items: center; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal-content { background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; border-radius: 12px; position: relative; animation: slideIn 0.3s ease-out; box-shadow: 0 8px 32px var(--shadow-color); }
+@keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.close-btn { position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 24px; font-weight: bold; }
+.modal-content a { color: var(--link-color); }
+
+/* --- REIMAGINED TEAM MODAL STYLES --- */
+.team-card { background: transparent; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem; border: 1px solid var(--border-color); }
+.team-card:last-child { margin-bottom: 0; }
+.team-card-header { display: flex; align-items: center; gap: 1rem; }
+.team-card-header img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent-color); }
+.team-card-identity h3 { margin: 0; font-size: 1.5rem; }
+.team-card-identity p { margin: 0; font-weight: bold; color: var(--accent-color); opacity: 0.9; }
+.team-card-bio { margin: 0; padding-top: 0.5rem; border-top: 1px solid var(--border-color); }
+.interest-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.tag { background-color: var(--accent-color); color: var(--accent-text); padding: 4px 12px; border-radius: 15px; font-size: 0.8em; font-weight: 500; }
+.social-links { display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color); }
+.social-links img { width: 28px; height: 28px; transition: transform 0.2s; }
+.social-links a:hover img { transform: scale(1.2); }
+[data-theme="dark"] .social-links img { filter: invert(1) brightness(1.5); }
+
+/* Modal Content & Forms */
+#projectDetailContent h2, #teamContent h2, #aboutContent h2, #contactContent h2 { margin-top: 0; }
+.detail-button { display: inline-block; width: 100%; box-sizing: border-box; padding: 10px 20px; background-color: var(--accent-color); text-decoration: none; border-radius: 5px; font-weight: bold; text-align: center; margin-top: 1rem; transition: background-color 0.2s; border: none; cursor: pointer; }
+.detail-button:hover { opacity: 0.9; }
+.project-meta { font-size: 0.9em; margin: 0.5rem 0; }
+.team-member-link { font-weight: bold; color: var(--link-color); cursor: pointer; text-decoration: underline; }
+#emailForm { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
+#emailForm input, #emailForm textarea { padding: 0.75rem; border-radius: 5px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-color); font-family: inherit; font-size: 1em; }
+.contact-socials { display: flex; justify-content: center; gap: 1.5rem; padding: 1rem 0; }
+.contact-socials img { width: 28px; height: 28px; transition: transform 0.2s; }
+.contact-socials a:hover img { transform: scale(1.2); }
+[data-theme="dark"] .contact-socials img { filter: invert(1); }
+hr { border: none; height: 1px; background-color: var(--border-color); margin: 1.5rem 0; }
+#projectDetailImage { 
+width: 100%; border-radius: 8px; margin-bottom: 1rem; 
+}
+#myLogo{
+    width: 10%; 
+    aspect-ratio: 1/1; 
+    object-fit: cover;
+    margin-bottom: -10px;
+    margin-top: -10px;
+}

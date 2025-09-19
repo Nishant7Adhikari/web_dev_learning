@@ -1,115 +1,131 @@
-# HTML Projects Collection 🚀
+# Nishant Adhikari - Portfolio Website 🚀
 
-This repository is a **super folder** containing many beginner–friendly web development projects.  
-Each project is focused, and designed to strengthen core skills in **HTML, CSS, and JavaScript** progressively.
+Welcome to my personal portfolio website showcasing a collection of web development projects. This is both my learning journey and a demonstration of my skills in HTML, CSS, JavaScript, and modern web technologies.
 
----
-## 📘 Instructions
+## 🌐 Live Website
 
-👉 [Click me](Instructions)  
+Visit the live portfolio: [**nishantadhikari.info.np**](https://nishantadhikari.info.np)
 
->**You can find the project instructions here to practice on your own.**
+## 📋 About
 
-> This repository is created as a part of my **learning journey** and also serves as a **showcase**.
+This portfolio website features:
 
----
+- **Interactive Project Gallery** - Browse through my web development projects with search functionality
+- **Progressive Web App (PWA)** - Installable, offline-capable, and mobile-friendly
+- **Responsive Design** - Works seamlessly across all devices and screen sizes  
+- **Dark/Light Theme** - Toggle between themes with persistent user preference
+- **Dynamic Content** - Projects and team information loaded from JSON data
+- **Service Worker Caching** - Optimized performance with smart caching strategies
 
-# Learning Web Development
-## 📌 About
-This is to help learners practice web development by **building real projects** step-by.
-The projects cover a wide range of topics, including:  
-> This only covers what are on the instruction projects, not the projects made.
+## 🎯 Highlighted Projects
 
-- HTML structure & semantic elements  
-- CSS styling, layouts, and colors  
-- Basic JavaScript interactivity  
-- Forms, tables, and lists  
-- DOM manipulation and event handling  
-- Local storage experiments and persistence  
-- API integration (TMDB, OpenWeatherMap, CoinGecko, NewsAPI, SpaceX, TheMealDB, and more)  
-- Authentication & database operations using Supabase  
-- Responsive and accessible design practices  
-- Complex multi-feature dashboards and interactive tools  
+### **KeepMovizEZ** 
+*personal movie log, tracker and analytics*
+- Comprehensive movie tracking application
+- Custom watchlists and viewing history
+- Movie discovery and analytics
+- **Tech**: JavaScript, IndexedDB, TMDB API, Supabase
 
-Each project is **self-contained** in its own folder and can be run directly.
+### **Momoholics**
 
+## 🛠️ Tech Stack
 
----
+### **Frontend**
+- **HTML5** - Semantic markup and structure
+- **CSS3** - Modern styling with custom properties and animations
+- **JavaScript (ES6+)** - Interactive functionality and API integration
 
-## ⚡ Tech Stack
-- **HTML5** – page structure  
-- **CSS3** – styling & design  
-- **JavaScript (basic)** – interactivity  
+### **PWA Features**
+- **Service Worker** - Offline functionality and caching
+- **Web App Manifest** - App installation and theming
+- **IndexedDB** - Client-side data storage
 
----
+### **External APIs & Services**
+- **TMDB API** - Movie database integration
+- **Supabase** - Authentication and real-time database
+- **Google Gemini AI** - AI-powered content generation
 
-## 🎯 Goals
-- Practice and master **fundamental web development concepts**  
-- Learn by building **small, independent projects**  
-- Create a strong foundation for **larger applications** in the future  
+### **Development & Deployment**
 
----
+- **Git** - Version control
+- **JSON** - Dynamic content management
+- **GitHub** - Hosting and Deployment
 
-## 📂 Folder Structure  
+## 📂 Project Structure
 
-This is the intended structure as the repository progresses.  
-Each folder represents a category of projects.  
-
-```text
-learning-platform/
-│
-├─ README.md
-├─ assets/ #common assets (icons, images)
-│
-├─ html_projects/  # pure HTML projects
-│   ├─ header_showcase/
-│   │   └─ index.html
-│   ├─ formulas_list/
-│   │   └─ index.html
-│   └─ ... (other HTML projects)
-│
-├─ html_css_projects/ # HTML + CSS projects
-│   ├─ weather_dashboard/
-│   │   ├─ index.html
-│   │   └─ style.css
-│   └─ ...
-│
-├─ html_js_projects/ # HTML + JS projects
-│   ├─ todo_app/
-│   │   ├─ index.html
-│   │   └─ script.js
-│   └─ ...
-│
-├─ api_projects/ # JS + API/Backend projects
-│   ├─ tmdb_search/
-│   │   ├─ index.html
-│   │   ├─ script.js
-│   │   └─ style.css
-│   ├─ weather_app/
-│   │   ├─ index.html
-│   │   ├─ script.js
-│   │   └─ style.css
-│   └─ ...
-│
-└─ 404.html    #custom 404 page
+```
+├── index.html              # Main portfolio page
+├── manifest.json           # PWA manifest
+├── sw.js                   # Service worker
+├── data/                   # Dynamic content
+│   ├── projects.json       # Project information
+│   └── teams.json          # Team member data
+├── media/                  # Static assets
+│   ├── icons/              # Project thumbnails
+│   ├── social/             # Social media icons
+│   └── *.png, *.svg        # App icons and images
+└── projects/               # Individual project folders
+    ├── keepmoviez/         # Movie tracking app
+    ├── learning/           # HTML/CSS/JS tutorials
+    ├── jsongen/            # AI metadata generator
+    ├── git_cmd/            # Git command reference
+    └── ...                 # Other projects
 ```
 
-## 👤 Author / Credits  
+## 🚀 Getting Started
 
-- **Nishant** – Student, Web Dev Learner, Science Enthusiast  
-- 📍 Based in Kathmandu, Nepal  
+### **Running Locally**
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd portfolio-website
+   ```
+### **Development**
+
+The website is designed to be:
+- **Self-contained** - No build process required
+- **Data-driven** - Update projects by editing JSON files
+- **Modular** - Each project is independent
+- **Responsive** - Mobile-first design approach
+
+To add new projects:
+1. Add project details to `data/projects.json`
+2. Add project thumbnail to `media/icons/`
+3. Create project folder under `projects/`
+
+## 🎨 Features
+
+- **🔍 Search Functionality** - Find projects by name or technology
+- **📱 Mobile Responsive** - Optimized for all screen sizes
+- **🌙 Theme Toggle** - Dark and light mode support
+- **⚡ Fast Loading** - Service worker caching for optimal performance
+- **📴 Offline Support** - Browse projects even without internet
+- **🎯 SEO Optimized** - Proper meta tags and semantic HTML
+
+## 👤 About Me
+
+**Nishant Adhikari** - Student, Web Developer, Science Enthusiast  
+📍 Based in Kathmandu, Nepal
+
+I'm passionate about creating clean, functional, and user-friendly web experiences. This portfolio represents my journey in web development, from basic HTML pages to complex interactive applications. Some of the project are just [Vibe coding](https://en.m.wikipedia.org/wiki/Vibe_coding) I don't have full expertises on those projects with a keyword "vibecode".
+
+## 🔗 Connect With Me
+
 - 🌐 [GitHub Profile](https://github.com/Nishant7Ad)  
 - 💬 [Discord](https://discord.com/users/nishant_x)  
 - 📸 [Instagram](https://www.instagram.com/nishant060211?igsh=MWsxZ3o1YzJ3NW9sZg==)  
 - 🐦 [X (Twitter)](https://x.com/Nishant_OP11)  
 - 📘 [Facebook](https://www.facebook.com/share/172n6tfVsX/)  
-- ✉️ [Email 1](mailto:nshntdhkr@gmail.com)  
-- ✉️ [Email 2](mailto:adhikarinishant81@gmail.com)  
+- ✉️ [Email](mailto:nshntdhkr@gmail.com)  
+- ✉️ [Alternate Email](mailto:adhikarinishant81@gmail.com)
+- ✉️ [Alternate Email](mailto:iam@nishantadhikari.info.np)
 
-## 📘 Instructions
+## 📄 License
 
-👉 [Click me](Instructions)  
+This project is open source and available under the [MIT License](LICENSE).
 
-**You can find the project instructions here to practice on your own.**
+---
 
-> This repository is created as part of my **learning journey** and also serves as a **showcase**.
+⭐ **Star this repository if you found it helpful!**  
+🤝 **Feel free to reach out for collaborations or questions!**

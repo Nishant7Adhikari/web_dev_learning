@@ -3,7 +3,7 @@
         "id": "N",
         "name": "Nishant Adhikari",
         "role": "Founder",
-        "title": "Web Developer & Creator",
+        "title": "Creator & Developer ",
         "avatar": "media/male.svg",
         "bio": "A student and technology enthusiast, passionate about programming and building innovative web projects.",
         "interest": [
@@ -18,14 +18,15 @@
             "github": "https://github.com/Nishant7Adhikari",
             "twitter": "https://x.com/Nishant_OP11",
             "instagram": "https://www.instagram.com/nishant060211?igsh=MWsxZ3o1YzJ3NW9sZg==",
-            "facebook": "https://www.facebook.com/share/172n6tfVsX/"
+            "facebook": "https://www.facebook.com/share/172n6tfVsX/",
+            "website": "nishantadhikari.info.np"
         }
     },
     {
   "id": "S",
   "name": "Sulav Neupane",
-  "role": "Co-Partneer",
-  "title": "AI Engineer",
+  "role": "Contributor",
+  "title": "Member & Developer",
   "avatar": "media/male.svg",
   "bio": "AI Student and technology enthusiast, passionate about programming and building projects, learning new things. ",
   "interests": [

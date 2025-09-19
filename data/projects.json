@@ -8,7 +8,7 @@
         "keywords": ["AI", "movies", "tracking", "JavaScript"],
         "team_ids": ["N"],
         "description": "A comprehensive movie tracking application that allows users to log films they have watched, create custom watchlists, and discover new movies based on their viewing history.",
-        "link": "projects/keepmoviez/keepmoviez_v4/",
+        "link": "projects/keepmoviez/",
         "image": "media/icons/keepmoviez.png"
     },
     {
@@ -66,7 +66,7 @@
         "started": "October 26, 2023",
         "status": "Completed",
         "keywords": ["quiz", "HTML", "CSS", "Physics", "Chemistry", "Math", "educational"],
-        "team_ids": [],
+        "team_ids": ["N"],
         "description": "A basic HTML quiz designed to test knowledge in Physics, Chemistry, and Math. Uses HTML for structure and CSS for styling.",
         "link": "projects/learning/only_html/p4",
         "image": "media/icons/pcm_quiz.png"
@@ -82,5 +82,29 @@
     "description": "A comprehensive cheat sheet providing essential Git and Termux commands with explanations and alternatives, designed for quick reference and efficient command-line usage on Android devices and beyond.",
     "link": "projects/git_cmd/",
     "image": "media/icons/git_cmd.jpg"
-}
+},
+{
+    "name": "Border Animation",
+    "slug": "border-animation",
+    "tagline": "A simple CSS project showcasing animated borders around a text card.",
+    "started": "2024",
+    "status": "Completed",
+    "keywords": ["CSS", "animation", "border", "HTML", "front-end", "design"],
+    "team_ids": ["N"],
+    "description": "This project demonstrates how to create a visually appealing animated border effect using CSS. It features a card with rotating colorful borders created using conic gradients and keyframe animations. The project also includes a basic navbar with Font Awesome icons.",
+    "link": "projects/border_animation/",
+    "image": "media/icons/border_animation.jpg"
+},
+{
+    "name": "AI Code Block Renderer",
+    "slug": "ai-code-block-renderer",
+    "tagline": "A tool to render and clean up AI-generated code snippets with formatting and a clean UI.",
+    "started": "2025",
+    "status": "Completed",
+    "keywords": ["code", "renderer", "AI", "HTML", "CSS", "JavaScript", "formatting"],
+    "team_ids": ["N"],
+    "description": "A web-based tool that takes AI-generated Markdown code snippets and renders them with better formatting in a user-friendly interface. Features: Paste, clear, and render code, Toggle for auto-pasting, Copy rendered output to clipboard. ",
+    "link": "projects/code_block_renderer",
+    "image": "media/icons/code_block_renderer.jpg"
+    }
 ]
