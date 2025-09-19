@@ -106,5 +106,41 @@
     "description": "A web-based tool that takes AI-generated Markdown code snippets and renders them with better formatting in a user-friendly interface. Features: Paste, clear, and render code, Toggle for auto-pasting, Copy rendered output to clipboard. ",
     "link": "projects/markdown_render",
     "image": "media/icons/markdown_render.jpg"
-    }
+    },
+{
+        "name": "Genre Picker",
+        "slug": "genre_picker",
+        "tagline": "A JavaScript-based genre selection tool with filtering and tag management.",
+        "started": "2025",
+        "status": "Completed",
+        "keywords": ["genre picker", "JavaScript", "HTML", "CSS", "UI component"],
+        "team_ids": ["N"],
+        "description": "An interactive genre selection tool implemented in JavaScript, HTML, and CSS. Features include dynamic filtering, adding new genres, removing selected genres, and a user-friendly tag-based interface.  Uses Bootstrap for styling and Font Awesome for icons.",
+        "link": "projects/genre_picker",
+        "image": "media/icons/genre_picker.png"
+},
+{
+    "name": "Markdown Code Extractor",
+    "slug": "markdown_code_extractor",
+    "tagline": "Extract code blocks from markdown or mixed text.",
+    "started": "2025",
+    "status": "Completed",
+    "keywords": ["code extraction", "markdown", "JavaScript", "HTML", "CSS", "AI formatting"],
+    "team_ids": ["N"],
+    "description": "This project allows users to extract code blocks from markdown or other text formats, offering features like delimiter selection, file upload, search, and AI-powered code formatting and fixing. It uses Google's Gemini API for code manipulation.",
+    "link": "projects/extract/",
+    "image": "media/icons/extract.jpg"
+},
+{
+        "name": "Html Links",
+        "slug": "html_links",
+        "tagline": "A simple HTML page with internal and external links organized by subject.",
+        "started": "2024",
+        "status": "Completed",
+        "keywords": ["HTML", "CSS", "Links", "Physics", "Chemistry", "Math"],
+        "team_ids": ["N"],
+        "description": "A basic HTML project showcasing internal and external links, categorized into Physics, Chemistry, and Math sections.  Uses HTML for structure, CSS for basic styling, and provides links to educational resources.",
+        "link": "projects/learning/html-projects/html_links/",
+        "image": "media/icons/html_links.jpg"
+}
 ]
