@@ -5,7 +5,7 @@
         "tagline": "Your personal movie log, tracker and analytics with much more features",
         "started": "May 2025",
         "status": "Continue",
-        "keywords": ["AI", "movies", "tracking", "JavaScript"],
+        "keywords": ["vibecode", "movies", "tracking", "JavaScript"],
         "team_ids": ["N"],
         "description": "A comprehensive movie tracking application that allows users to log films they have watched, create custom watchlists, and discover new movies based on their viewing history.",
         "link": "projects/keepmoviez/",
@@ -132,15 +132,75 @@
     "image": "media/icons/extract.jpg"
 },
 {
+        "name": "Peace Tracker",
+        "slug": "peace_tracker",
+        "tagline": "Detects the peace sign using hand gestures via webcam. Toggles the background color upon successful detection.",
+        "started": "2025",
+        "status": "Completed",
+        "keywords": ["gesture recognition", "JavaScript", "HTML", "CSS", "MediaPipe", "vibecode"],
+        "team_ids": ["N"],
+        "description": "Peace Tracker is a web application that uses MediaPipe's hand tracking to detect the 'peace' sign. It uses a webcam to capture the user's hand movements and identifies the gesture in real-time. Upon successful detection, the page background turns green. This project demonstrates real-time gesture recognition in the browser.",
+        "link": "projects/peace_tracker/",
+        "image": "media/icons/peace_tracker.jpg"
+},
+{
+        "name": "Wishlist",
+        "slug": "wishlist",
+        "tagline": "A powerful, offline-first wishlist and goal planning application, that helps you organize your desires and achieve your goals.",
+        "started": "2025",
+        "status": "Completed",
+        "keywords": ["wishlist", "vibecode", "offline app", "JavaScript", "HTML", "CSS"],
+        "team_ids": ["N"],
+        "description": "Wishlist is an application designed to help users create and manage their personal wishlists and track their goals. It offers a user-friendly interface with features like adding items, setting goal dates, managing prices and store links, and organizing wishes with tags. The application supports offline functionality and offers a clean, modern design with light and dark theme options.",
+        "link": "projects/wishlist/",
+        "image": "media/icons/wishlist.png"
+},
+{
         "name": "Html Links",
         "slug": "html_links",
-        "tagline": "A simple HTML page with internal and external links organized by subject.",
-        "started": "2024",
+        "tagline": "An interactive guide to understanding and navigating HTML links. Explore physics, chemistry, and math resources with ease.",
+        "started": "2025",
         "status": "Completed",
-        "keywords": ["HTML", "CSS", "Links", "Physics", "Chemistry", "Math"],
+        "keywords": ["project", "HTML", "CSS", "links", "navigation", "education"],
         "team_ids": ["N"],
-        "description": "A basic HTML project showcasing internal and external links, categorized into Physics, Chemistry, and Math sections.  Uses HTML for structure, CSS for basic styling, and provides links to educational resources.",
-        "link": "projects/learning/html-projects/html_links/",
-        "image": "media/icons/html_links.jpg"
+        "description": "This project provides a simple HTML page with links to various educational resources. It covers physics, chemistry, and math, allowing users to quickly access external sites and navigate between sections. The design is clean and straightforward, focusing on usability and educational content.",
+        "link": "projects/learning/html_projects/p5",
+        "image": "media/icons/html_links.png"
+},
+{
+        "name": "PWA Icon",
+        "slug": "pwa_icon",
+        "tagline": "Generate PWA icons effortlessly. Upload an image and create icons in various sizes for your progressive web app.",
+        "started": "2025",
+        "status": "Completed",
+        "keywords": ["PWA", "icon generator", "JavaScript", "HTML", "CSS", "vibecode"],
+        "team_ids": ["N"],
+        "description": "A simple and intuitive tool to generate icons for Progressive Web Apps. Users can upload an image and the application will create icons in multiple sizes required for PWA implementation. It also provides a convenient download all as ZIP feature.",
+        "link": "projects/pwa_icon/",
+        "image": "media/icons/pwa_icon.png"
+},
+{
+        "name": "Space Fabric",
+        "slug": "space_fabric",
+        "tagline": "Space Fabric Visualizer is an interactive simulation where you can explore celestial mechanics and gravitational forces.",
+        "started": "2025",
+        "status": "Completed",
+        "keywords": ["space", "simulation", "gravity", "vibecode", "JavaScript", "HTML", "CSS"],
+        "team_ids": ["N"],
+        "description": "Space Fabric is an interactive visualizer that simulates celestial mechanics and gravitational interactions. Users can add planets, black holes, and other celestial bodies to observe their interactions. It allows users to modify parameters like mass, radius, velocity, and explore grid deformations caused by gravity.",
+        "link": "projects/space_fabric/",
+        "image": "media/icons/space_fabric.jpg"
+},
+{
+        "name": "MOMOHOLICS",
+        "slug": "momoholics",
+        "tagline": "Experience flavour that wraps around your heart! Discover the best Momo in Nepal.",
+        "started": "2025",
+        "status": "Completed",
+        "keywords": ["Momo", "Nepal", "Food delivery", "Restaurant", "Online order", "Cart"],
+        "team_ids": ["N", "S"],
+        "description": "MOMOHOLICS is an online platform dedicated to delivering the best momo in Nepal. Users can explore the menu, place orders, and enjoy fast delivery services. The application provides features such as user authentication, a shopping cart, and profile management to enhance the overall customer experience.",
+        "link": "projects/momoholics/",
+        "image": "media/icons/momoholics.jpg"
 }
 ]

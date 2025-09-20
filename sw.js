@@ -15,7 +15,8 @@ const urlsToCache = [
   '/media/social/twitter.svg',
   '/media/social/instagram.svg',
   '/media/social/facebook.svg',
-  '/media/social/linkedin.svg'
+  '/media/social/linkedin.svg',
+  '/media/social/website.svg'
 ];
 
 // Install a service worker

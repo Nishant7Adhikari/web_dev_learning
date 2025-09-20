@@ -7,6 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/x-icon" href="favicon.png">
 <link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <title>Nishant Adhikari</title>
 </head>
 <body>
@@ -40,10 +41,65 @@
 <div class="modal" id="projectModal"><div class="modal-content"><span class="close-btn">&times;</span><div id="projectDetailContent"></div></div></div>
 <div class="modal" id="aboutModal"><div class="modal-content"><span class="close-btn">&times;</span><div id="aboutContent">
 <h2>About This Site</h2>
-<p>Welcome to my personal website. This is a curated collection of my web development projects, showcasing my skills and passion for creating clean, functional, and user-friendly web experiences.</p>
-<p>Each project represents a step in my learning journey. Feel free to explore, and don't hesitate to get in touch!</p>
-</div></div></div>
+<div id="Markdown">
+---
+## Nishant Adhikari 
+---
+Welcome to my personal portfolio website showcasing a collection of web development projects. This is both my learning journey and a demonstration of my skills in HTML, CSS, JavaScript, and modern web technologies.
 
+## 👤 About Me
+
+**Nishant Adhikari** - Student, Web Developer, Science Enthusiast  
+📍 Based in Kathmandu, Nepal
+
+I'm passionate about creating clean, functional, and user-friendly web experiences. This portfolio represents my journey in web development, from basic HTML pages to complex interactive applications. Some of the project are [Vibe coding](https://en.m.wikipedia.org/wiki/Vibe_coding).
+
+
+>I don't have full coding expertises on those projects with a keyword "vibecode".
+
+## 📋 About
+
+This portfolio website features:
+
+- **Interactive Project Gallery** - Browse through my web development projects with search functionality
+- **Progressive Web App (PWA)** - Installable, offline-capable, and mobile-friendly
+- **Responsive Design** - Works seamlessly across all devices and screen sizes  
+- **Dark/Light Theme** - Toggle between themes with persistent user preference
+- **Dynamic Content** - Projects and team information loaded from JSON data
+- **Service Worker Caching** - Optimized performance with smart caching strategies
+
+## 🎯 Highlighted Projects
+
+### **KeepMovizEZ** 
+*personal movie log, tracker and analytics*
+- Comprehensive movie tracking application
+- Custom watchlists and viewing history
+- Movie discovery and analytics
+- **Tech**: JavaScript, IndexedDB, TMDB API, Supabase
+
+### **Momoholics**
+
+## 🎨 Features
+
+- **🔍 Search Functionality** - Find projects by name or technology
+- **📱 Mobile Responsive** - Optimized for all screen sizes
+- **🌙 Theme Toggle** - Dark and light mode support
+- **⚡ Fast Loading** - Service worker caching for optimal performance
+- **📴 Offline Support** - Browse projects even without internet
+- **🎯 SEO Optimized** - Proper meta tags and semantic HTML
+
+---
+## 🔗 Connect With Me
+Checkout  **Our Team** modal;
+---
+
+### ⭐ Star this project in [github](https://GitHub.com/Nishant7Adhikari/web_dev_learning) if you found it helpful!  
+### 🤝 Feel free to reach out for collaborations or questions!
+</div>
+<script> document.getElementById('Markdown').innerHTML = marked.parse(document.getElementById('Markdown').innerText);
+</script>
+
+</div></div></div>
 <div class="modal" id="contactModal">
     <div class="modal-content">
         <span class="close-btn">&times;</span>

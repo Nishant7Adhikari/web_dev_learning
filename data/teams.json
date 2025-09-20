@@ -5,13 +5,13 @@
         "role": "Founder",
         "title": "Creator & Developer ",
         "avatar": "media/male.svg",
-        "bio": "A student and technology enthusiast, passionate about programming and building innovative web projects.",
+        "bio": "A student and technology enthusiast, passionate about programming, electronics, building innovative web projects and learning new things.",
         "interest": [
-            "HTML",
-            "CSS",
-            "JavaScript",
-            "PWA",
-            "Minimalist Design"
+            "Web development",
+            "Chess",
+            "Rubik's Cube",
+            "Robotics",
+            "Designing"
         ],
         "socialLinks": {
             "discord": "https://discord.gg/btWA9sHV",
@@ -28,12 +28,14 @@
   "role": "Contributor",
   "title": "Member & Developer",
   "avatar": "media/male.svg",
-  "bio": "AI Student and technology enthusiast, passionate about programming and building projects, learning new things. ",
-  "interests": [
+  "bio": "AI Student and technology enthusiast, passionate about programming, building projects and learning new things. ",
+  "interest": [
     "AI",
     "Science",
     "Music",
-    "Cooking"
+    "Cooking",
+    "Grishma",
+    "Petrol Pump"
   ],
   "socialLinks": {
     "discord": "https://discord.gg/Byjhha8D",
