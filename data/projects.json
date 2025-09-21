@@ -20,7 +20,7 @@
         "keywords": ["html", "css", "headings", "learning"],
         "team_ids": ["N"],
         "description": "A simple HTML and CSS project that demonstrates the usage of different heading levels (h1–h6) with accompanying explanations of physics, chemistry, and mathematics concepts. Each section is styled with alternating background colors and centered text to clearly showcase the hierarchy of headings.",
-        "link": "projects/learning/only_html/p1/",
+        "link": "projects/learning/html_projects/p1/",
         "image": "media/icons/header_showcase.png"
      },
      {
@@ -32,7 +32,7 @@
         "keywords": ["learning", "Formulae", "list", "HTML", "CSS"],
         "team_ids": ["N"],
         "description": "A simple web page displaying key physics and chemistry formulas with explanations.  Built using HTML and CSS.",
-        "link": "projects/learning/only_html/p2/",
+        "link": "projects/learning/html_projects/p2/",
         "image": "media/icons/list_of_formulae.png"
     },
     {
@@ -56,7 +56,7 @@
         "keywords": ["Constants", "HTML", "CSS", "Table", "learning"],
         "team_ids": ["N"],
         "description": "A simple HTML and CSS project displaying a table of important universal constants in physics, including the speed of light, gravitational acceleration, Planck's constant, Avogadro's number, and the gas constant.",
-        "link": "projects/learning/only_html/p3/",
+        "link": "projects/learning/html_projects/p3/",
         "image": "media/icons/constants_table.png"
 },
 {
@@ -68,7 +68,7 @@
         "keywords": ["HTML", "CSS", "learning", "form"],
         "team_ids": ["N"],
         "description": "A basic HTML quiz designed to test knowledge in Physics, Chemistry, and Math. Uses HTML for structure and CSS for styling.",
-        "link": "projects/learning/only_html/p4",
+        "link": "projects/learning/html_projects/p4",
         "image": "media/icons/pcm_quiz.png"
 },
 {

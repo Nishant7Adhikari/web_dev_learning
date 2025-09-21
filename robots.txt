@@ -1,0 +1,14 @@
+# START OF FILE robots.txt
+
+User-agent: *
+# Allow all crawlers access to the site.
+
+# Disallow crawling of data files and PWA assets that shouldn't be indexed.
+Disallow: /data/
+Disallow: /sw.js
+Disallow: /manifest.json
+
+# Point crawlers to the sitemap for a list of all important pages.
+Sitemap: https://nishantadhikari.info.np/sitemap.xml
+
+# END OF FILE robots.txt
