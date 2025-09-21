@@ -117,7 +117,7 @@
         "team_ids": ["N"],
         "description": "An interactive genre selection tool implemented in JavaScript, HTML, and CSS. Features include dynamic filtering, adding new genres, removing selected genres, and a user-friendly tag-based interface.  Uses Bootstrap for styling and Font Awesome for icons.",
         "link": "projects/genre_picker",
-        "image": "media/icons/genre_picker.png"
+        "image": "media/icons/genre.png"
 },
 {
     "name": "Markdown Code Extractor",
@@ -213,6 +213,6 @@
         "team_ids": ["N"],
         "description": "Vertex Foundry is a comprehensive curriculum designed to guide aspiring web developers. It offers a sequential learning path, unlocking new challenges as projects are completed. The platform features focus and browse modes, a progress tracker, and a curriculum built with HTML, CSS, and JavaScript. The goal is to provide a structured and engaging learning experience.",
         "link": "projects/vertex_foundry/",
-        "image": "media/icons/vertex_foundry.png"
+        "image": "media/icons/vertex_foundry.jpg"
 }
 ]
