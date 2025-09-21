@@ -116,8 +116,8 @@
         "keywords": ["genre picker", "JavaScript", "HTML", "CSS", "UI component", "vibecode"],
         "team_ids": ["N"],
         "description": "An interactive genre selection tool implemented in JavaScript, HTML, and CSS. Features include dynamic filtering, adding new genres, removing selected genres, and a user-friendly tag-based interface.  Uses Bootstrap for styling and Font Awesome for icons.",
-        "link": "projects/genre_picker",
-        "image": "media/icons/genre.png"
+        "link": "projects/genre_picker/",
+        "image": "media/icons/genre_picker.png"
 },
 {
     "name": "Markdown Code Extractor",
