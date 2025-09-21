@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nishant-adhikari-cache-v1';
+const CACHE_NAME = 'nishant-adhikari-cache-v1.0.0';
 const urlsToCache = [
   '/',
   '/index.html',
