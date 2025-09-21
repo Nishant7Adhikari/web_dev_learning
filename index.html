@@ -1,35 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="theme-color" content="#8a2be2">
-<link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/x-icon" href="favicon.png">
-<link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<meta name="description" content="Explore the web development portfolio of Nishant Adhikari. Discover a collection of projects in JavaScript, HTML, and CSS, including a PWA movie tracker and AI-powered tools.">
-<title>Nishant Adhikari</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#8a2be2">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/x-icon" href="favicon.png">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <!-- ✅ Optimized SEO Meta -->
+  <title>Nishant Adhikari - Student & Web Developer Portfolio</title>
+  <meta name="description" content="Discover the portfolio of Nishant Adhikari — a student and web developer from Kathmandu, Nepal. Passionate about JavaScript, HTML, CSS, and modern web technologies, Nishant builds clean, user-friendly, and innovative web applications including PWAs and AI-powered tools.">
+  <meta name="keywords" content="Nishant Adhikari, web developer Nepal, student portfolio, JavaScript projects, HTML CSS, PWA developer, AI tools, Nishant Web Development, Kathmandu programmer">
+  <!-- Open Graph Meta Tags -->
+<meta property="og:title" content="Nishant Adhikari - Student & Web Developer">
+<meta property="og:description" content="Portfolio of Nishant Adhikari — student & web developer from Kathmandu, Nepal. Passionate about JavaScript, HTML, CSS, PWAs, and AI-powered tools.">
+<meta property="og:url" content="https://nishantadhikari.info.np">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://nishantadhikari.info.np/media/icon-512x512.png">
+  <!-- Twitter Card Meta Tags -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Nishant Adhikari - Student & Web Developer">
+<meta name="twitter:description" content="Portfolio of Nishant Adhikari — student & web developer from Kathmandu, Nepal. Passionate about JavaScript, HTML, CSS, PWAs, and AI-powered tools.">
+<meta name="twitter:image" content="https://nishantadhikari.info.np/media/icon-512x512.png">
+<meta name="twitter:site" content="@Nishant_OP11">
+
+
+  <!-- ✅ Structured Data (Person Schema) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Nishant Adhikari",
+    "url": "https://nishantadhikari.info.np",
+    "sameAs": [
+      "https://github.com/Nishant7Adhikari",
+      "https://x.com/Nishant_OP11",
+      "https://www.instagram.com/nishant060211",
+      "https://www.facebook.com/share/172n6tfVsX/"
+    ],
+    "jobTitle": "Web Developer",
+    "worksFor": {
+      "@type": "Organization",
+      "name": "Nishant Adhikari"
+    },
+    "description": "Nishant Adhikari is a student and web developer from Kathmandu, Nepal. He is passionate about JavaScript, HTML, CSS, PWAs, and building innovative, user-friendly web applications."
+  }
+  </script>
 </head>
 <body>
 <div class="background-gradient"></div>
 
 <header>
     <div class="logo"> <img id="myLogo" src="media/icon-512x512.png" alt="Nishant Adhikari"> </div>
+    <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search projects..." aria-label="Search Projects">
+</div>
     <div class="menu-toggle" id="menuToggle" aria-label="Menu">☰</div>
     <nav id="navMenu">
         <a id="themeToggle" aria-label="Toggle Theme">🌓 Theme</a>
-        <a id="ourTeamBtn">Our Team</a>
-        <a id="aboutBtn">About</a>
+        <a id="CollaboratorBTN">Collaboration</a>
+        <a id="aboutBtn">About Me</a>
         <a id="contactBtn">Contact</a>
     </nav>
 </header>
 
-<div class="search-bar">
-    <input type="text" id="searchInput" placeholder="Search projects..." aria-label="Search Projects">
-</div>
-
 <main>
+    <div class="hero-section">
+        <h1>Nishant Adhikari: Student & Web Developer</h1>
+        <p>Welcome to my personal portfolio website showcasing a collection of web development projects. This is both my learning journey and a demonstration of my skills in HTML, CSS, JavaScript, and modern web technologies.</p>
+    </div>
+    <hr>
     <section class="projects-grid" id="projectsGrid"></section>
 </main>
 
@@ -40,11 +82,12 @@
 <!-- Modals (HTML structure is unchanged) -->
 <div class="modal" id="teamModal"><div class="modal-content"><span class="close-btn">&times;</span><div id="teamContent"></div></div></div>
 <div class="modal" id="projectModal"><div class="modal-content"><span class="close-btn">&times;</span><div id="projectDetailContent"></div></div></div>
+
 <div class="modal" id="aboutModal"><div class="modal-content"><span class="close-btn">&times;</span><div id="aboutContent">
+
 <div id="Markdown">
 ## Nishant Adhikari 
 ---
-Welcome to my personal portfolio website showcasing a collection of web development projects. This is both my learning journey and a demonstration of my skills in HTML, CSS, JavaScript, and modern web technologies.
 
 ## 👤 About Me
 
@@ -54,7 +97,7 @@ Welcome to my personal portfolio website showcasing a collection of web developm
 I'm passionate about creating clean, functional, and user-friendly web experiences. This portfolio represents my journey in web development, from basic HTML pages to complex interactive applications. Some of the project are [Vibe coding](https://en.m.wikipedia.org/wiki/Vibe_coding).
 
 
->I may not have full coding knowledge on those projects with a keyword "vibecode".
+>I may not have full coding knowledge on those projects with the keyword "vibecode".
 
 ## 📋 About
 
@@ -88,11 +131,8 @@ This portfolio website features:
 - **🎯 SEO Optimized** - Proper meta tags and semantic HTML
 
 ---
-## 🔗 Connect With Me
-Checkout  **Our Team** modal;
----
 
-### ⭐ Star this project in [github](https://GitHub.com/Nishant7Adhikari/web_dev_learning) if you found it helpful!  
+### ⭐ Star this project in [<u>github</u>](https://GitHub.com/Nishant7Adhikari/web_dev_learning) if you found it helpful!  
 ### 🤝 Feel free to reach out for collaborations or questions!
 </div>
 <script> document.getElementById('Markdown').innerHTML = marked.parse(document.getElementById('Markdown').innerText);
@@ -141,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const current = document.documentElement.getAttribute('data-theme');
         applyTheme(current === 'dark' ? 'light' : 'dark');
     });
-    document.getElementById('ourTeamBtn').addEventListener('click', () => showTeamModal());
+    document.getElementById('CollaboratorBTN').addEventListener('click', () => showTeamModal());
     document.getElementById('aboutBtn').addEventListener('click', () => modals.about.style.display = 'flex');
     document.getElementById('contactBtn').addEventListener('click', () => openContactModal());
     document.getElementById('menuToggle').addEventListener('click', (e) => {
@@ -209,12 +249,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     searchInput.addEventListener('input', e => loadProjects(e.target.value));
 
-    // --- TEAM MODAL & SINGLE MEMBER VIEW ---
+    // --- Collaboration MODAL & SINGLE MEMBER VIEW ---
     function getMemberCardHTML(member) {
         const socialLinksHTML = Object.entries(member.socialLinks)
             .map(([platform, url]) => (url && url !== '#') ? `
                 <a href="${url}" target="_blank" rel="noopener noreferrer" title="${platform}">
-                    <img src="media/social/${platform.toLowerCase()}.svg" alt="${platform} icon">
+                    <img src="media/social/${platform.toLowerCase()}.svg" alt="${platform}">
                 </a>` : '').join('');
 
         const interestHTML = member.interest && member.interest.length > 0
@@ -230,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
                 <p class="team-card-bio">${member.bio}</p>
-                ${interestHTML}
+               Interest & Hobbies: ${interestHTML}
                 <div class="social-links">${socialLinksHTML}</div>
             </div>`;
     }
@@ -242,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (member) modalContentHTML = getMemberCardHTML(member);
         } else {
             const allMembersHTML = teamData.map(getMemberCardHTML).join('');
-            modalContentHTML = `<h2>Our Team</h2>${allMembersHTML}`;
+            modalContentHTML = `<h2>Collaboration</h2>${allMembersHTML}`;
         }
         contentAreas.team.innerHTML = modalContentHTML;
         modals.team.style.display = 'flex';

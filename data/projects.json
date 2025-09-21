@@ -202,5 +202,17 @@
         "description": "MOMOHOLICS is an online platform dedicated to delivering the best momo in Nepal. Users can explore the menu, place orders, and enjoy fast delivery services. The application provides features such as user authentication, a shopping cart, and profile management to enhance the overall customer experience.",
         "link": "projects/momoholics/",
         "image": "media/icons/momoholics.jpg"
+},
+{
+        "name": "Vertex Foundry",
+        "slug": "vertex_foundry",
+        "tagline": "Your guided path to becoming a proficient web developer. Complete projects sequentially to unlock the next challenge.",
+        "started": "2025",
+        "status": "Completed",
+        "keywords": ["web development", "HTML", "CSS", "JavaScript", "curriculum", "vibecode"],
+        "team_ids": ["N"],
+        "description": "Vertex Foundry is a comprehensive curriculum designed to guide aspiring web developers. It offers a sequential learning path, unlocking new challenges as projects are completed. The platform features focus and browse modes, a progress tracker, and a curriculum built with HTML, CSS, and JavaScript. The goal is to provide a structured and engaging learning experience.",
+        "link": "projects/vertex_foundry/",
+        "image": "media/icons/vertex_foundry.png"
 }
 ]
