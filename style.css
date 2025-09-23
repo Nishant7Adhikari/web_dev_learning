@@ -70,7 +70,7 @@ header {
     display: flex;
     justify-content: center;
     margin: 0; /* Removed margin, now handled by header's gap */
-    min-width: 100px; /* Prevents it from becoming too small */
+    min-width: 100px; /* Prevents it from becoming too small.  temp*/ 
 }
 .search-bar input { 
     padding: 0.75rem; 
