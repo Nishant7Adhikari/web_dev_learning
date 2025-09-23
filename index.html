@@ -8,6 +8,7 @@
   <link rel="icon" type="image/x-icon" href="favicon.png">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- ✅ Optimized SEO Meta -->
   <title>Nishant Adhikari - Student & Web Developer Portfolio</title>
@@ -98,11 +99,11 @@
 </header>
 
 <main>
-    <div class="hero-section">
+    <div class="hero-section" id="heroSection">
+        <button id="hideHeroBtn" class="hide-hero-button" aria-label="Hide welcome message">&times;</button>
         <h1>Nishant Adhikari: Student & Web Developer</h1>
         <p>Welcome to my personal portfolio website showcasing a collection of web development projects. This is both my learning journey and a demonstration of my skills in HTML, CSS, JavaScript, and modern web technologies.</p>
     </div>
-    <hr>
     <section class="projects-grid" id="projectsGrid"></section>
 </main>
 
@@ -187,57 +188,82 @@ This portfolio website features:
         </div>
     </div>
 </div>
-
-<script>
-// --- JAVASCRIPT IS UNCHANGED FROM THE PREVIOUS VERSION ---
+ <script>
 document.addEventListener('DOMContentLoaded', () => {
+    // Supabase Configuration
+    const SUPABASE_URL = 'https://kzvnxgmkgtlayvcdkoru.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt6dm54Z21rZ3RsYXl2Y2Rrb3J1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2NDcxOTcsImV4cCI6MjA3NDIyMzE5N30.Yg-5oEr_yKGZVYixKm9TLoNnFO51vVcB24atIgydags';
+    const { createClient } = supabase;
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     const projectsGrid = document.getElementById('projectsGrid');
     const searchInput = document.getElementById('searchInput');
     let projectsData = [];
     let teamData = [];
 
-    // --- MODAL & NAVIGATION ELEMENTS ---
-    const modals = {
-        team: document.getElementById('teamModal'),
-        project: document.getElementById('projectModal'),
-        about: document.getElementById('aboutModal'),
-        contact: document.getElementById('contactModal')
+    // --- ✅ NEW: HERO SECTION HIDE LOGIC ---
+    const heroSection = document.getElementById('heroSection');
+    const hideHeroBtn = document.getElementById('hideHeroBtn');
+    
+    // Function to hide the hero section
+    const hideHero = () => {
+        // Check if it's already hidden to avoid re-running the logic
+        if (heroSection && !heroSection.classList.contains('hidden')) {
+            heroSection.classList.add('hidden');
+        }
     };
-    const contentAreas = {
-        team: document.getElementById('teamContent'),
-        project: document.getElementById('projectDetailContent'),
-        contactSocials: document.getElementById('contactSocials')
-    };
-    document.getElementById('themeToggle').addEventListener('click', () => {
-        const current = document.documentElement.getAttribute('data-theme');
-        applyTheme(current === 'dark' ? 'light' : 'dark');
-    });
+
+    // Set a timer to automatically hide the hero section after 5 seconds
+    const heroHideTimer = setTimeout(hideHero, 1900);
+
+    // Add a click listener for the manual hide button
+    if (hideHeroBtn) {
+        hideHeroBtn.addEventListener('click', () => {
+            clearTimeout(heroHideTimer); // Cancel the automatic timer
+            hideHero(); // Hide it immediately
+        });
+    }
+
+    // Modal, Navigation, and Theme Handling
+    const modals = { team: document.getElementById('teamModal'), project: document.getElementById('projectModal'), about: document.getElementById('aboutModal'), contact: document.getElementById('contactModal') };
+    const contentAreas = { team: document.getElementById('teamContent'), project: document.getElementById('projectDetailContent'), contactSocials: document.getElementById('contactSocials') };
+    document.getElementById('themeToggle').addEventListener('click', () => { const current = document.documentElement.getAttribute('data-theme'); applyTheme(current === 'dark' ? 'light' : 'dark'); });
     document.getElementById('CollaboratorBTN').addEventListener('click', () => showTeamModal());
     document.getElementById('aboutBtn').addEventListener('click', () => modals.about.style.display = 'flex');
     document.getElementById('contactBtn').addEventListener('click', () => openContactModal());
-    document.getElementById('menuToggle').addEventListener('click', (e) => {
-        e.stopPropagation();
-        document.getElementById('navMenu').classList.toggle('show');
-    });
-    
-    // --- THEME ---
-    const applyTheme = (theme) => {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
-    };
+    document.getElementById('menuToggle').addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('navMenu').classList.toggle('show'); });
+    const applyTheme = (theme) => { document.documentElement.setAttribute('data-theme', theme); localStorage.setItem('theme', theme); };
     applyTheme(localStorage.getItem('theme') || 'dark');
+    
+    // Fetch Project and Team Data
+    async function fetchData() {
+        try {
+            const [projectsResponse, teamsResponse] = await Promise.all([
+                fetch('data/projects.json'),
+                fetch('data/teams.json')
+            ]);
+            const projects = await projectsResponse.json();
+            teamData = await teamsResponse.json();
 
-    // --- DATA FETCHING ---
-    Promise.all([
-        fetch('data/projects.json').then(res => res.json()),
-        fetch('data/teams.json').then(res => res.json())
-    ]).then(([projects, teams]) => {
-        projectsData = projects;
-        teamData = teams;
-        loadProjects();
-    }).catch(error => console.error("Failed to load data:", error));
+            const { data: viewCounts, error } = await supabaseClient.from('projects').select('slug, view_count');
+            
+            if (error) {
+                projectsData = projects;
+            } else {
+                const viewCountMap = new Map(viewCounts.map(item => [item.slug, item.view_count]));
+                projectsData = projects.map(p => ({
+                    ...p,
+                    view_count: viewCountMap.get(p.slug) || 0
+                }));
+            }
+            loadProjects();
+        } catch (error) {
+            // Fails silently
+        }
+    }
+    fetchData();
 
-    // --- PROJECT LOADING & SORTING ---
+    // Project Scoring and Sorting Logic
     function calculateScore(project) {
         let score = 0;
         const statusPoints = { 'completed': 3, 'continue': 2, 'planned': 1 };
@@ -254,7 +280,12 @@ document.addEventListener('DOMContentLoaded', () => {
             p.keywords.some(k => k.toLowerCase().includes(lowerCaseFilter))
         );
         
-        filtered.sort((a, b) => calculateScore(b) - calculateScore(a));
+        filtered.sort((a, b) => {
+            if (b.view_count !== a.view_count) {
+                return b.view_count - a.view_count;
+            }
+            return calculateScore(b) - calculateScore(a);
+        });
 
         if (!filtered.length) {
             projectsGrid.innerHTML = `<p>No projects found.</p>`;
@@ -280,130 +311,87 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     searchInput.addEventListener('input', e => loadProjects(e.target.value));
 
-    // --- Collaboration MODAL & SINGLE MEMBER VIEW ---
-    function getMemberCardHTML(member) {
-        const socialLinksHTML = Object.entries(member.socialLinks)
-            .map(([platform, url]) => (url && url !== '#') ? `
-                <a href="${url}" target="_blank" rel="noopener noreferrer" title="${platform}">
-                    <img src="media/social/${platform.toLowerCase()}.svg" alt="${platform}">
-                </a>` : '').join('');
+    // Event Delegation for Project Grid Interaction
+    projectsGrid.addEventListener('click', (e) => {
+        if (e.target.classList.contains('card-button')) {
+            const card = e.target.closest('.card');
+            if (!card) return;
+            const projectSlug = card.dataset.slug;
+            if (!projectSlug) return;
+            
+            const rpcUrl = SUPABASE_URL + '/rest/v1/rpc/increment_view';
+            fetch(rpcUrl, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ project_slug: projectSlug }),
+                keepalive: true
+            });
 
-        const interestHTML = member.interest && member.interest.length > 0
-            ? `<div class="interest-tags">${member.interest.map(skill => `<span class="tag">${skill}</span>`).join('')}</div>` : '';
-
-        return `
-            <div class="team-card">
-                <div class="team-card-header">
-                    <img src="${member.avatar}" alt="${member.name}">
-                    <div class="team-card-identity">
-                        <h3>${member.name}</h3>
-                        <p>${member.title || member.role}</p>
-                    </div>
-                </div>
-                <p class="team-card-bio">${member.bio}</p>
-               Interest & Hobbies: ${interestHTML}
-                <div class="social-links">${socialLinksHTML}</div>
-            </div>`;
-    }
-
-    function showTeamModal(memberId = null) {
-        let modalContentHTML;
-        if (memberId) {
-            const member = teamData.find(m => m.id === memberId);
-            if (member) modalContentHTML = getMemberCardHTML(member);
         } else {
-            const allMembersHTML = teamData.map(getMemberCardHTML).join('');
-            modalContentHTML = `<h2>Collaboration</h2>${allMembersHTML}`;
-        }
-        contentAreas.team.innerHTML = modalContentHTML;
-        modals.team.style.display = 'flex';
-    }
+            const card = e.target.closest('.card');
+            if (!card) return;
 
-    // --- PROJECT DETAIL MODAL ---
-    projectsGrid.addEventListener('click', e => {
-        if (e.target.classList.contains('card-button')) return;
-        const card = e.target.closest('.card');
-        if (!card) return;
-        const project = projectsData.find(p => p.slug === card.dataset.slug);
-        if (!project) return;
-        
-        const teamMembersHTML = project.team_ids.map(id => {
-            const member = teamData.find(m => m.id === id);
-            return member ? `<span class="team-member-link" data-id="${id}">${member.name}</span>` : '';
-        }).join(', ');
+            const project = projectsData.find(p => p.slug === card.dataset.slug);
+            if (!project) return;
+            
+            const teamMembersHTML = project.team_ids.map(id => {
+                const member = teamData.find(m => m.id === id);
+                return member ? `<span class="team-member-link" data-id="${id}">${member.name}</span>` : '';
+            }).join(', ');
 
-        contentAreas.project.innerHTML = `
-            <img id="projectDetailImage" src="${project.image || 'media/icons/default.png'}" alt="Thumbnail">
-            <h2>${project.name}</h2>
-            <p><em>${project.tagline}</em></p>
-            <hr>
-            <p>${project.description}</p>
-            <div class="project-meta">
-                <p><strong>Status:</strong> ${project.status}</p>
-                <p><strong>Team:</strong> ${teamMembersHTML}</p>
-                <p><strong>Keywords:</strong> ${project.keywords.join(', ')}</p>
-            </div>
-            <a href="${project.link}" target="_blank" rel="noopener noreferrer" class="detail-button">Open</a>`;
-        modals.project.style.display = 'flex';
-    });
-
-    // --- EVENT DELEGATION FOR TEAM MEMBER LINKS ---
-    modals.project.addEventListener('click', e => {
-        if (e.target.classList.contains('team-member-link')) {
-            const memberId = e.target.dataset.id;
-            modals.project.style.display = 'none'; // Hide project modal
-            showTeamModal(memberId); // Show team modal with single member
+            contentAreas.project.innerHTML = `
+                <img id="projectDetailImage" src="${project.image || 'media/icons/default.png'}" alt="Thumbnail">
+                <h2>${project.name}</h2>
+                <p><em>${project.tagline}</em></p>
+                <hr>
+                <p>${project.description}</p>
+                <div class="project-meta">
+                    <p><strong>Status:</strong> ${project.status}</p>
+                    <p><strong>Views:</strong> ${project.view_count.toLocaleString()}</p>
+                    <p><strong>Team:</strong> ${teamMembersHTML}</p>
+                    <p><strong>Keywords:</strong> ${project.keywords.join(', ')}</p>
+                </div>
+                <a href="${project.link}" target="_blank" rel="noopener noreferrer" class="detail-button" data-slug="${project.slug}">Open</a>`;
+            modals.project.style.display = 'flex';
         }
     });
-
-    // --- CONTACT MODAL ---
-    function openContactModal() {
-        const founder = teamData.find(m => m.role.toLowerCase() === 'founder');
-        if (founder) {
-            contentAreas.contactSocials.innerHTML = Object.entries(founder.socialLinks).map(([k,v]) =>
-                v && v !== '#'?`<a href="${v}" target="_blank" title="${k}"><img src="media/social/${k}.svg" alt="${k}"></a>`:''
-            ).join('');
-        }
-        modals.contact.style.display = 'flex';
-    }
     
-    document.getElementById('emailForm').addEventListener('submit', e => {
-        e.preventDefault();
-        const name = document.getElementById('emailName').value;
-        const userEmail = document.getElementById('emailUser').value;
-        const message = document.getElementById('emailMessage').value;
-        const mailtoLink = `mailto:nshntdhkr@gmail.com?subject=${encodeURIComponent(`Contact from nishantadhikari.info.np - ${name}`)}&body=${encodeURIComponent(`Name: ${name}\nFrom: ${userEmail}\n\nMessage:\n${message}`)}`;
-        window.location.href = mailtoLink;
-        modals.contact.style.display = 'none';
-        e.target.reset();
-    });
+    modals.project.addEventListener('click', (e) => {
+        if (e.target.classList.contains('detail-button')) {
+            const projectSlug = e.target.dataset.slug;
+            if (!projectSlug) return;
 
-    // --- GLOBAL MODAL CLOSING LOGIC ---
-    function closeModal(modal) { modal.style.display = 'none'; }
-    Object.values(modals).forEach(modal => {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal || e.target.classList.contains('close-btn')) {
-                closeModal(modal);
-            }
-        });
-    });
-    window.addEventListener('click', e => {
-        const navMenu = document.getElementById('navMenu');
-        if (navMenu.classList.contains('show') && !navMenu.contains(e.target) && e.target !== document.getElementById('menuToggle')) {
-            navMenu.classList.remove('show');
+            const rpcUrl = SUPABASE_URL + '/rest/v1/rpc/increment_view';
+            fetch(rpcUrl, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ project_slug: projectSlug }),
+                keepalive: true
+            });
         }
     });
+
+    // Modal Helper Functions
+    function getMemberCardHTML(member) { const socialLinksHTML = Object.entries(member.socialLinks).map(([platform, url]) => (url && url !== '#') ? `<a href="${url}" target="_blank" rel="noopener noreferrer" title="${platform}"><img src="media/social/${platform.toLowerCase()}.svg" alt="${platform}"></a>` : '').join(''); const interestHTML = member.interest && member.interest.length > 0 ? `<div class="interest-tags">${member.interest.map(skill => `<span class="tag">${skill}</span>`).join('')}</div>` : ''; return `<div class="team-card"><div class="team-card-header"><img src="${member.avatar}" alt="${member.name}"><div class="team-card-identity"><h3>${member.name}</h3><p>${member.title || member.role}</p></div></div><p class="team-card-bio">${member.bio}</p>Interest & Hobbies: ${interestHTML}<div class="social-links">${socialLinksHTML}</div></div>`;}
+    function showTeamModal(memberId = null) { let modalContentHTML; if (memberId) { const member = teamData.find(m => m.id === memberId); if (member) modalContentHTML = getMemberCardHTML(member); } else { const allMembersHTML = teamData.map(getMemberCardHTML).join(''); modalContentHTML = `<h2>Collaboration</h2>${allMembersHTML}`; } contentAreas.team.innerHTML = modalContentHTML; modals.team.style.display = 'flex'; }
+    modals.project.addEventListener('click', e => { if (e.target.classList.contains('team-member-link')) { const memberId = e.target.dataset.id; modals.project.style.display = 'none'; showTeamModal(memberId); } });
+    function openContactModal() { const founder = teamData.find(m => m.role.toLowerCase() === 'founder'); if (founder) { contentAreas.contactSocials.innerHTML = Object.entries(founder.socialLinks).map(([k,v]) => v && v !== '#'?`<a href="${v}" target="_blank" title="${k}"><img src="media/social/${k}.svg" alt="${k}"></a>`:'' ).join(''); } modals.contact.style.display = 'flex'; }
+    document.getElementById('emailForm').addEventListener('submit', e => { e.preventDefault(); const name = document.getElementById('emailName').value; const userEmail = document.getElementById('emailUser').value; const message = document.getElementById('emailMessage').value; const mailtoLink = `mailto:nshntdhkr@gmail.com?subject=${encodeURIComponent(`Contact from nishantadhikari.info.np - ${name}`)}&body=${encodeURIComponent(`Name: ${name}\nFrom: ${userEmail}\n\nMessage:\n${message}`)}`; window.location.href = mailtoLink; modals.contact.style.display = 'none'; e.target.reset(); });
+    function closeModal(modal) { modal.style.display = 'none'; }
+    Object.values(modals).forEach(modal => { modal.addEventListener('click', (e) => { if (e.target === modal || e.target.classList.contains('close-btn')) { closeModal(modal); } }); });
+    window.addEventListener('click', e => { const navMenu = document.getElementById('navMenu'); if (navMenu.classList.contains('show') && !navMenu.contains(e.target) && e.target !== document.getElementById('menuToggle')) { navMenu.classList.remove('show'); } });
 });
 
-// --- PWA SERVICE WORKER REGISTRATION ---
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-        .then(reg => console.log('ServiceWorker registered'))
-        .catch(err => console.log('ServiceWorker registration failed:', err));
-    });
-}
+// PWA Service Worker Registration
+if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); }); }
 </script>
-
 </body>
 </html>

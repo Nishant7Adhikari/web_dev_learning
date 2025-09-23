@@ -1,7 +1,7 @@
 :root {
     --bg-color: #f0f2f5;
     --text-color: #1c1e21;
-    --card-bg: rgba(255, 255, 255, 0.75); /* --- OPTIMIZATION: Increased opacity slightly --- */
+    --card-bg: rgba(255, 255, 255, 0.75);
     --border-color: rgba(0, 0, 0, 0.1);
     --shadow-color: rgba(0, 0, 0, 0.1);
     --accent-color: #1877f2;
@@ -11,7 +11,7 @@
 [data-theme="dark"] {
     --bg-color: #121212;
     --text-color: #e5e5e5;
-    --card-bg: rgba(28, 28, 30, 0.8); /* --- OPTIMIZATION: Increased opacity slightly --- */
+    --card-bg: rgba(28, 28, 30, 0.8); 
     --border-color: rgba(255, 255, 255, 0.15);
     --shadow-color: rgba(0, 0, 0, 0.3);
     --accent-color: #64b5f6;
@@ -34,47 +34,83 @@ body {
     z-index: -1;
     background: linear-gradient(45deg, #ff00ff, #00ffff, #ffc800, #ff00ff);
     background-size: 400% 400%;
-    /* --- PERFORMANCE OPTIMIZATION: Removed expensive animation and reduced blur --- */
     filter: blur(40px);
     opacity: 0.3;
-    /* --- PERFORMANCE OPTIMIZATION: Hint to use GPU --- */
     transform: translateZ(0); 
 }
 [data-theme="dark"] .background-gradient {
     opacity: 0.4;
 }
-
 header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
     padding: 0.5rem 1rem;
     position: sticky;
-    height: 50px;
+    height: 60px;
     top: 0;
     z-index: 1000;
     background: var(--card-bg);
-    /* --- PERFORMANCE OPTIMIZATION: Reduced blur radius --- */
     backdrop-filter: blur(5px);
     border-bottom: 1px solid var(--border-color);
 }
-.logo { font-weight: bold; font-size: 2rem; }
-.menu-toggle { display: none; font-size: 1.5rem; cursor: pointer; }
-nav { display: flex; gap: 1rem; }
+.logo {
+    flex-shrink: 0;
+}
+#myLogo {
+    height: 40px; /* Set a fixed height */
+    width: ;
+    object-fit: cover;
+    display: block; /* Removes any extra space below the image */
+    /* Removed problematic percentage width and negative margins */
+}
+.search-bar { 
+    flex-grow: 1; /* Allows the search bar to take available space */
+    display: flex;
+    justify-content: center;
+    margin: 0; /* Removed margin, now handled by header's gap */
+    min-width: 100px; /* Prevents it from becoming too small */
+}
+.search-bar input { 
+    padding: 0.75rem; 
+    width: 100%; /* Makes the input fill its container */
+    max-width: 500px; /* Prevents it from becoming too large */
+    border-radius: 20px; 
+    border: 1px solid var(--border-color); 
+    background-color: var(--card-bg); 
+    color: var(--text-color); 
+    font-size: 1em; 
+}
+.menu-toggle { 
+    display: none; 
+    font-size: 1.5rem; 
+    cursor: pointer; 
+    flex-shrink: 0; 
+}
+nav { 
+    display: flex; 
+    gap: 1rem;
+    flex-shrink: 0; 
+}
 nav a { text-decoration: none; color: var(--text-color); font-weight: bold; cursor: pointer; padding: 0.5rem; border-radius: 5px; transition: background-color 0.2s; }
 nav a:hover { background-color: rgba(0,0,0,0.1); }
-@media (max-width: 700px) {
-    nav { display: none; flex-direction: column; background: var(--card-bg); position: absolute; top: 50px; right: 0; width: 200px; padding: 1rem; box-shadow: 0 4px 8px rgba(0,0,0,0.2); border-radius: 0 0 0 8px; }
+@media (max-width: 768px) {
+    nav { 
+        display: none; 
+        flex-direction: column; 
+        background: var(--card-bg); 
+        position: absolute; 
+        top: 60px;
+        right: 0; 
+        width: 200px; 
+        padding: 1rem; 
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
+        border-radius: 0 0 0 8px; 
+    }
     nav.show { display: flex; }
     .menu-toggle { display: block; }
 }
-.search-bar { 
-    text-align: center; 
-    width: 1000px;
-    margin: 1rem; 
-}
-.search-bar input { padding: 0.75rem; width: 80%; max-width: 400px; border-radius: 20px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-color); font-size: 1em; }
-
 .projects-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -84,22 +120,19 @@ nav a:hover { background-color: rgba(0,0,0,0.1); }
 .card {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
-    /* --- PERFORMANCE OPTIMIZATION: Reduced blur radius --- */
     backdrop-filter: blur(5px);
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 4px 12px var(--shadow-color);
     cursor: pointer;
-    /* --- PERFORMANCE OPTIMIZATION: Animate only transform --- */
     transition: transform 0.2s ease-out;
-    /* --- PERFORMANCE OPTIMIZATION: Hint to the browser about upcoming animation --- */
     will-change: transform;
     display: flex;
     flex-direction: column;
 }
 .card:hover { 
     transform: translateY(-5px); 
-    box-shadow: 0 8px 24px var(--shadow-color); 
+    box-shado w: 0 8px 24px var(--shadow-color); 
 }
 
 .card img { 
@@ -127,9 +160,9 @@ footer { text-align: center; padding: 1rem; background: var(--card-bg); margin-t
 .modal-content { background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; border-radius: 12px; position: relative; animation: slideIn 0.3s ease-out; box-shadow: 0 8px 32px var(--shadow-color); }
 @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 .close-btn { position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 24px; font-weight: bold; }
-.modal-content a { color: var(--link-color); }
-
-/* --- REIMAGINED TEAM MODAL STYLES --- */
+.modal-content a:not(.detail-button) { 
+    color: var(--link-color); 
+}
 .team-card { background: transparent; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem; border: 1px solid var(--border-color); }
 .team-card:last-child { margin-bottom: 0; }
 .team-card-header { display: flex; align-items: center; gap: 1rem; }
@@ -146,7 +179,7 @@ footer { text-align: center; padding: 1rem; background: var(--card-bg); margin-t
 
 /* Modal Content & Forms */
 #projectDetailContent h2, #teamContent h2, #aboutContent h2, #contactContent h2 { margin-top: 0; }
-.detail-button { display: inline-block; width: 100%; box-sizing: border-box; padding: 10px 20px; background-color: var(--accent-color); text-decoration: none; border-radius: 5px; font-weight: bold; text-align: center; margin-top: 1rem; transition: background-color 0.2s; border: none; cursor: pointer; }
+.detail-button { display: inline-block; width: 100%; box-sizing: border-box; padding: 10px 20px; background-color: var(--accent-color); color: var(--accent-text); text-decoration: none; border-radius: 5px; font-weight: bold; text-align: center; margin-top: 1rem; transition: background-color 0.2s; border: none; cursor: pointer; }
 .detail-button:hover { opacity: 0.9; }
 .project-meta { font-size: 0.9em; margin: 0.5rem 0; }
 .team-member-link { font-weight: bold; color: var(--link-color); cursor: pointer; text-decoration: underline; }
@@ -160,10 +193,39 @@ hr { border: none; height: 1px; background-color: var(--border-color); margin: 1
 #projectDetailImage { 
 width: 100%; border-radius: 8px; margin-bottom: 1rem; 
 }
-#myLogo{
-    width: 29%; 
-    aspect-ratio: 1/1; 
-    object-fit: cover;
-    margin-bottom: -10px;
-    margin-top: -10px;
+.hero-section {
+  position: relative;
+  overflow: hidden; 
+  transition: opacity 0.5s ease-out, max-height 0.5s ease-out, padding 0.5s, margin 0.5s;
+  max-height: 500px;
+}
+
+.hero-section.hidden {
+  opacity: 0;
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-bottom: 0;
+  pointer-events: none; 
+}
+
+.hide-hero-button {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: rgba(0, 0, 0, 0.2);
+  border: none;
+  color: white;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 20px;
+  line-height: 26px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  z-index: 10;
+}
+
+.hide-hero-button:hover {
+  background: rgba(0, 0, 0, 0.4);
 }

@@ -1,9 +1,3 @@
-/**
- * Fetches the menu data from the Supabase database.
- * Only retrieves items that are marked as available.
- * Sorts the results to show featured items first.
- * @returns {Promise<Array>} A promise that resolves to the menu data array.
- */
 async function fetchMenuData() {
     try {
         const { data, error } = await supabaseClient
