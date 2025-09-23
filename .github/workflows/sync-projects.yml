@@ -1,0 +1,89 @@
+# .github/workflows/sync-projects.yml
+
+name: Sync projects.json to Supabase
+
+# This action runs automatically on two conditions:
+# 1. When you push changes to the main branch that affect projects.json
+# 2. When you manually trigger it from the "Actions" tab in GitHub
+
+on:
+  push:
+    branches:
+      - main # Or master, depending on your default branch name
+    paths:
+      - 'data/projects.json' # IMPORTANT: Only run if this file changes
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  sync-to-supabase:
+    runs-on: ubuntu-latest # Use a standard virtual environment
+
+    steps:
+      # Step 1: Check out your repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js, which we'll use for our script
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Use a recent version of Node.js
+
+      # Step 3: Install the Supabase client library
+      - name: Install Supabase client
+        run: npm install @supabase/supabase-js
+
+      # Step 4: Run the sync script
+      # This is the core logic. It reads your JSON file and updates Supabase.
+      - name: Run sync script
+        env:
+          # These secrets are securely passed from your GitHub repository settings
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          node -e "
+            const fs = require('fs');
+            const { createClient } = require('@supabase/supabase-js');
+
+            async function syncProjects() {
+              // Check if secrets are available
+              if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
+                console.error('Supabase URL or Service Key is not set in GitHub secrets.');
+                process.exit(1);
+              }
+
+              // Initialize Supabase client with the powerful service key
+              const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+              
+              console.log('Reading projects.json file...');
+              const projectsFile = fs.readFileSync('data/projects.json', 'utf-8');
+              const projects = JSON.parse(projectsFile);
+              
+              // Create an array of objects with just the slug, which is what our table needs
+              const projectSlugs = projects.map(p => ({ slug: p.slug }));
+              
+              if (projectSlugs.length === 0) {
+                console.log('No projects found in JSON file. Exiting.');
+                return;
+              }
+
+              console.log(`Found ${projectSlugs.length} projects. Syncing with Supabase...`);
+
+              // Use 'upsert'. This is the magic command:
+              // - If a slug exists, it does nothing (or updates it if we add more columns).
+              // - If a slug is new, it inserts it.
+              // This makes the script safe to run every time.
+              const { data, error } = await supabase
+                .from('projects')
+                .upsert(projectSlugs, { onConflict: 'slug' });
+
+              if (error) {
+                console.error('Error syncing with Supabase:', error.message);
+                process.exit(1); // Fail the action if there's an error
+              }
+
+              console.log('Successfully synced project slugs to Supabase!');
+            }
+
+            syncProjects();
+          "
