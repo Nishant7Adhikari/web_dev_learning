@@ -52,7 +52,7 @@
         "slug": "constants_table",
         "tagline": "A visual representation of fundamental scientific constants.",
         "started": "Oct 26 2023",
-        "status": "Planned",
+        "status": "completed",
         "keywords": ["Constants", "HTML", "CSS", "Table", "learning"],
         "team_ids": ["N"],
         "description": "A simple HTML and CSS project displaying a table of important universal constants in physics, including the speed of light, gravitational acceleration, Planck's constant, Avogadro's number, and the gas constant.",
@@ -214,5 +214,17 @@
         "description": "Vertex Foundry is a comprehensive curriculum designed to guide aspiring web developers. It offers a sequential learning path, unlocking new challenges as projects are completed. The platform features focus and browse modes, a progress tracker, and a curriculum built with HTML, CSS, and JavaScript. The goal is to provide a structured and engaging learning experience.",
         "link": "projects/vertex_foundry/",
         "image": "media/icons/vertex_foundry.jpg"
+},
+{
+        "name": "Multimedia Showcase",
+        "slug": "multimedia_showcase",
+        "tagline": "An interactive showcase of multimedia elements demonstrating scientific and mathematical concepts. It combines images and videos to enhance understanding.",
+        "started": "2025",
+        "status": "Completed",
+        "keywords": ["multimedia", "HTML", "CSS", "learning"],
+        "team_ids": ["N"],
+        "description": "This project is a multimedia showcase designed to present fundamental concepts from science and mathematics in an engaging way. It incorporates images and videos to visually explain ideas. The layout is clean and simple, focusing on educational content. The project provides a hands-on learning experience.",
+        "link": "projects/learning/html_projects/p6/",
+        "image": "media/icons/multimedia_showcase.png"
 }
 ]

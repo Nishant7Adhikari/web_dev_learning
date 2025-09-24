@@ -36,8 +36,6 @@
 <meta name="twitter:creator" content="@Nishant_OP11">
 <meta name="twitter:image" content="https://nishantadhikari.info.np/media/icon-512x512.png">
 <meta name="twitter:site" content="@Nishant_OP11">
-
-
   <!-- ✅ Structured Data (Person Schema) -->
   <script type="application/ld+json">
   {
@@ -201,26 +199,23 @@ document.addEventListener('DOMContentLoaded', () => {
     let projectsData = [];
     let teamData = [];
 
-    // --- ✅ NEW: HERO SECTION HIDE LOGIC ---
+    // --- ✅ MODIFIED: HERO SECTION HIDE LOGIC ---
     const heroSection = document.getElementById('heroSection');
     const hideHeroBtn = document.getElementById('hideHeroBtn');
     
-    // Function to hide the hero section
     const hideHero = () => {
-        // Check if it's already hidden to avoid re-running the logic
         if (heroSection && !heroSection.classList.contains('hidden')) {
             heroSection.classList.add('hidden');
         }
     };
 
-    // Set a timer to automatically hide the hero section after 5 seconds
-    const heroHideTimer = setTimeout(hideHero, 1900);
+    // The automatic timer is now removed. The hero will be hidden by the fetchData function.
+    // const heroHideTimer = setTimeout(hideHero, 1900); 
 
-    // Add a click listener for the manual hide button
     if (hideHeroBtn) {
         hideHeroBtn.addEventListener('click', () => {
-            clearTimeout(heroHideTimer); // Cancel the automatic timer
-            hideHero(); // Hide it immediately
+            // clearTimeout(heroHideTimer); // No longer need to clear a timer
+            hideHero(); // Just hide it immediately
         });
     }
 
@@ -235,33 +230,51 @@ document.addEventListener('DOMContentLoaded', () => {
     const applyTheme = (theme) => { document.documentElement.setAttribute('data-theme', theme); localStorage.setItem('theme', theme); };
     applyTheme(localStorage.getItem('theme') || 'dark');
     
-    // Fetch Project and Team Data
+    // Decoupled data fetching for faster initial load
     async function fetchData() {
         try {
+            // Step 1: Fetch local data first for an immediate render
             const [projectsResponse, teamsResponse] = await Promise.all([
                 fetch('data/projects.json'),
                 fetch('data/teams.json')
             ]);
-            const projects = await projectsResponse.json();
+            let projects = await projectsResponse.json();
             teamData = await teamsResponse.json();
 
-            const { data: viewCounts, error } = await supabaseClient.from('projects').select('slug, view_count');
+            projectsData = projects.map(p => ({ ...p, view_count: 0 }));
+            
+            // First Render: Display projects immediately
+            loadProjects();
+
+            // Step 2: Asynchronously fetch view counts and re-render
+            const { data: viewCounts, error } = await supabaseClient
+                .from('projects')
+                .select('slug, view_count');
             
             if (error) {
-                projectsData = projects;
-            } else {
-                const viewCountMap = new Map(viewCounts.map(item => [item.slug, item.view_count]));
-                projectsData = projects.map(p => ({
-                    ...p,
-                    view_count: viewCountMap.get(p.slug) || 0
-                }));
+                console.error("Error fetching view counts:", error);
+                return;
             }
-            loadProjects();
+            
+            const viewCountMap = new Map(viewCounts.map(item => [item.slug, item.view_count]));
+            projectsData = projectsData.map(p => ({
+                ...p,
+                view_count: viewCountMap.get(p.slug) || p.view_count
+            }));
+            
+            // Second Render: Update the grid with sorted projects
+            loadProjects(searchInput.value);
+
         } catch (error) {
-            // Fails silently
+            console.error("Failed to load initial project data:", error);
+            projectsGrid.innerHTML = `<p>Error loading projects. Please try again later.</p>`;
         }
     }
-    fetchData();
+
+    // --- ✅ MODIFIED: Trigger fetchData and then hide the hero section ---
+    // We call fetchData, and once it completes (successfully or not), the .finally() block will execute.
+    fetchData().finally(hideHero);
+
 
     // Project Scoring and Sorting Logic
     function calculateScore(project) {
@@ -288,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (!filtered.length) {
-            projectsGrid.innerHTML = `<p>No projects found.</p>`;
+            projectsGrid.innerHTML = `<p>No projects found matching "${filter}".</p>`;
             return;
         }
 
@@ -344,14 +357,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }).join(', ');
 
             contentAreas.project.innerHTML = `
-                <img id="projectDetailImage" src="${project.image || 'media/icons/default.png'}" alt="Thumbnail">
                 <h2>${project.name}</h2>
+                <img id="projectDetailImage" src="${project.image || 'media/icons/default.png'}" alt="Thumbnail">
+                
                 <p><em>${project.tagline}</em></p>
                 <hr>
                 <p>${project.description}</p>
                 <div class="project-meta">
                     <p><strong>Status:</strong> ${project.status}</p>
-                    <p><strong>Views:</strong> ${project.view_count.toLocaleString()}</p>
+                    <p><strong>Visits:</strong> ${project.view_count.toLocaleString()}</p>
                     <p><strong>Team:</strong> ${teamMembersHTML}</p>
                     <p><strong>Keywords:</strong> ${project.keywords.join(', ')}</p>
                 </div>
