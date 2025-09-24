@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="icon-512.jpg" type="image/x-icon">
+        <!-- Link to manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Theme color for mobile -->
+    <meta name="theme-color" content="#317EFB">
+    
     <title>Vertex Foundry - Your Web Development Path</title>
     <style>
         :root {
@@ -995,6 +1002,13 @@
 
         app.init();
     });
+    
+        <!-- Register Service Worker -->
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+            .then(() => console.log('Service Worker Registered'))
+            .catch(err => console.log('Service Worker registration failed:', err));
+        }
     </script>
 </body>
 </html>
