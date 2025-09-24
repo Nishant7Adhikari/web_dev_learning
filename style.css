@@ -154,11 +154,55 @@ nav a:hover { background-color: rgba(0,0,0,0.1); }
 
 footer { text-align: center; padding: 1rem; background: var(--card-bg); margin-top: 1rem; backdrop-filter: blur(5px); border-top: 1px solid var(--border-color); }
 
-/* Modal Styles */
-.modal { display: none; position: fixed; z-index: 2000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); justify-content: center; align-items: center; animation: fadeIn 0.3s ease; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-.modal-content { background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; border-radius: 12px; position: relative; animation: slideIn 0.3s ease-out; box-shadow: 0 8px 32px var(--shadow-color); }
+/* --- ✅ MODIFIED Modal Styles for SEO --- */
+.modal {
+    display: flex; /* Keep it in the layout tree for crawlers */
+    position: fixed;
+    z-index: 2000;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(3px);
+    justify-content: center;
+    align-items: center;
+    
+    /* Hide visually from users by default */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none; /* Prevents interaction with the hidden modal */
+    transition: opacity 0.3s ease, visibility 0s 0.3s;
+}
+
+.modal.is-visible {
+    /* Show the modal when this class is added */
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto; /* Allow interaction */
+    transition: opacity 0.3s ease;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } /* Kept for other potential uses, but not for modal entry */
+
+.modal-content { 
+    background: var(--card-bg); 
+    border: 1px solid var(--border-color); 
+    padding: 1.5rem; 
+    width: 90%; 
+    max-width: 600px; 
+    max-height: 80vh; 
+    overflow-y: auto; 
+    border-radius: 12px; 
+    position: relative; 
+    
+    box-shadow: 0 8px 32px var(--shadow-color); 
+}
+.modal.is-visible .modal-content {
+    animation: slideIn 0.3s ease-out;
+}
 @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
 .close-btn { position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 24px; font-weight: bold; }
 .modal-content a:not(.detail-button) { 
     color: var(--link-color); 

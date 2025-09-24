@@ -109,12 +109,44 @@
     <p>&copy; 2025 Nishant Adhikari</p>
 </footer>
 
-<!-- Modals (HTML structure is unchanged) -->
-<div class="modal" id="teamModal"><div class="modal-content"><span class="close-btn">&times;</span><div id="teamContent"></div></div></div>
+<!-- Modals -->
+<div class="modal" id="teamModal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <div id="teamContent">
+            <!-- SEO-Visible Content Starts Here -->
+            <h2>Collaboration</h2>
+            <div class="team-card">
+                <div class="team-card-header">
+                    <img src="media/icon-512x512.png" alt="Nishant Adhikari">
+                    <div class="team-card-identity">
+                        <h3>Nishant Adhikari</h3>
+                        <p>Founder</p>
+                    </div>
+                </div>
+                <p class="team-card-bio">Student and web developer from Kathmandu, Nepal, specializing in JavaScript, HTML, CSS, Progressive Web Apps, and modern web technologies. Creator of innovative, user-friendly web applications and educational projects.</p>
+                Interest &amp; Hobbies: 
+                <div class="interest-tags">
+                    <span class="tag">JavaScript</span>
+                    <span class="tag">PWA</span>
+                    <span class="tag">UI/UX</span>
+                    <span class="tag">Science</span>
+                </div>
+                <div class="social-links">
+                    <a href="https://github.com/Nishant7Adhikari" target="_blank" rel="noopener noreferrer" title="github"><img src="media/social/github.svg" alt="github"></a>
+                    <a href="https://x.com/Nishant_OP11" target="_blank" rel="noopener noreferrer" title="x"><img src="media/social/x.svg" alt="x"></a>
+                    <a href="https://www.instagram.com/nishant060211" target="_blank" rel="noopener noreferrer" title="instagram"><img src="media/social/instagram.svg" alt="instagram"></a>
+                </div>
+            </div>
+            <!-- Add other team member cards here if any -->
+            <!-- SEO-Visible Content Ends Here -->
+        </div>
+    </div>
+</div>
+
 <div class="modal" id="projectModal"><div class="modal-content"><span class="close-btn">&times;</span><div id="projectDetailContent"></div></div></div>
 
 <div class="modal" id="aboutModal"><div class="modal-content"><span class="close-btn">&times;</span><div id="aboutContent">
-
 <div id="Markdown">
 ## Nishant Adhikari 
 ---
@@ -165,7 +197,7 @@ This portfolio website features:
 ### ⭐ Star this project in [<u>github</u>](https://GitHub.com/Nishant7Adhikari/web_dev_learning) if you found it helpful!  
 ### 🤝 Feel free to reach out for collaborations or questions!
 </div>
-<script> document.getElementById('Markdown').innerHTML = marked.parse(document.getElementById('Markdown').innerText);
+<script> document.getElementById('Markdown').innerHTML = marked.parse(document.getElementById('Markdown').textContent);
 </script>
 
 </div></div></div>
@@ -208,10 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
             heroSection.classList.add('hidden');
         }
     };
-
-    // The automatic timer is now removed. The hero will be hidden by the fetchData function.
-    // const heroHideTimer = setTimeout(hideHero, 1900); 
-
+    
     if (hideHeroBtn) {
         hideHeroBtn.addEventListener('click', () => {
             // clearTimeout(heroHideTimer); // No longer need to clear a timer
@@ -224,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const contentAreas = { team: document.getElementById('teamContent'), project: document.getElementById('projectDetailContent'), contactSocials: document.getElementById('contactSocials') };
     document.getElementById('themeToggle').addEventListener('click', () => { const current = document.documentElement.getAttribute('data-theme'); applyTheme(current === 'dark' ? 'light' : 'dark'); });
     document.getElementById('CollaboratorBTN').addEventListener('click', () => showTeamModal());
-    document.getElementById('aboutBtn').addEventListener('click', () => modals.about.style.display = 'flex');
+    document.getElementById('aboutBtn').addEventListener('click', () => modals.about.classList.add('is-visible'));
     document.getElementById('contactBtn').addEventListener('click', () => openContactModal());
     document.getElementById('menuToggle').addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('navMenu').classList.toggle('show'); });
     const applyTheme = (theme) => { document.documentElement.setAttribute('data-theme', theme); localStorage.setItem('theme', theme); };
@@ -370,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p><strong>Keywords:</strong> ${project.keywords.join(', ')}</p>
                 </div>
                 <a href="${project.link}" target="_blank" rel="noopener noreferrer" class="detail-button" data-slug="${project.slug}">Open</a>`;
-            modals.project.style.display = 'flex';
+            modals.project.classList.add('is-visible');
         }
     });
     
@@ -395,11 +424,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Modal Helper Functions
     function getMemberCardHTML(member) { const socialLinksHTML = Object.entries(member.socialLinks).map(([platform, url]) => (url && url !== '#') ? `<a href="${url}" target="_blank" rel="noopener noreferrer" title="${platform}"><img src="media/social/${platform.toLowerCase()}.svg" alt="${platform}"></a>` : '').join(''); const interestHTML = member.interest && member.interest.length > 0 ? `<div class="interest-tags">${member.interest.map(skill => `<span class="tag">${skill}</span>`).join('')}</div>` : ''; return `<div class="team-card"><div class="team-card-header"><img src="${member.avatar}" alt="${member.name}"><div class="team-card-identity"><h3>${member.name}</h3><p>${member.title || member.role}</p></div></div><p class="team-card-bio">${member.bio}</p>Interest & Hobbies: ${interestHTML}<div class="social-links">${socialLinksHTML}</div></div>`;}
-    function showTeamModal(memberId = null) { let modalContentHTML; if (memberId) { const member = teamData.find(m => m.id === memberId); if (member) modalContentHTML = getMemberCardHTML(member); } else { const allMembersHTML = teamData.map(getMemberCardHTML).join(''); modalContentHTML = `<h2>Collaboration</h2>${allMembersHTML}`; } contentAreas.team.innerHTML = modalContentHTML; modals.team.style.display = 'flex'; }
-    modals.project.addEventListener('click', e => { if (e.target.classList.contains('team-member-link')) { const memberId = e.target.dataset.id; modals.project.style.display = 'none'; showTeamModal(memberId); } });
-    function openContactModal() { const founder = teamData.find(m => m.role.toLowerCase() === 'founder'); if (founder) { contentAreas.contactSocials.innerHTML = Object.entries(founder.socialLinks).map(([k,v]) => v && v !== '#'?`<a href="${v}" target="_blank" title="${k}"><img src="media/social/${k}.svg" alt="${k}"></a>`:'' ).join(''); } modals.contact.style.display = 'flex'; }
-    document.getElementById('emailForm').addEventListener('submit', e => { e.preventDefault(); const name = document.getElementById('emailName').value; const userEmail = document.getElementById('emailUser').value; const message = document.getElementById('emailMessage').value; const mailtoLink = `mailto:nshntdhkr@gmail.com?subject=${encodeURIComponent(`Contact from nishantadhikari.info.np - ${name}`)}&body=${encodeURIComponent(`Name: ${name}\nFrom: ${userEmail}\n\nMessage:\n${message}`)}`; window.location.href = mailtoLink; modals.contact.style.display = 'none'; e.target.reset(); });
-    function closeModal(modal) { modal.style.display = 'none'; }
+    function showTeamModal(memberId = null) { let modalContentHTML; if (memberId) { const member = teamData.find(m => m.id === memberId); if (member) modalContentHTML = getMemberCardHTML(member); } else { const allMembersHTML = teamData.map(getMemberCardHTML).join(''); modalContentHTML = `<h2>Collaboration</h2>${allMembersHTML}`; } contentAreas.team.innerHTML = modalContentHTML; modals.team.classList.add('is-visible'); }
+    modals.project.addEventListener('click', e => { if (e.target.classList.contains('team-member-link')) { const memberId = e.target.dataset.id; modals.project.classList.remove('is-visible'); showTeamModal(memberId); } });
+    function openContactModal() { const founder = teamData.find(m => m.role.toLowerCase() === 'founder'); if (founder) { contentAreas.contactSocials.innerHTML = Object.entries(founder.socialLinks).map(([k,v]) => v && v !== '#'?`<a href="${v}" target="_blank" title="${k}"><img src="media/social/${k}.svg" alt="${k}"></a>`:'' ).join(''); } modals.contact.classList.add('is-visible'); }
+    document.getElementById('emailForm').addEventListener('submit', e => { e.preventDefault(); const name = document.getElementById('emailName').value; const userEmail = document.getElementById('emailUser').value; const message = document.getElementById('emailMessage').value; const mailtoLink = `mailto:nshntdhkr@gmail.com?subject=${encodeURIComponent(`Contact from nishantadhikari.info.np - ${name}`)}&body=${encodeURIComponent(`Name: ${name}\nFrom: ${userEmail}\n\nMessage:\n${message}`)}`; window.location.href = mailtoLink; modals.contact.classList.remove('is-visible'); e.target.reset(); });
+    function closeModal(modal) { modal.classList.remove('is-visible'); }
     Object.values(modals).forEach(modal => { modal.addEventListener('click', (e) => { if (e.target === modal || e.target.classList.contains('close-btn')) { closeModal(modal); } }); });
     window.addEventListener('click', e => { const navMenu = document.getElementById('navMenu'); if (navMenu.classList.contains('show') && !navMenu.contains(e.target) && e.target !== document.getElementById('menuToggle')) { navMenu.classList.remove('show'); } });
 });

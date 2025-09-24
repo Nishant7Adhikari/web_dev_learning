@@ -226,5 +226,17 @@
         "description": "This project is a multimedia showcase designed to present fundamental concepts from science and mathematics in an engaging way. It incorporates images and videos to visually explain ideas. The layout is clean and simple, focusing on educational content. The project provides a hands-on learning experience.",
         "link": "projects/learning/html_projects/p6/",
         "image": "media/icons/multimedia_showcase.png"
+},
+{
+        "name": "Article",
+        "slug": "article",
+        "tagline": "An interactive exploration of electromagnetism, illustrating fundamental principles through a hands-on experiment.",
+        "started": "2025",
+        "status": "Completed",
+        "keywords": ["electromagnetism", "aside", "HTML", "CSS", "learning", "article"],
+        "team_ids": ["N"],
+        "description": "This project showcases an article on electromagnetism, explaining concepts like magnetic fields and forces. It features a simple experiment demonstrating magnetic deflection. The layout is designed with clear sections and an aside for related information, providing an engaging learning experience.",
+        "link": "projects/learning/html_projects/p7/",
+        "image": "media/icons/article.png"
 }
 ]
