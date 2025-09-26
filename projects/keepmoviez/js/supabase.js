@@ -76,69 +76,104 @@ function getComparableEntryString(entry) {
 // END CHUNK: 1
 
 //START CHUNK: 2: Comprehensive Two-Way Sync
-// --- This chunk remains unchanged. ---
+// <<-- MODIFIED CHUNK START: Replaced with high-performance Delta Sync -->>
 async function comprehensiveSync(silent = false) {
     if (!window.supabaseClient || !currentSupabaseUser) {
         if (!silent) showToast("Not Logged In", "Please log in to sync data.", "error");
         return { success: false, error: "Not logged in" };
     }
-    if (!silent) showLoading("Syncing data (Comprehensive)...");
+    if (!silent) showLoading("Syncing data...");
+
+    const syncStartTime = new Date();
+    const LAST_SYNC_KEY = `keepmoviez_last_sync_${currentSupabaseUser.id}`;
+    const lastSyncTimestamp = localStorage.getItem(LAST_SYNC_KEY);
+    const isFirstSync = !lastSyncTimestamp;
+
     try {
-        const { data: remoteEntriesRaw, error: fetchError } = await window.supabaseClient.from('movie_entries').select('*').eq('user_id', currentSupabaseUser.id);
-        if (fetchError) { console.error("Sync: Fetch cloud data failed:", fetchError); throw new Error(`Sync: Fetch cloud data failed: ${fetchError.message} (Code: ${fetchError.code})`);}
+        // --- STEP 1: PULL changes from the cloud ---
+        if (!silent) showLoading("Checking for remote changes...");
+        
+        let remoteQuery = window.supabaseClient.from('movie_entries').select('*').eq('user_id', currentSupabaseUser.id);
+        if (!isFirstSync) {
+            remoteQuery = remoteQuery.gt('last_modified_date', lastSyncTimestamp);
+        }
+
+        const { data: remoteEntriesRaw, error: fetchError } = await remoteQuery;
+        if (fetchError) throw new Error(`Fetch cloud data failed: ${fetchError.message}`);
+        
         const remoteEntries = remoteEntriesRaw.map(supabaseEntryToLocalFormat).filter(Boolean);
-        const originalLocalMovieDataForComparison = JSON.parse(JSON.stringify(movieData));
-        const mergedDataMap = new Map(); const localChangesToPushSet = new Set();
-        let localDataWasUpdatedByPullDirectly = false;
-        originalLocalMovieDataForComparison.forEach(localEntry => { if (!localEntry || !localEntry.id) return; const lmd = localEntry.lastModifiedDate ? new Date(localEntry.lastModifiedDate).toISOString() : new Date(0).toISOString(); mergedDataMap.set(localEntry.id, { ...localEntry, lastModifiedDate: lmd }); });
+
+        // --- STEP 2: MERGE pulled changes into local data ---
+        const localDataMap = new Map(movieData.map(entry => [entry.id, entry]));
+        let localDataWasModified = false;
+
         remoteEntries.forEach(remoteEntry => {
-            if (!remoteEntry || !remoteEntry.id) return;
-            const entryInMap = mergedDataMap.get(remoteEntry.id); const remoteLMDTime = new Date(remoteEntry.lastModifiedDate || 0).getTime();
-            if (entryInMap) {
-                const mapEntryLMDTime = new Date(entryInMap.lastModifiedDate || 0).getTime();
-                const mapEntryContentString = getComparableEntryString(entryInMap); const remoteContentString = getComparableEntryString(remoteEntry);
-                const isContentDifferent = mapEntryContentString !== remoteContentString;
-                if (remoteLMDTime > mapEntryLMDTime) { mergedDataMap.set(remoteEntry.id, { ...remoteEntry }); localDataWasUpdatedByPullDirectly = true; }
-                else if (mapEntryLMDTime > remoteLMDTime) { localChangesToPushSet.add(entryInMap.id); }
-                else { if (isContentDifferent) { console.warn(`Sync CONFLICT (ID: ${remoteEntry.id}, Name: "${entryInMap.Name || 'N/A'}"): Timestamps identical, content differs. Prioritizing current local/merged for push.`); localChangesToPushSet.add(entryInMap.id); }}
-            } else { mergedDataMap.set(remoteEntry.id, { ...remoteEntry }); localDataWasUpdatedByPullDirectly = true; }
-        });
-        originalLocalMovieDataForComparison.forEach(localOriginal => { if (!localOriginal || !localOriginal.id) return; if (!remoteEntries.some(re => re && re.id === localOriginal.id)) { localChangesToPushSet.add(localOriginal.id); if (!mergedDataMap.has(localOriginal.id)) mergedDataMap.set(localOriginal.id, { ...localOriginal }); }});
-        const finalMergedMovieData = Array.from(mergedDataMap.values());
-        const sortedFinal = JSON.parse(JSON.stringify(finalMergedMovieData)).sort((a,b) => (a.id || "").localeCompare(b.id || ""));
-        const sortedOriginalLocalAtStart = JSON.parse(JSON.stringify(originalLocalMovieDataForComparison)).sort((a,b) => (a.id || "").localeCompare(b.id || ""));
-        let localMovieDataArrayChanged = false;
-        if (JSON.stringify(sortedFinal) !== JSON.stringify(sortedOriginalLocalAtStart)) { movieData = finalMergedMovieData; localMovieDataArrayChanged = true; }
-        if (localMovieDataArrayChanged) {
-            if (typeof recalculateAndApplyAllRelationships === 'function') recalculateAndApplyAllRelationships();
-            if (currentSortColumn && typeof sortMovies === 'function') sortMovies(currentSortColumn, currentSortDirection); else { currentSortColumn = 'Name'; currentSortDirection = 'asc'; if(typeof sortMovies === 'function') sortMovies(currentSortColumn, currentSortDirection); }
-            if (typeof saveToIndexedDB === 'function') await saveToIndexedDB();
-            if (!silent && typeof renderMovieCards === 'function') renderMovieCards();
-            if (!silent) showToast("Local Data Updated", "Local cache updated from cloud or merge.", "info");
-        }
-        const entriesToUpsertToSupabase = [];
-        localChangesToPushSet.forEach(idToPush => { const entry = mergedDataMap.get(idToPush); if (entry) { const supabaseFormattedEntry = localEntryToSupabaseFormat(entry, currentSupabaseUser.id); if (supabaseFormattedEntry) entriesToUpsertToSupabase.push(supabaseFormattedEntry); }});
-        if (entriesToUpsertToSupabase.length > 0) {
-            if (!silent) showLoading(`Pushing ${entriesToUpsertToSupabase.length} changes to cloud...`);
-            const CHUNK_SIZE_UPSERT = 50;
-            for (let i = 0; i < entriesToUpsertToSupabase.length; i += CHUNK_SIZE_UPSERT) {
-                const chunk = entriesToUpsertToSupabase.slice(i, i + CHUNK_SIZE_UPSERT);
-                const { error: upsertError } = await window.supabaseClient.from('movie_entries').upsert(chunk, { onConflict: 'id', ignoreDuplicates: false });
-                if (upsertError) { console.error("Supabase upsert error:", upsertError, "Chunk sample keys:", chunk[0] ? Object.keys(chunk[0]) : "N/A"); let detailedMessage = `Sync: Cloud update error: ${upsertError.message} (Code: ${upsertError.code}).`; if (upsertError.details) detailedMessage += ` Details: ${upsertError.details}.`; if (String(upsertError.message).toLowerCase().includes("column") && String(upsertError.message).toLowerCase().includes("does not exist")) { detailedMessage += " CRITICAL SCHEMA MISMATCH: Ensure all columns exist in 'movie_entries' table with correct data types."; } throw new Error(detailedMessage); }
+            const localMatch = localDataMap.get(remoteEntry.id);
+            if (!localMatch || new Date(remoteEntry.lastModifiedDate) > new Date(localMatch.lastModifiedDate)) {
+                localDataMap.set(remoteEntry.id, remoteEntry);
+                localDataWasModified = true;
             }
-            if (!silent) showToast("Cloud Synced", `${entriesToUpsertToSupabase.length} entries synced to cloud.`, "success");
+        });
+
+        if (localDataWasModified) {
+            movieData = Array.from(localDataMap.values());
+            if (!silent) showToast("Local Data Updated", `${remoteEntries.length} changes pulled from the cloud.`, "info");
         }
-        if (!silent && !localMovieDataArrayChanged && entriesToUpsertToSupabase.length === 0) { showToast("All Synced", "Data up-to-date locally and in cloud.", "info"); }
-        return { success: true, pushed: entriesToUpsertToSupabase.length, pulledOrUpdatedLocally: localMovieDataArrayChanged };
+
+        // --- STEP 3: PUSH local changes to the cloud ---
+        const localEntriesToPush = movieData.filter(localEntry => {
+            // On first sync, we need to push everything.
+            if (isFirstSync) return true;
+            // Otherwise, only push entries modified since the last sync.
+            const localLMD = new Date(localEntry.lastModifiedDate || 0);
+            return localLMD.toISOString() > lastSyncTimestamp;
+        });
+
+        if (localEntriesToPush.length > 0) {
+            if (!silent) showLoading(`Pushing ${localEntriesToPush.length} local changes...`);
+
+            const supabaseFormattedEntries = localEntriesToPush
+                .map(entry => localEntryToSupabaseFormat(entry, currentSupabaseUser.id))
+                .filter(Boolean);
+
+            if (supabaseFormattedEntries.length > 0) {
+                const CHUNK_SIZE = 100;
+                for (let i = 0; i < supabaseFormattedEntries.length; i += CHUNK_SIZE) {
+                    const chunk = supabaseFormattedEntries.slice(i, i + CHUNK_SIZE);
+                    const { error: upsertError } = await window.supabaseClient.from('movie_entries').upsert(chunk);
+                    if (upsertError) throw new Error(`Cloud update error: ${upsertError.message}`);
+                }
+                if (!silent) showToast("Cloud Synced", `${localEntriesToPush.length} local changes pushed to the cloud.`, "success");
+            }
+        }
+        
+        // --- STEP 4: Finalize and Save State ---
+        if (localDataWasModified) {
+            recalculateAndApplyAllRelationships();
+            sortMovies(currentSortColumn, currentSortDirection);
+            await saveToIndexedDB();
+            if (!silent) renderMovieCards();
+        }
+
+        // Set the new timestamp ONLY on successful completion of the entire process.
+        localStorage.setItem(LAST_SYNC_KEY, syncStartTime.toISOString());
+        incrementLocalStorageCounter('sync_count_achievement');
+
+        if (!silent && !localDataWasModified && localEntriesToPush.length === 0) {
+            showToast("All Synced", "Your data is up-to-date.", "info");
+        }
+        
+        return { success: true, pulled: remoteEntries.length, pushed: localEntriesToPush.length };
+
     } catch (error) {
         console.error("Error during comprehensiveSync:", error);
         if (!silent) showToast("Sync Failed", `${error.message}`, "error", 10000);
         return { success: false, error: error.message };
     } finally {
         if (!silent) hideLoading();
-        if (typeof renderMovieCards === 'function') renderMovieCards();
     }
 }
+// <<-- MODIFIED CHUNK END -->>
 // END CHUNK: 2
 
 // START CHUNK: 3: Authentication and Application State

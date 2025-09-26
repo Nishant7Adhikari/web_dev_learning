@@ -377,7 +377,6 @@ function renderFilterGenreTags() {
         closeBtn.type = 'button';
         closeBtn.className = 'close';
         closeBtn.innerHTML = '<span aria-hidden="true">×</span>';
-        closeBtn.setAttribute('aria-label', `Remove genre ${genre}`);
         closeBtn.onclick = (e) => { e.stopPropagation(); removeFilterGenre(genre); };
         tag.appendChild(closeBtn);
         container.insertBefore(tag, searchInput);
@@ -494,14 +493,16 @@ window.prepareEditModal = function(id) {
     formFieldsGlob.description.value = movie.Description || ''; formFieldsGlob.posterUrl.value = movie['Poster URL'] || '';
     formFieldsGlob.tmdbSearchYear.value = '';
     
-    // Populate manual runtime fields from existing data
+    // <<-- MODIFIED SECTION START -->>
+    // Populate new runtime fields from existing data
     if (movie.Category === 'Series' && typeof movie.runtime === 'object' && movie.runtime) {
-        formFieldsGlob.manualRuntimeSeriesSeasons.value = movie.runtime.seasons || '';
-        formFieldsGlob.manualRuntimeSeriesEpisodes.value = movie.runtime.episodes || '';
-        formFieldsGlob.manualRuntimeSeriesAvg.value = movie.runtime.episode_run_time || '';
+        formFieldsGlob.runtimeSeriesSeasons.value = movie.runtime.seasons || '';
+        formFieldsGlob.runtimeSeriesEpisodes.value = movie.runtime.episodes || '';
+        formFieldsGlob.runtimeSeriesAvgEp.value = movie.runtime.episode_run_time || '';
     } else if (typeof movie.runtime === 'number') {
-        formFieldsGlob.manualRuntimeMovie.value = movie.runtime;
+        formFieldsGlob.runtimeMovie.value = movie.runtime;
     }
+    // <<-- MODIFIED SECTION END -->>
 
     const relatedNames = (movie.relatedEntries || []).map(relatedId => movieData.find(m => m && m.id === relatedId)?.Name).filter(Boolean).join(', ');
     formFieldsGlob.relatedEntriesNames.value = relatedNames;
@@ -577,7 +578,7 @@ window.openDetailsModal = async function(id = null, tmdbObject = null) {
             return;
         }
 
-        // --- FIX: Create a normalized display object ---
+        // --- Create a normalized display object ---
         const displayObject = {
             name: fullDetails.Name || fullDetails.title || fullDetails.name || 'Details',
             year: fullDetails.Year || (fullDetails.release_date || fullDetails.first_air_date || '').substring(0, 4) || 'N/A',
@@ -634,10 +635,10 @@ window.openDetailsModal = async function(id = null, tmdbObject = null) {
         } else if (typeof displayObject.runtimeData === 'object' && displayObject.runtimeData !== null) {
             const { seasons, episodes, episode_run_time } = displayObject.runtimeData;
             const parts = [];
-            if (seasons) parts.push(`<strong>Total Seasons:</strong> ${seasons}`);
-            if (episodes) parts.push(`<strong>Total Episodes:</strong> ${episodes}`);
-            if (episode_run_time) parts.push(`<strong>Avg. Ep. Runtime:</strong> ${episode_run_time}m`);
-            if (parts.length > 0) runtimeText = parts.join('<br>');
+            if (seasons) parts.push(`<strong>Seasons:</strong> ${seasons}`);
+            if (episodes) parts.push(`<strong>Episodes:</strong> ${episodes}`);
+            if (episode_run_time) parts.push(`<strong>Avg. Ep:</strong> ${episode_run_time}m`);
+            if (parts.length > 0) runtimeText = parts.join(' | ');
         }
         toggle('#detailsRuntimeGroup', runtimeText !== 'N/A');
         setHtml('#detailsRuntime', runtimeText);
@@ -799,10 +800,12 @@ function toggleConditionalFields() {
     $('#seriesContinueGroup').toggle(isContinueSeries);
     $('#recommendationGroup, #overallRatingGroup, #watchHistorySection, #watchHistorySeparator').toggle(isWatchedOrContinue);
 
-    // New logic for manual runtime fields
-    const isMovieType = category === 'Movie' || category === 'Documentary' || category === 'Special';
-    $('#manualMovieRuntimeGroup').toggle(isMovieType);
-    $('#manualSeriesRuntimeGroup').toggle(category === 'Series');
+    // <<-- MODIFIED SECTION START -->>
+    // New, simplified logic for runtime fields
+    const isSeries = category === 'Series';
+    $('#movieRuntimeGroup').toggle(!isSeries);
+    $('#seriesRuntimeGroup').toggle(isSeries);
+    // <<-- MODIFIED SECTION END -->>
 }
 
 function updateSyncButtonState() {

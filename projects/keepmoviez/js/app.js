@@ -130,24 +130,23 @@ window.handleFormSubmit = async function(event) {
         };
 
         // <<-- MODIFIED SECTION START -->>
-        // ### BUG FIX: Robust Manual Runtime Logic ###
+        // ### Cleaned Up Runtime Logic ###
         if (entry.Category === 'Series') {
-            const manualSeasons = parseInt(formFieldsGlob.manualRuntimeSeriesSeasons.value, 10);
-            const manualEpisodes = parseInt(formFieldsGlob.manualRuntimeSeriesEpisodes.value, 10);
-            const manualAvg = parseInt(formFieldsGlob.manualRuntimeSeriesAvg.value, 10);
+            const seasons = parseInt(formFieldsGlob.runtimeSeriesSeasons.value, 10);
+            const episodes = parseInt(formFieldsGlob.runtimeSeriesEpisodes.value, 10);
+            const avgEp = parseInt(formFieldsGlob.runtimeSeriesAvgEp.value, 10);
             
-            // Create the runtime object if at least one field is a valid number
-            if (!isNaN(manualSeasons) || !isNaN(manualEpisodes) || !isNaN(manualAvg)) {
+            if (!isNaN(seasons) || !isNaN(episodes) || !isNaN(avgEp)) {
                 entry.runtime = {
-                    seasons: !isNaN(manualSeasons) ? manualSeasons : null,
-                    episodes: !isNaN(manualEpisodes) ? manualEpisodes : null,
-                    episode_run_time: !isNaN(manualAvg) ? manualAvg : null
+                    seasons: !isNaN(seasons) ? seasons : null,
+                    episodes: !isNaN(episodes) ? episodes : null,
+                    episode_run_time: !isNaN(avgEp) ? avgEp : null
                 };
             }
         } else { // Movie, Documentary, Special
-            const manualRuntime = parseInt(formFieldsGlob.manualRuntimeMovie.value, 10);
-            if (!isNaN(manualRuntime)) {
-                entry.runtime = manualRuntime;
+            const runtime = parseInt(formFieldsGlob.runtimeMovie.value, 10);
+            if (!isNaN(runtime)) {
+                entry.runtime = runtime;
             }
         }
         // <<-- MODIFIED SECTION END -->>

@@ -1,6 +1,6 @@
 /* utils.js */
 // START CHUNK: Loading Indicator
-function showLoading(message = "Loading...") {
+function showLoading(message = " Loading...") {
     if (!loadingOverlay) loadingOverlay = document.getElementById('loadingOverlay');
     if (!loadingOverlay) {
         console.warn("Loading overlay element not found. Cannot show loading indicator.");

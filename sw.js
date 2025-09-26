@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nishant-adhikari-cache-v1.2.0';
+const CACHE_NAME = 'nishant-adhikari-cache-v1.2.2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -12,7 +12,7 @@ const urlsToCache = [
   '/media/female.svg',
   '/media/social/discord.svg',
   '/media/social/github.svg',
-  '/media/social/twitter.svg',
+  '/media/social/x.svg',
   '/media/social/instagram.svg',
   '/media/social/facebook.svg',
   '/media/social/linkedin.svg',

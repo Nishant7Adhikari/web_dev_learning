@@ -346,6 +346,9 @@ if (menuThemeToggleBtn) {
             document.getElementById('confirmEraseDataBtn')?.addEventListener('click', window.eraseAllData);
             document.getElementById('checkRepairDataBtn')?.addEventListener('click', window.performDataCheckAndRepair);
             document.getElementById('status')?.addEventListener('change', toggleConditionalFields);
+            // <<-- MODIFIED SECTION START -->>
+            document.getElementById('category')?.addEventListener('change', toggleConditionalFields);
+            // <<-- MODIFIED SECTION END -->>
             document.getElementById('searchTmdbBtn')?.addEventListener('click', () => fetchMovieInfoFromTmdb(formFieldsGlob.name.value, formFieldsGlob.tmdbSearchYear.value));
             
             // Filter Modal
@@ -444,4 +447,3 @@ if (menuThemeToggleBtn) {
     }
     /* END CHUNK: 8: Application Initialization */
 });
-/* END CHUNK: 1: Application Entry Point */
