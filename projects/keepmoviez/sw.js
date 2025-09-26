@@ -1,4 +1,4 @@
-const CACHE_NAME = 'keepmoviez-cache-v4.0.7'; // <<-- IMPORTANT: Version number incremented
+const CACHE_NAME = 'keepmoviez-cache-v4.0.8'; // <<-- IMPORTANT: Version number incremented
 const OFFLINE_URL = 'offline.html'; 
 
 const CORE_ASSETS = [

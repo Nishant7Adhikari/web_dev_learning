@@ -76,94 +76,106 @@ function getComparableEntryString(entry) {
 // END CHUNK: 1
 
 //START CHUNK: 2: Comprehensive Two-Way Sync
-// <<-- MODIFIED CHUNK START: Replaced with high-performance Delta Sync -->>
 async function comprehensiveSync(silent = false) {
     if (!window.supabaseClient || !currentSupabaseUser) {
         if (!silent) showToast("Not Logged In", "Please log in to sync data.", "error");
         return { success: false, error: "Not logged in" };
     }
-    if (!silent) showLoading("Syncing data...");
+    if (!silent) showLoading("Syncing with cloud...");
 
-    const syncStartTime = new Date();
-    const LAST_SYNC_KEY = `keepmoviez_last_sync_${currentSupabaseUser.id}`;
-    const lastSyncTimestamp = localStorage.getItem(LAST_SYNC_KEY);
-    const isFirstSync = !lastSyncTimestamp;
+    const DELETED_IDS_KEY = `keepmoviez_deleted_ids_${currentSupabaseUser.id}`;
 
     try {
-        // --- STEP 1: PULL changes from the cloud ---
-        if (!silent) showLoading("Checking for remote changes...");
-        
-        let remoteQuery = window.supabaseClient.from('movie_entries').select('*').eq('user_id', currentSupabaseUser.id);
-        if (!isFirstSync) {
-            remoteQuery = remoteQuery.gt('last_modified_date', lastSyncTimestamp);
-        }
+        // --- STEP 1: Get all three states: local, remote, and locally deleted ---
+        if (!silent) showLoading("Analyzing local & remote data...");
+        const localDataMap = new Map(movieData.map(e => [e.id, e]));
 
-        const { data: remoteEntriesRaw, error: fetchError } = await remoteQuery;
+        const { data: remoteEntriesRaw, error: fetchError } = await window.supabaseClient
+            .from('movie_entries').select('*').eq('user_id', currentSupabaseUser.id);
         if (fetchError) throw new Error(`Fetch cloud data failed: ${fetchError.message}`);
-        
-        const remoteEntries = remoteEntriesRaw.map(supabaseEntryToLocalFormat).filter(Boolean);
+        const remoteDataMap = new Map(remoteEntriesRaw.map(e => [e.id, supabaseEntryToLocalFormat(e)]));
 
-        // --- STEP 2: MERGE pulled changes into local data ---
-        const localDataMap = new Map(movieData.map(entry => [entry.id, entry]));
-        let localDataWasModified = false;
+        const locallyDeletedIds = JSON.parse(localStorage.getItem(DELETED_IDS_KEY) || '[]');
 
-        remoteEntries.forEach(remoteEntry => {
-            const localMatch = localDataMap.get(remoteEntry.id);
-            if (!localMatch || new Date(remoteEntry.lastModifiedDate) > new Date(localMatch.lastModifiedDate)) {
-                localDataMap.set(remoteEntry.id, remoteEntry);
-                localDataWasModified = true;
+        // --- STEP 2: Calculate all required actions ---
+        const entriesToPush = [];
+        const entriesToPull = [];
+        const idsToDeleteRemotely = new Set(locallyDeletedIds);
+        const idsToDeleteLocally = new Set();
+        let changesMade = false;
+
+        // Compare local against remote
+        for (const [id, localEntry] of localDataMap.entries()) {
+            const remoteEntry = remoteDataMap.get(id);
+            if (!remoteEntry) {
+                entriesToPush.push(localEntry); // New local entry, push it.
+            } else {
+                const localLMD = new Date(localEntry.lastModifiedDate || 0);
+                const remoteLMD = new Date(remoteEntry.lastModifiedDate || 0);
+                if (localLMD > remoteLMD) entriesToPush.push(localEntry); // Local is newer
+                else if (remoteLMD > localLMD) entriesToPull.push(remoteEntry); // Remote is newer
             }
-        });
-
-        if (localDataWasModified) {
-            movieData = Array.from(localDataMap.values());
-            if (!silent) showToast("Local Data Updated", `${remoteEntries.length} changes pulled from the cloud.`, "info");
         }
 
-        // --- STEP 3: PUSH local changes to the cloud ---
-        const localEntriesToPush = movieData.filter(localEntry => {
-            // On first sync, we need to push everything.
-            if (isFirstSync) return true;
-            // Otherwise, only push entries modified since the last sync.
-            const localLMD = new Date(localEntry.lastModifiedDate || 0);
-            return localLMD.toISOString() > lastSyncTimestamp;
-        });
-
-        if (localEntriesToPush.length > 0) {
-            if (!silent) showLoading(`Pushing ${localEntriesToPush.length} local changes...`);
-
-            const supabaseFormattedEntries = localEntriesToPush
-                .map(entry => localEntryToSupabaseFormat(entry, currentSupabaseUser.id))
-                .filter(Boolean);
-
-            if (supabaseFormattedEntries.length > 0) {
-                const CHUNK_SIZE = 100;
-                for (let i = 0; i < supabaseFormattedEntries.length; i += CHUNK_SIZE) {
-                    const chunk = supabaseFormattedEntries.slice(i, i + CHUNK_SIZE);
-                    const { error: upsertError } = await window.supabaseClient.from('movie_entries').upsert(chunk);
-                    if (upsertError) throw new Error(`Cloud update error: ${upsertError.message}`);
-                }
-                if (!silent) showToast("Cloud Synced", `${localEntriesToPush.length} local changes pushed to the cloud.`, "success");
+        // Compare remote against local to find new remote entries and remote deletions
+        for (const [id, remoteEntry] of remoteDataMap.entries()) {
+            if (!localDataMap.has(id) && !idsToDeleteRemotely.has(id)) {
+                entriesToPull.push(remoteEntry); // New remote entry, pull it
+            }
+        }
+        for (const id of localDataMap.keys()) {
+            if (!remoteDataMap.has(id)) {
+                idsToDeleteLocally.add(id); // Exists locally, not remotely -> delete locally
             }
         }
         
-        // --- STEP 4: Finalize and Save State ---
-        if (localDataWasModified) {
+        // --- STEP 3: Execute remote actions (Deletes first, then Upserts) ---
+        if (idsToDeleteRemotely.size > 0) {
+            if (!silent) showLoading(`Deleting ${idsToDeleteRemotely.size} entries from cloud...`);
+            const { error: deleteError } = await window.supabaseClient.from('movie_entries').delete().in('id', Array.from(idsToDeleteRemotely));
+            if (deleteError) throw new Error(`Cloud delete failed: ${deleteError.message}`);
+            changesMade = true;
+        }
+
+        if (entriesToPush.length > 0) {
+            if (!silent) showLoading(`Pushing ${entriesToPush.length} changes to cloud...`);
+            const supabaseFormatted = entriesToPush.map(e => localEntryToSupabaseFormat(e, currentSupabaseUser.id)).filter(Boolean);
+            if (supabaseFormatted.length > 0) {
+                const { error: upsertError } = await window.supabaseClient.from('movie_entries').upsert(supabaseFormatted);
+                if (upsertError) throw new Error(`Cloud upsert failed: ${upsertError.message}`);
+            }
+            changesMade = true;
+        }
+
+        // --- STEP 4: Execute local actions (Apply pulls and deletes) ---
+        if (entriesToPull.length > 0) {
+            entriesToPull.forEach(entry => {
+                const index = movieData.findIndex(e => e.id === entry.id);
+                if (index !== -1) movieData[index] = entry;
+                else movieData.push(entry);
+            });
+            changesMade = true;
+        }
+        if (idsToDeleteLocally.size > 0) {
+            movieData = movieData.filter(entry => !idsToDeleteLocally.has(entry.id));
+            changesMade = true;
+        }
+
+        // --- STEP 5: Finalize and clean up ---
+        if (changesMade) {
             recalculateAndApplyAllRelationships();
             sortMovies(currentSortColumn, currentSortDirection);
             await saveToIndexedDB();
             if (!silent) renderMovieCards();
-        }
-
-        // Set the new timestamp ONLY on successful completion of the entire process.
-        localStorage.setItem(LAST_SYNC_KEY, syncStartTime.toISOString());
-        incrementLocalStorageCounter('sync_count_achievement');
-
-        if (!silent && !localDataWasModified && localEntriesToPush.length === 0) {
+            showToast("Sync Complete", `Pulled: ${entriesToPull.length}, Pushed: ${entriesToPush.length}, Deleted: ${idsToDeleteRemotely.size}`, "success");
+        } else if (!silent) {
             showToast("All Synced", "Your data is up-to-date.", "info");
         }
+
+        localStorage.removeItem(DELETED_IDS_KEY); // Clear the delete queue on successful sync
+        incrementLocalStorageCounter('sync_count_achievement');
         
-        return { success: true, pulled: remoteEntries.length, pushed: localEntriesToPush.length };
+        return { success: true, pulled: entriesToPull.length, pushed: entriesToPush.length, deleted: idsToDeleteRemotely.size };
 
     } catch (error) {
         console.error("Error during comprehensiveSync:", error);
@@ -173,7 +185,6 @@ async function comprehensiveSync(silent = false) {
         if (!silent) hideLoading();
     }
 }
-// <<-- MODIFIED CHUNK END -->>
 // END CHUNK: 2
 
 // START CHUNK: 3: Authentication and Application State
@@ -394,4 +405,3 @@ async function eraseAllData() {
     } catch (error) { console.error("Error erasing data:", error); showToast("Erase Failed", `Failed: ${error.message}.`, "error", 7000);
     } finally { hideLoading(); }
 }
-// END CHUNK: 5

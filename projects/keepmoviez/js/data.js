@@ -66,7 +66,6 @@ async function loadFromIndexedDB() {
         const request = store.get(IDB_USER_DATA_KEY);
 
         return await new Promise((resolve, reject) => {
-            // <<-- MODIFIED SECTION START -->>
             request.onsuccess = (event) => {
                 const jsonData = event.target.result;
                 if (jsonData) {
@@ -75,7 +74,14 @@ async function loadFromIndexedDB() {
                         resolve(Array.isArray(parsedData) ? parsedData : []);
                     } catch (e) {
                         console.error("Error parsing cached data from IndexedDB:", e);
-                        showToast("Cache Corrupt", "Local cache was corrupt and has been cleared. Please sync with cloud to restore data.", "error", 0, DO_NOT_SHOW_AGAIN_KEYS.LOCAL_CACHE_CORRUPT_CLEARED);
+                        // *** SAFETY FIX IMPLEMENTED HERE ***
+                        showToast(
+                            "CRITICAL: Local Cache Corrupted", 
+                            "Your local data was unreadable and has been cleared to prevent further issues. Please sync with the cloud to restore your data.", 
+                            "error", 
+                            0, // 0 delay means it won't auto-hide
+                            null // No "don't show again" option for this critical error
+                        );
                         
                         // Attempt to clear the corrupted cache entry to prevent future hangs
                         const writeTransaction = db.transaction([STORE_NAME], 'readwrite');
@@ -88,7 +94,6 @@ async function loadFromIndexedDB() {
                     resolve([]); // No data found for the key
                 }
             };
-            // <<-- MODIFIED SECTION END -->>
             request.onerror = (event) => {
                 console.error("Error fetching from IndexedDB (local cache):", event.target.error);
                 showToast("Local Cache Error", "Failed to load data from local cache.", "error");
@@ -206,4 +211,3 @@ function recalculateAndApplyAllRelationships() {
         }
     });
 }
-// END CHUNK: Relationship Graph Integrity Check

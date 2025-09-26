@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <title>Series Info & Calculator</title>
     <style>
         body {
@@ -55,8 +56,8 @@
     <button onclick="searchGoogle('total runtime')">Total Runtime</button>
     <button onclick="searchGoogle('per episode runtime')">Per Episode Runtime</button>
     <br>
-    <button onclick="openXedni()">Go to xedni.html</button>
-
+    <button class="btn btn-info btn-sm btn-block" onclick="openXedni()">Go to xedni.html</button>
+    
     <div id="calculator">
         <input type="text" id="calcDisplay" placeholder="0" readonly />
         <br>

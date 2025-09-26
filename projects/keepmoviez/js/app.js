@@ -129,7 +129,6 @@ window.handleFormSubmit = async function(event) {
             ...cachedTmdbData
         };
 
-        // <<-- MODIFIED SECTION START -->>
         // ### Cleaned Up Runtime Logic ###
         if (entry.Category === 'Series') {
             const seasons = parseInt(formFieldsGlob.runtimeSeriesSeasons.value, 10);
@@ -149,7 +148,6 @@ window.handleFormSubmit = async function(event) {
                 entry.runtime = runtime;
             }
         }
-        // <<-- MODIFIED SECTION END -->>
 
         const editId = document.getElementById('editEntryId').value;
         if (editId) { const existingEntry = movieData.find(m => m && m.id === editId); if (existingEntry) entry.doNotRecommendDaily = existingEntry.doNotRecommendDaily; }
@@ -202,52 +200,63 @@ window.proceedWithEntrySave = async function(entryToSave, idToEdit) {
 // END CHUNK: Entry Form Submission and Save Logic
 
 // START CHUNK: Deletion Logic
+// *** NEW HELPER FUNCTION FOR TRACKING DELETIONS ***
+function addDeletedIdToSyncQueue(idOrIds) {
+    if (!currentSupabaseUser) return; // No need to track if not logged in
+    const DELETED_IDS_KEY = `keepmoviez_deleted_ids_${currentSupabaseUser.id}`;
+    try {
+        const existingIds = new Set(JSON.parse(localStorage.getItem(DELETED_IDS_KEY) || '[]'));
+        const idsToAdd = Array.isArray(idOrIds) ? idOrIds : [idOrIds];
+        idsToAdd.forEach(id => existingIds.add(id));
+        localStorage.setItem(DELETED_IDS_KEY, JSON.stringify(Array.from(existingIds)));
+    } catch (e) {
+        console.error("Failed to update deleted IDs queue in localStorage", e);
+    }
+}
+
 window.performDeleteEntry = async function() {
     if (!movieIdToDelete) { showToast("Error", "No entry selected.", "error"); $('#confirmDeleteModal').modal('hide'); return; }
     showLoading("Deleting entry...");
     try {
         const deletedMovieId = movieIdToDelete;
         const movieName = movieData.find(m => m && m.id === deletedMovieId)?.Name || "The entry";
+        
+        // Add to deletion queue for next sync BEFORE removing locally
+        addDeletedIdToSyncQueue(deletedMovieId);
+
         movieData.forEach(movie => { if (movie && movie.relatedEntries && movie.relatedEntries.includes(deletedMovieId)) { movie.relatedEntries = movie.relatedEntries.filter(id => id !== deletedMovieId); movie.lastModifiedDate = new Date().toISOString(); } });
         movieData = movieData.filter(m => m && m.id !== deletedMovieId);
+        
         recalculateAndApplyAllRelationships();
         renderMovieCards();
         await saveToIndexedDB();
-        showToast("Entry Deleted", `${movieName} removed locally.`, "warning", undefined, DO_NOT_SHOW_AGAIN_KEYS.ENTRY_DELETED);
-        if (currentSupabaseUser && window.supabaseClient) {
-            const { error } = await window.supabaseClient.from('movie_entries').delete().match({ id: deletedMovieId, user_id: currentSupabaseUser.id });
-            if (error) { console.error("Supabase delete error:", error); showToast("Cloud Delete Failed", `Could not remove from cloud: ${error.message}.`, "error", 7000); }
-            else { showToast("Cloud Synced", `${movieName} also removed from cloud.`, "success"); }
-        }
+        showToast("Entry Deleted", `${movieName} removed locally. Will be removed from cloud on next sync.`, "warning", undefined, DO_NOT_SHOW_AGAIN_KEYS.ENTRY_DELETED);
+
+        // Trigger a silent sync in the background
+        if (currentSupabaseUser) await comprehensiveSync(true);
+
     } catch (error) { console.error("Error deleting entry:", error); showToast("Delete Failed", `Error: ${error.message}`, "error", 7000);
     } finally { movieIdToDelete = null; $('#confirmDeleteModal').modal('hide'); hideLoading(); }
 }
 
 window.performBatchDelete = async function() {
     if (!isMultiSelectMode || selectedEntryIds.length === 0) return;
-    const deleteScopeRadio = document.querySelector('input[name="deleteScope"]:checked');
-    if (!deleteScopeRadio) { showToast("Error", "Select delete scope.", "error"); return; }
-    const deleteScope = deleteScopeRadio.value; const idsToDelete = [...selectedEntryIds]; const numToDelete = idsToDelete.length;
-    showLoading(`Deleting ${numToDelete} entries (${deleteScope})...`);
+    const idsToDelete = [...selectedEntryIds]; const numToDelete = idsToDelete.length;
+    showLoading(`Deleting ${numToDelete} entries...`);
     try {
-        if (deleteScope === 'local' || deleteScope === 'both') {
-            idsToDelete.forEach(deletedId => { movieData.forEach(movie => { if (movie && movie.relatedEntries && movie.relatedEntries.includes(deletedId)) { movie.relatedEntries = movie.relatedEntries.filter(id => id !== deletedId); movie.lastModifiedDate = new Date().toISOString(); } }); });
-            movieData = movieData.filter(m => m && !idsToDelete.includes(m.id));
-            recalculateAndApplyAllRelationships();
-            await saveToIndexedDB();
-            showToast("Local Deletion", `${numToDelete} entries removed locally.`, "warning");
-        }
-        if ((deleteScope === 'cloud' || deleteScope === 'both') && currentSupabaseUser && window.supabaseClient) {
-            const CHUNK_SIZE = 100;
-            for (let i = 0; i < idsToDelete.length; i += CHUNK_SIZE) {
-                const chunkIds = idsToDelete.slice(i, i + CHUNK_SIZE);
-                const { error } = await window.supabaseClient.from('movie_entries').delete().in('id', chunkIds).eq('user_id', currentSupabaseUser.id);
-                if (error) { console.error("Batch cloud delete error:", error); showToast("Cloud Delete Failed", `Some entries not removed: ${error.message}.`, "error", 7000); }
-            }
-            if (!movieData.some(m => idsToDelete.includes(m.id))) {
-                 showToast("Cloud Deletion", `${numToDelete} entries processed for cloud deletion.`, "success");
-            }
-        }
+        // Add all selected IDs to the deletion queue for sync
+        addDeletedIdToSyncQueue(idsToDelete);
+
+        idsToDelete.forEach(deletedId => { movieData.forEach(movie => { if (movie && movie.relatedEntries && movie.relatedEntries.includes(deletedId)) { movie.relatedEntries = movie.relatedEntries.filter(id => id !== deletedId); movie.lastModifiedDate = new Date().toISOString(); } }); });
+        movieData = movieData.filter(m => m && !idsToDelete.includes(m.id));
+
+        recalculateAndApplyAllRelationships();
+        await saveToIndexedDB();
+        showToast("Local Deletion", `${numToDelete} entries removed locally. Will sync deletion to cloud.`, "warning");
+        
+        // Trigger a silent sync
+        if (currentSupabaseUser) await comprehensiveSync(true);
+
     } catch (error) { console.error("Batch delete error:", error); showToast("Batch Delete Failed", `Error: ${error.message}`, "error", 7000);
     } finally { renderMovieCards(); disableMultiSelectMode(); $('#confirmDeleteModal').modal('hide'); hideLoading(); }
 }
@@ -511,4 +520,3 @@ window.checkAndNotifyNewAchievements = async function(isInitialLoad = false) {
 
     knownUnlockedAchievements = currentlyUnlocked;
 }
-// END CHUNK: Achievement and Usage Helpers

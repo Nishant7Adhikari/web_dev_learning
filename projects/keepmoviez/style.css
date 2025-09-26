@@ -989,12 +989,15 @@ a:hover { color: var(--link-hover-color); text-decoration: none; }
 /* END CHUNK: 15: Z-Index Management */
 
 /*START CHUNK: 8: Modals, Toasts, and Overlays*/
+/* Add this inside the START CHUNK: 8 */
+
 .modal-content {
     border-radius: var(--border-radius-lg);
     border: none;
     background-color: var(--card-bg);
     animation: fadeUp 0.3s ease-out;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    padding-top: 1.5rem;
 }
 .modal-header {
     background-color: var(--primary-color);
@@ -1099,4 +1102,50 @@ a:hover { color: var(--link-hover-color); text-decoration: none; }
    right: 0%;
    z-index: 9999;
 }
+/* NEW styles for the Entry Form Accordion */
+.entry-form-accordion .card {
+    border: none;
+    border-bottom: 1px solid var(--table-border-color);
+    border-radius: 0;
+    background-color: transparent;
+}
+.entry-form-accordion .card:first-of-type {
+    border-top: 1px solid var(--table-border-color);
+}
+.entry-form-accordion .card-header {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+.entry-form-accordion .card-header h5 {
+    margin-bottom: 0;
+}
+.entry-form-accordion .card-header .btn-link {
+    color: var(--primary-color);
+    font-weight: 600;
+    text-decoration: none;
+    width: 100%;
+    text-align: left;
+    padding: 1rem 0;
+    font-size: 1.1rem;
+}
+.entry-form-accordion .card-header .btn-link:hover {
+    color: var(--primary-hover-color);
+}
+.entry-form-accordion .card-header .btn-link::after {
+    content: '\f077'; /* Font Awesome chevron-up */
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    float: right;
+    transition: transform 0.2s ease-in-out;
+}
+.entry-form-accordion .card-header .btn-link.collapsed::after {
+    transform: rotate(180deg);
+}
+.entry-form-accordion .card-body {
+    padding: 0 0 1rem 0;
+}
+/* END NEW styles for Entry Form Accordion */
+
 /* END CHUNK: 8: Modals, Toasts, and Overlays */

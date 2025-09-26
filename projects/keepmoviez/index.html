@@ -119,7 +119,7 @@
             </div>
         </div>
         <div class="offcanvas-footer p-3 mt-auto border-top">
-            <button id="menuSupabaseLogoutBtn" class="btn btn-outline-warning btn-block"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            <button id="menuSupabaseLogoutBtn" class="btn btn-outline-warning btn-block"><i class="fas fa-sign-in-alt"></i> </button>
         </div>
     </div>
 <!-- END CHUNK: Off-Canvas Application Menu -->
@@ -313,176 +313,152 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content fade-up">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="entryModalLabel">Add New</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">×</span> </button>
+                    <h5 class="modal-title" id="entryModalLabel">Add New Entry</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">X</span> </button>
                 </div>
                 <div class="modal-body">
-                    <form id="entryForm">
+                    <form id="entryForm" novalidate>
+                        <!-- Hidden fields remain at the top for easy access by JS -->
                         <input type="hidden" id="editEntryId"> <input type="hidden" id="posterUrl">
                         <input type="hidden" id="tmdbId"> <input type="hidden" id="tmdbMediaType">
                         <input type="hidden" id="currentWatchHistory" value="[]"> <input type="hidden" id="editingWatchId">
-                        <div class="form-row">
-                            <div class="form-group col-md-6"> <label for="movieName">Name</label> <input type="text" class="form-control form-control-sm" id="movieName" required> </div>
-                            <div class="form-group col-md-6">
-                                <label>Search Online (TMDB)</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="number" class="form-control form-control-sm tmdb-year-input" id="tmdbSearchYear" placeholder="Year (Opt.)" min="1888" max="2100">
-                                    <div class="input-group-append"> <button type="button" class="btn btn-info btn-sm" id="searchTmdbBtn"><i class="fas fa-search"></i> Search TMDB</button> </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="tmdbSearchResults" class="list-group mb-3" style="max-height: 150px; overflow-y: auto; display: none;"></div>
-                        <div class="form-row">
-                            <div class="form-group col-md-6">
-                                <label for="category">Category</label>
-                                <select id="category" class="form-control form-control-sm">
-                                    <option value="Movie">Movie</option>
-                                    <option value="Series">Series</option>
-                                    <option value="Documentary">Documentary</option>
-                                    <option value="Special">Special</option>
-                                </select>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="genreSearchInput">Genre (Multi Select)</label>
-                                <div id="genreInputContainer" aria-label="Selected genres and add control" tabindex="0">
-                                    <input id="genreSearchInput" type="text" placeholder="Click to add genres..." aria-label="Search or add genres">
-                                </div>
-                                <div id="genreDropdown">
-                                    <div id="genreItemsContainer" class="list-group mt-1"></div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- START: NEW/IMPROVED RUNTIME SECTION -->
-                        <div id="runtimeSection">
-                            <!-- Movie Runtime Input -->
-                            <div id="movieRuntimeGroup" class="form-row" style="display: none;">
-                                <div class="form-group col-md-6">
-                                    <label for="runtimeMovie">Runtime (minutes)</label>
-                                    <input type="number" class="form-control form-control-sm" id="runtimeMovie" placeholder="e.g., 120" min="0">
-                                </div>
-                            </div>
-                            <!-- Series Runtime Inputs -->
-                            <div id="seriesRuntimeGroup" class="form-row" style="display: none;">
-                                <div class="form-group col-md-4">
-                                    <label for="runtimeSeriesSeasons">Total Seasons</label>
-                                    <input type="number" class="form-control form-control-sm" id="runtimeSeriesSeasons" placeholder="e.g., 5" min="0">
-                                </div>
-                                <div class="form-group col-md-4">
-                                    <label for="runtimeSeriesEpisodes">Total Episodes</label>
-                                    <input type="number" class="form-control form-control-sm" id="runtimeSeriesEpisodes" placeholder="e.g., 50" min="0">
-                                </div>
-                                <div class="form-group col-md-4">
-                                    <label for="runtimeSeriesAvgEp">Avg. Ep. Runtime (min)</label>
-                                    <input type="number" class="form-control form-control-sm" id="runtimeSeriesAvgEp" placeholder="e.g., 45" min="0">
-                                </div>
-                            </div>
-                        </div>
-                        <!-- END: NEW/IMPROVED RUNTIME SECTION -->
 
-                        <div class="form-row">
-                            <div class="form-group col-md-6">
-                                <label for="status">Status</label>
-                                <select id="status" class="form-control form-control-sm">
-                                    <option value="To Watch">To Watch</option>
-                                    <option value="Watched">Watched</option>
-                                    <option value="Continue">Continue</option>
-                                    <option value="Unwatched">Unwatched</option>
-                                </select>
-                            </div>                           
-                            <!-- New group for series, replaces old continueDetails logic -->
-                            <div class="col-md-6" id="seriesContinueGroup" style="display: none;">
-                                <div class="form-row">
-                                    <div class="form-group col-6">
-                                        <label for="seasonsCompleted">Seasons Completed</label>
-                                        <input type="number" class="form-control form-control-sm" id="seasonsCompleted" min="0" placeholder="e.g., 2">
+                        <div class="accordion entry-form-accordion" id="entryFormAccordion">
+
+                            <!-- SECTION 1: PRIMARY INFO & TMDB SEARCH -->
+                            <div class="card">
+                                <div class="card-header" id="primaryInfoHeading">
+                                    <h5 class="mb-0">
+                                        <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#primaryInfoCollapse" aria-expanded="true" aria-controls="primaryInfoCollapse">
+                                            Info
+                                        </button>
+                                    </h5>
+                                </div>
+                                <div id="primaryInfoCollapse" class="collapse show" aria-labelledby="primaryInfoHeading" data-parent="#entryFormAccordion">
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <label for="movieName">Name</label>
+                                            <input type="text" class="form-control" id="movieName" required placeholder="e.g., The Matrix">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Search</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control tmdb-year-input" id="tmdbSearchYear" placeholder="Year (Optional)" min="1888" max="2100">
+                                                <div class="input-group-append"><button type="button" class="btn btn-info" id="searchTmdbBtn"><i class="fas fa-search"></i> Search & Autofill</button></div>
+                                            </div>
+                                        </div>
+                                        <div id="tmdbSearchResults" class="list-group mb-3" style="max-height: 200px; overflow-y: auto; display: none;"></div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6"><label for="category">Category</label><select id="category" class="form-control"><option value="Movie">Movie</option><option value="Series">Series</option><option value="Documentary">Documentary</option><option value="Special">Special</option></select></div>
+                                            <div class="form-group col-md-6"><label for="status">Status</label><select id="status" class="form-control"><option value="To Watch">To Watch</option><option value="Watched">Watched</option><option value="Continue">Continue</option><option value="Unwatched">Unwatched</option></select></div>
+                                        </div>
+                                        <div id="seriesContinueGroup" class="form-row" style="display: none;">
+                                            <div class="form-group col-6"><label for="seasonsCompleted">Seasons Done</label><input type="number" class="form-control form-control-sm" id="seasonsCompleted" min="0"></div>
+                                            <div class="form-group col-6"><label for="currentSeasonEpisodesWatched">Current S. Episodes</label><input type="number" class="form-control form-control-sm" id="currentSeasonEpisodesWatched" min="0"></div>
+                                        </div>
                                     </div>
-                                    <div class="form-group col-6">
-                                        <label for="currentSeasonEpisodesWatched">Current Season Episode count</label>
-                                        <input type="number" class="form-control form-control-sm" id="currentSeasonEpisodesWatched" min="0" placeholder="e.g., 5">
+                                </div>
+                            </div>
+
+                            <!-- SECTION 2: MY RATINGS & WATCH HISTORY -->
+                            <div class="card">
+                                <div class="card-header" id="ratingsHeading">
+                                    <h5 class="mb-0">
+                                        <button type="button" class="btn btn-link collapsed" data-toggle="collapse" data-target="#ratingsCollapse" aria-expanded="false" aria-controls="ratingsCollapse">
+                                            Ratings & History
+                                        </button>
+                                    </h5>
+                                </div>
+                                <div id="ratingsCollapse" class="collapse" aria-labelledby="ratingsHeading" data-parent="#entryFormAccordion">
+                                    <div class="card-body">
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6" id="overallRatingGroup" style="display: none;"><label for="overallRating">My Overall Rating</label><select id="overallRating" class="form-control"><option value="">--Select--</option><option value="1">1 Star</option><option value="2">2 Stars</option><option value="3">3 Stars</option><option value="4">4 Stars</option><option value="5">5 Stars</option></select></div>
+                                            <div class="form-group col-md-6" id="recommendationGroup" style="display: none;"><label for="recommendation">My Recommendation</label><select id="recommendation" class="form-control"><option value="">-Select-</option><option value="Ignore">Ignore</option><option value="Less Recommended">Less Recommended</option><option value="Recommended">Recommended</option><option value="Highly Recommended">Highly Recommended</option></select></div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="personalRecommendation">Watch Preference</label><select id="personalRecommendation" class="form-control"><option value="">--Select--</option><option value="Watch Alone">Watch Alone</option><option value="Safe to share">Safe to Share</option></select>
+                                        </div>
+                                        <hr>
+                                        <div id="watchHistorySection">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <h6>Watch Records</h6>
+                                                <button type="button" class="btn btn-sm btn-outline-primary" id="toggleAddWatchInstanceFormBtn"><i class="fas fa-plus"></i> Add Record</button>
+                                            </div>
+                                            <div id="addWatchInstanceForm" class="p-3 border rounded mb-3" style="display:none;">
+                                                <h6 id="watchInstanceFormTitle" class="mb-3">Add Watch Record</h6>
+                                                <div class="form-row">
+                                                    <div class="form-group col-md-6"><label for="watchDate">Date</label><input type="date" class="form-control" id="watchDate"></div>
+                                                    <div class="form-group col-md-6"><label for="watchRating">Rating</label><select id="watchRating" class="form-control"><option value="">--Select--</option><option value="1">1 Star</option><option value="2">2 Stars</option><option value="3">3 Stars</option><option value="4">4 Stars</option><option value="5">5 Stars</option></select></div>
+                                                </div>
+                                                <div class="form-group"><label for="watchNotes">Notes</label><textarea class="form-control" id="watchNotes" rows="2"></textarea></div>
+                                                <button type="button" class="btn btn-success btn-sm mr-2" id="saveWatchInstanceBtn">Save</button><button type="button" class="btn btn-secondary btn-sm" id="cancelWatchInstanceBtn">Cancel</button>
+                                            </div>
+                                            <div id="watchHistoryList"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- SECTION 3: DETAILS & CLASSIFICATION -->
+                            <div class="card">
+                                <div class="card-header" id="detailsHeading">
+                                    <h5 class="mb-0">
+                                        <button type="button" class="btn btn-link collapsed" data-toggle="collapse" data-target="#detailsCollapse" aria-expanded="false" aria-controls="detailsCollapse">
+                                            Details 
+                                        </button>
+                                    </h5>
+                                </div>
+                                <div id="detailsCollapse" class="collapse" aria-labelledby="detailsHeading" data-parent="#entryFormAccordion">
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <label for="genreSearchInput">Genre</label>
+                                            <div id="genreInputContainer" tabindex="0"><input id="genreSearchInput" type="text" placeholder="Click to add genres..."></div>
+                                            <div id="genreDropdown"><div id="genreItemsContainer" class="list-group mt-1"></div></div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-4"><label for="year">Year</label><input type="number" class="form-control" id="year" min="1888" max="2100"></div>
+                                            <div class="form-group col-md-4"><label for="language">Language</label><input type="text" class="form-control" id="language"></div>
+                                            <div class="form-group col-md-4"><label for="country">Country</label><input type="text" class="form-control" id="country" placeholder="e.g., US, IN"></div>
+                                        </div>
+                                        <div id="runtimeSection">
+                                            <div id="movieRuntimeGroup" class="form-group" style="display: none;"><label for="runtimeMovie">Runtime (minutes)</label><input type="number" class="form-control" id="runtimeMovie" min="0"></div>
+                                            <div id="seriesRuntimeGroup" class="form-row" style="display: none;">
+                                                <div class="form-group col-md-4"><label for="runtimeSeriesSeasons">Total Seasons</label><input type="number" class="form-control" id="runtimeSeriesSeasons" min="0"></div>
+                                                <div class="form-group col-md-4"><label for="runtimeSeriesEpisodes">Total Episodes</label><input type="number" class="form-control" id="runtimeSeriesEpisodes" min="0"></div>
+                                                <div class="form-group col-md-4"><label for="runtimeSeriesAvgEp">Avg. Ep. (min)</label><input type="number" class="form-control" id="runtimeSeriesAvgEp" min="0"></div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group"><label for="description">Description</label><textarea class="form-control" id="description" rows="3"></textarea></div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group col-md-6" id="recommendationGroup" style="display: none;">
-                                <label for="recommendation">My Recommendation</label>
-                                <select id="recommendation" class="form-control form-control-sm">
-                                    <option value="">-Select-</option>
-                                    <option value="Ignore">Ignore</option>
-                                    <option value="Less Recommended">Less Recommended</option>
-                                    <option value="Recommended">Recommended</option>
-                                    <option value="Highly Recommended">Highly Recommended</option>
-                                </select>
-                            </div>
-                            <div class="form-group col-md-6" id="overallRatingGroup" style="display: none;">
-                                <label for="overallRating">My Overall Rating</label>
- <select id="overallRating" class="form-control form-control-sm">
-                                    <option value="">--Select--</option>
-                                    <option value="1">1 Star</option>
-                                    <option value="2">2 Stars</option>
-                                    <option value="3">3 Stars</option>
-                                    <option value="4">4 Stars</option>
-                                    <option value="5">5 Stars</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group col-md-6">
-                                <label for="personalRecommendation">Watch Preference</label>
-                                <select id="personalRecommendation" class="form-control form-control-sm">
-                                    <option value="">--Select--</option>
-                                    <option value="Watch Alone">watch alone</option>
-                                    <option value="Safe to share">Safe to share</option>
-                                </select>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="relatedEntriesNames">Related Titles</label>
-                                <input type="text" class="form-control form-control-sm" id="relatedEntriesNames" placeholder="e.g., Movie Sequel, Prequel Name">
-                                <div id="relatedEntriesSuggestions" class="list-group mt-1" style="display: none; max-height: 150px; overflow-y: auto;">
+                            
+                            <!-- SECTION 4: Related-->
+                            <div class="card">
+                                <div class="card-header" id="advancedHeading">
+                                    <h5 class="mb-0">
+                                        <button type="button" class="btn btn-link collapsed" data-toggle="collapse" data-target="#advancedCollapse" aria-expanded="false" aria-controls="advancedCollapse">
+                                             Related
+                                        </button>
+                                    </h5>
                                 </div>
-                            </div>
-                        </div>
-                        <div id="watchHistorySection" style="display: none;">
-                            <h5>Watch History</h5>
-                            <div id="watchHistoryList" class="mb-2"></div>
-                            <button type="button" class="btn btn-sm btn-outline-primary mb-2" id="toggleAddWatchInstanceFormBtn"> <i class="fas fa-plus"></i> Add New Watch Record </button>
-                            <div id="addWatchInstanceForm" class="p-3 border rounded" style="display:none;">
-                                <h6 id="watchInstanceFormTitle" class="mb-3">Add New Watch Record</h6>
-                                <div class="form-row">
-                                    <div class="form-group col-md-6"> <label for="watchDate">Date Watched</label> <input type="date" class="form-control form-control-sm" id="watchDate"> </div>
-                                    <div class="form-group col-md-6">
-                                        <label for="watchRating">Rating for this Watch</label>
-                                        <select id="watchRating" class="form-control form-control-sm">
-                                            <option value="">--Select--</option>
-                                            <option value="1">1 Star</option>
-                                            <option value="2">2 Stars</option>
-                                            <option value="3">3 Stars</option>
-                                            <option value="4">4 Stars</option>
-                                            <option value="5">5 Stars</option>
-                                        </select>
+                                <div id="advancedCollapse" class="collapse" aria-labelledby="advancedHeading" data-parent="#entryFormAccordion">
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <label for="relatedEntriesNames">Link to Other Entries in Your Log</label>
+                                            <input type="text" class="form-control" id="relatedEntriesNames" placeholder="Start typing a title...">
+                                            <div id="relatedEntriesSuggestions" class="list-group mt-1" style="display: none; max-height: 150px; overflow-y: auto;"></div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="form-group"> <label for="watchNotes">Notes for this Watch</label> <textarea class="form-control form-control-sm" id="watchNotes" rows="2"></textarea> </div>
-                                <button type="button" class="btn btn-success btn-sm mr-2" id="saveWatchInstanceBtn">Save Watch Record</button>
-                                <button type="button" class="btn btn-secondary btn-sm" id="cancelWatchInstanceBtn">Cancel</button>
                             </div>
+
                         </div>
-                        <hr id="watchHistorySeparator" style="display:none;">
-                        <div class="form-row">
-                            <div class="form-group col-md-4"> <label for="language">Language</label> <input type="text" class="form-control form-control-sm" id="language" placeholder="e.g., English, Hindi"> </div>
-                            <div class="form-group col-md-4"> <label for="year">Year of Release</label> <input type="number" class="form-control form-control-sm" id="year" min="1888" max="2100"> </div>
-                            <div class="form-group col-md-4"> <label for="country">Country</label> <input type="text" class="form-control form-control-sm" id="country" placeholder="e.g., US, IN"> </div>
-                        </div>
-        
-                        <div class="form-group"> 
-                            <label for="description">Description</label> 
-                            <textarea class="form-control form-control-sm" id="description" rows="3"></textarea> 
-                        </div>
-    
-                        </div>
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Entry</button>
                     </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" form="entryForm" class="btn btn-primary"><i class="fas fa-save"></i> Save Entry</button>
                 </div>
             </div>
         </div>
@@ -810,11 +786,11 @@
                 </div>
                 <div class="modal-body row" id="chartsModalBody" style="max-height: 80vh; overflow-y: auto;">
                     <div class="col-md-6 stats-chart-container"><h6>Watch Instances by Year</h6><canvas id="chartModalWatchInstancesByYear"></canvas></div>
-                    <div class="col-md-6 stats-chart-container"><h6>Entries Watched per Genre (Top 10)</h6><canvas id="chartModalMoviesPerGenre"></canvas></div>
+                    <div class="col-md-6 stats-chart-container"><h6>Entries Watched per Genre</h6><canvas id="chartModalMoviesPerGenre"></canvas></div>
                     <div class="col-md-6 stats-chart-container"><h6>Overall Entry Rating Distribution</h6><canvas id="chartModalOverallRatingDistribution"></canvas></div>
                     <div class="col-md-6 stats-chart-container"><h6>Individual Watch Rating Distribution</h6><canvas id="chartModalWatchInstanceRatingDistribution"></canvas></div>
                     <div class="col-md-6 stats-chart-container"><h6>Entry Status Breakdown</h6><canvas id="chartModalMovieStatusBreakdown"></canvas></div>
-                    <div class="col-md-6 stats-chart-container"><h6>Language Distribution (Top 10 Watched)</h6><canvas id="chartModalLanguageDistribution"></canvas></div>
+                    <div class="col-md-6 stats-chart-container"><h6>Language Distribution</h6><canvas id="chartModalLanguageDistribution"></canvas></div>
                     <div class="col-md-6 stats-chart-container"><h6>Top 10 Country Distributions</h6><canvas id="chartModalCountryDistribution"></canvas></div>
                     <div class="col-md-6 stats-chart-container"><h6>Monthly Watch Activity</h6><canvas id="chartModalWatchActivityOverTime"></canvas></div>
                     <div class="col-md-6 stats-chart-container"><h6>Monthly Average Rating</h6><canvas id="chartModalAvgRatingOverTime"></canvas></div>
@@ -1050,17 +1026,6 @@
 
 <!-- START CHUNK: JavaScript Libraries and Application Logic Scripts -->
     <!-- Base libraries first -->
-    <script>
-        if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    regs.forEach(reg => reg.unregister());
-  });
-
-  caches.keys().then(keys => {
-    keys.forEach(key => caches.delete(key));
-  });
-}
-    </script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
