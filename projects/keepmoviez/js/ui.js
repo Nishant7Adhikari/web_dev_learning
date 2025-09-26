@@ -549,128 +549,162 @@ window.showDeleteConfirmationModal = function(id = null) {
     $('#confirmDeleteModal').modal('show');
 }
 
+// <<-- MODIFIED SECTION START -->>
 window.openDetailsModal = async function(id = null, tmdbObject = null) {
     showLoading("Loading details...");
     try {
-        let data, isLocalEntry;
+        let sourceData, isLocalEntry, fullDetails;
 
         if (id) {
-            data = movieData.find(m => m && m.id === id);
+            sourceData = movieData.find(m => m && m.id === id);
             isLocalEntry = true;
-            if (!data) { showToast("Error", "Entry details not found.", "error"); return; }
+            if (!sourceData) {
+                showToast("Error", "Entry details not found.", "error");
+                return;
+            }
+            fullDetails = sourceData; // It's already the full object
         } else if (tmdbObject) {
-            data = tmdbObject;
+            sourceData = tmdbObject;
             isLocalEntry = false;
+            // Fetch full details for the TMDB object
+            fullDetails = await callTmdbApiDirect(`/${sourceData.media_type}/${sourceData.id}`, { append_to_response: 'keywords,credits,collection' });
+            if (!fullDetails) {
+                 showToast("Error", "Could not fetch full TMDB details.", "error");
+                 return;
+            }
         } else {
             showToast("Error", "No entry specified to view.", "error");
             return;
         }
 
+        // --- FIX: Create a normalized display object ---
+        const displayObject = {
+            name: fullDetails.Name || fullDetails.title || fullDetails.name || 'Details',
+            year: fullDetails.Year || (fullDetails.release_date || fullDetails.first_air_date || '').substring(0, 4) || 'N/A',
+            description: fullDetails.Description || fullDetails.overview || 'N/A',
+            posterUrl: fullDetails['Poster URL'] || (fullDetails.poster_path ? `${TMDB_IMAGE_BASE_URL}w500${fullDetails.poster_path}` : null),
+            category: fullDetails.Category || (fullDetails.media_type === 'tv' ? 'Series' : 'Movie'),
+            genre: fullDetails.Genre || (fullDetails.genres || []).map(g => g.name).join(', ') || 'N/A',
+            language: fullDetails.Language || (fullDetails.spoken_languages || []).map(l => l.english_name).join(', ') || 'N/A',
+            country: fullDetails.Country ? getCountryFullName(fullDetails.Country) : (fullDetails.production_countries || []).map(c => c.name).join(', ') || 'N/A',
+            status: isLocalEntry ? fullDetails.Status : 'Not in Library',
+            overallRating: isLocalEntry ? fullDetails.overallRating : null,
+            recommendation: isLocalEntry ? fullDetails.Recommendation : null,
+            personalRecommendation: isLocalEntry ? fullDetails.personalRecommendation : null,
+            lastModifiedDate: isLocalEntry ? (fullDetails.lastModifiedDate ? new Date(fullDetails.lastModifiedDate).toLocaleString() : 'N/A') : null,
+            tmdbVoteAvg: fullDetails.tmdb_vote_average || fullDetails.vote_average,
+            tmdbVoteCount: fullDetails.tmdb_vote_count || fullDetails.vote_count,
+            keywords: fullDetails.keywords?.keywords || fullDetails.keywords?.results || fullDetails.keywords || [],
+            director: fullDetails.director_info || fullDetails.credits?.crew?.find(c => c.job === 'Director'),
+            cast: fullDetails.full_cast || fullDetails.credits?.cast || [],
+            watchHistory: isLocalEntry ? fullDetails.watchHistory : [],
+            seasonsCompleted: isLocalEntry ? fullDetails.seasonsCompleted : null,
+            currentSeasonEpisodesWatched: isLocalEntry ? fullDetails.currentSeasonEpisodesWatched : null,
+            runtimeData: fullDetails.runtime
+        };
+
         const setText = (selector, text) => { const el = document.querySelector(selector); if (el) el.textContent = text || 'N/A'; };
         const setHtml = (selector, html) => { const el = document.querySelector(selector); if (el) el.innerHTML = html || 'N/A'; };
-        const toggle = (selector, condition) => $(selector).toggle(condition);
+        const toggle = (selector, condition) => $(selector).toggle(!!condition);
 
-        const name = data.Name || data.title || data.name || 'Details';
-        $('#detailsModal .modal-title').text(name);
+        // --- Populate UI using the normalized displayObject ---
+        $('#detailsModal .modal-title').text(displayObject.name);
         
-        const releaseDate = data.release_date || data.first_air_date || data.Year;
-        setText('#detailsYear', releaseDate ? new Date(releaseDate).getFullYear() : 'N/A');
-        setText('#detailsDescription', data.Description || data.overview);
-        
-        const posterPath = data['Poster URL'] || data.poster_path;
-        if (posterPath) { 
-            const fullPosterUrl = posterPath.startsWith('http') ? posterPath : `${TMDB_IMAGE_BASE_URL}w500${posterPath}`;
-            $('#detailsPoster').attr('src', fullPosterUrl).removeClass('d-none'); 
-            $('#noPosterMessage').addClass('d-none'); 
-        } else { 
-            $('#detailsPoster').addClass('d-none'); 
-            $('#noPosterMessage').text('No Poster Available').removeClass('d-none'); 
-        }
-        
-        if (isLocalEntry) {
-            setText('#detailsCategory', data.Category);
-            setText('#detailsGenre', data.Genre);
-            setText('#detailsStatus', data.Status);
-            setText('#detailsLanguage', data.Language);
-            setText('#detailsCountry', getCountryFullName(data.Country));
-            setHtml('#detailsOverallRating', renderStars(data.overallRating));
-            setText('#detailsRecommendation', data.Recommendation);
-            setText('#detailsPersonalRecommendation', data.personalRecommendation);
-            setText('#detailsLastModified', data.lastModifiedDate ? new Date(data.lastModifiedDate).toLocaleString() : 'N/A');
+        if (displayObject.posterUrl) {
+            $('#detailsPoster').attr('src', displayObject.posterUrl).removeClass('d-none');
+            $('#noPosterMessage').addClass('d-none');
         } else {
-            const fullDetails = await callTmdbApiDirect(`/${data.media_type}/${data.id}`, { append_to_response: 'keywords,credits,collection' });
-            data = { ...data, ...fullDetails }; 
-            setText('#detailsCategory', data.media_type === 'tv' ? 'Series' : 'Movie');
-            setText('#detailsGenre', (data.genres || []).map(g => g.name).join(', '));
-            setText('#detailsLanguage', (data.spoken_languages || []).map(l => l.english_name).join(', '));
-            setText('#detailsCountry', (data.production_countries || []).map(c => c.name).join(', '));
+            $('#detailsPoster').addClass('d-none');
+            $('#noPosterMessage').text('No Poster Available').removeClass('d-none');
         }
 
+        setText('#detailsYear', displayObject.year);
+        setText('#detailsDescription', displayObject.description);
+        setText('#detailsCategory', displayObject.category);
+        setText('#detailsGenre', displayObject.genre);
+        setText('#detailsLanguage', displayObject.language);
+        setText('#detailsCountry', displayObject.country);
+
+        // Runtime
         let runtimeText = 'N/A';
-        const runtimeData = data.runtime || {};
-        if (typeof runtimeData === 'number' && runtimeData > 0) {
-            const hours = Math.floor(runtimeData / 60);
-            const minutes = runtimeData % 60;
+        if (typeof displayObject.runtimeData === 'number' && displayObject.runtimeData > 0) {
+            const hours = Math.floor(displayObject.runtimeData / 60);
+            const minutes = displayObject.runtimeData % 60;
             runtimeText = `${hours > 0 ? hours + 'h ' : ''}${minutes}m`;
-        } else if (typeof runtimeData === 'object' && runtimeData !== null) {
-            const { seasons, episodes, episode_run_time } = runtimeData;
+        } else if (typeof displayObject.runtimeData === 'object' && displayObject.runtimeData !== null) {
+            const { seasons, episodes, episode_run_time } = displayObject.runtimeData;
             const parts = [];
-            if (seasons) parts.push(`<strong>Total Seasons:</strong> ${seasons} `);
-            if (episodes) parts.push(`<strong>Total Episodes:</strong> ${episodes} `);
+            if (seasons) parts.push(`<strong>Total Seasons:</strong> ${seasons}`);
+            if (episodes) parts.push(`<strong>Total Episodes:</strong> ${episodes}`);
             if (episode_run_time) parts.push(`<strong>Avg. Ep. Runtime:</strong> ${episode_run_time}m`);
             if (parts.length > 0) runtimeText = parts.join('<br>');
         }
         toggle('#detailsRuntimeGroup', runtimeText !== 'N/A');
         setHtml('#detailsRuntime', runtimeText);
-
-        const tmdbVoteAvg = data.tmdb_vote_average || data.vote_average;
-        const tmdbVoteCount = data.tmdb_vote_count || data.vote_count;
-        const tmdbRatingCondition = typeof tmdbVoteAvg === 'number' && tmdbVoteCount > 0;
-        toggle('#detailsTMDBRatingGroup', tmdbRatingCondition);
-        if (tmdbRatingCondition) {
-            setHtml('#detailsTMDBRating', `${tmdbVoteAvg.toFixed(1)}/10 <small>(${tmdbVoteCount} votes)</small>`);
+        
+        // TMDB Rating
+        const hasTmdbRating = typeof displayObject.tmdbVoteAvg === 'number' && displayObject.tmdbVoteCount > 0;
+        toggle('#detailsTMDBRatingGroup', hasTmdbRating);
+        if (hasTmdbRating) {
+            setHtml('#detailsTMDBRating', `${displayObject.tmdbVoteAvg.toFixed(1)}/10 <small>(${displayObject.tmdbVoteCount} votes)</small>`);
         }
         
-        const keywords = data.keywords?.keywords || data.keywords?.results || data.keywords;
-        toggle('#detailsKeywords', Array.isArray(keywords) && keywords.length > 0);
-        if (Array.isArray(keywords)) setText('#detailsKeywords', keywords.map(k => k.name).join(', '));
+        // Keywords
+        toggle('#detailsKeywords', displayObject.keywords.length > 0);
+        if (displayObject.keywords.length > 0) {
+            setText('#detailsKeywords', displayObject.keywords.map(k => k.name).join(', '));
+        }
 
-        const director = data.director_info || data.credits?.crew?.find(c => c.job === 'Director');
-        if (director) setHtml('#detailsDirector', `<a href="#" class="person-link" data-person-id="${director.id}" data-person-name="${director.name}">${director.name}</a>`);
-        
-        const cast = data.full_cast || data.credits?.cast;
+        // Cast & Crew
+        const hasDirector = !!displayObject.director;
+        const hasCast = displayObject.cast.length > 0;
+        toggle('#detailsCastCrewSection, #castCrewSeparator', hasDirector || hasCast);
+        if (hasDirector) {
+            setHtml('#detailsDirector', `<a href="#" class="person-link" data-person-id="${displayObject.director.id}" data-person-name="${displayObject.director.name}">${displayObject.director.name}</a>`);
+        } else {
+            setText('#detailsDirector', 'N/A');
+        }
         const castListEl = $('#detailsCastList').empty();
-        if (Array.isArray(cast) && cast.length > 0) {
-            cast.slice(0, 10).forEach(member => {
+        if (hasCast) {
+            displayObject.cast.slice(0, 10).forEach(member => {
                 if (member && member.name) castListEl.append(`<div class="col-md-4 col-6 mb-2 person-list-item"><a href="#" class="person-link" data-person-id="${member.id}" data-person-name="${member.name}">${member.name}</a> <small class="text-muted">(${member.character || 'N/A'})</small></div>`);
             });
         }
-        toggle('#detailsCastCrewSection, #castCrewSeparator', !!director || (Array.isArray(cast) && cast.length > 0));
-        
-        const isWatchedOrContinue = isLocalEntry && (data.Status === 'Watched' || data.Status === 'Continue');
+
+        // Local-only fields
         toggle('#detailsStatus', isLocalEntry);
-        toggle('#detailsRecommendationGroup', isWatchedOrContinue && !!data.Recommendation);
-        toggle('#detailsOverallRatingGroup', isWatchedOrContinue && !!data.overallRating);
-        toggle('#detailsPersonalRecommendationGroup', isLocalEntry && !!data.personalRecommendation);
-        toggle('#detailsContinueGroup', isLocalEntry && data.Status === 'Continue' && (typeof data.seasonsCompleted === 'number' || typeof data.currentSeasonEpisodesWatched === 'number'));
-        if (isLocalEntry && data.Status === 'Continue') {
-            setText('#detailsContinue', `Season ${(data.seasonsCompleted || 0) + 1}, Ep ${data.currentSeasonEpisodesWatched || '?'}`);
+        setText('#detailsStatus', displayObject.status);
+        const isWatchedOrContinue = isLocalEntry && (displayObject.status === 'Watched' || displayObject.status === 'Continue');
+        toggle('#detailsRecommendationGroup', isWatchedOrContinue && !!displayObject.recommendation);
+        setText('#detailsRecommendation', displayObject.recommendation);
+        toggle('#detailsOverallRatingGroup', isWatchedOrContinue && !!displayObject.overallRating);
+        setHtml('#detailsOverallRating', renderStars(displayObject.overallRating));
+        toggle('#detailsPersonalRecommendationGroup', isLocalEntry && !!displayObject.personalRecommendation);
+        setText('#detailsPersonalRecommendation', displayObject.personalRecommendation);
+        toggle('#detailsLastModified', isLocalEntry);
+        setText('#detailsLastModified', displayObject.lastModifiedDate);
+
+        const isContinueStatus = isLocalEntry && displayObject.status === 'Continue';
+        toggle('#detailsContinueGroup', isContinueStatus);
+        if (isContinueStatus) {
+            setText('#detailsContinue', `Season ${(displayObject.seasonsCompleted || 0) + 1}, Ep ${displayObject.currentSeasonEpisodesWatched || '?'}`);
         }
-        
+
+        // Watch History
         const whList = $('#detailsWatchHistoryList').empty();
-        toggle('#detailsWatchHistorySection', isLocalEntry && data.watchHistory && data.watchHistory.length > 0);
-        if(isLocalEntry && data.watchHistory && data.watchHistory.length > 0) {
-            [...data.watchHistory].filter(wh => wh && wh.date).sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(wh => {
+        toggle('#detailsWatchHistorySection', isLocalEntry && displayObject.watchHistory.length > 0);
+        if(isLocalEntry && displayObject.watchHistory.length > 0) {
+            [...displayObject.watchHistory].filter(wh => wh && wh.date).sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(wh => {
                 whList.append(`<li class="list-group-item p-2"><strong>${new Date(wh.date).toLocaleDateString()}</strong> - ${renderStars(wh.rating)}${wh.notes ? `<br><small class="text-muted">Notes: ${wh.notes}</small>` : ''}</li>`);
             });
         }
-        toggle('#detailsLastModified', isLocalEntry);
-
-        toggle('#findSimilarBtn', isLocalEntry && !!data.tmdbId && (data.Status === 'Watched' || data.Status === 'Continue'));
-        $('#findSimilarBtn').data('current-movie-id', isLocalEntry ? data.id : null);
+        
+        // Footer buttons
+        toggle('#findSimilarBtn', isLocalEntry && !!fullDetails.tmdbId && isWatchedOrContinue);
+        $('#findSimilarBtn').data('current-movie-id', isLocalEntry ? fullDetails.id : null);
         
         toggle('#detailsModalAddBtn', !isLocalEntry);
-        $('#detailsModalAddBtn').data('tmdbObject', isLocalEntry ? null : data);
+        $('#detailsModalAddBtn').data('tmdbObject', isLocalEntry ? null : sourceData);
 
         $('#detailsModal').modal('show');
     } catch (error) { 
@@ -679,8 +713,8 @@ window.openDetailsModal = async function(id = null, tmdbObject = null) {
     } finally { 
         hideLoading(); 
     }
-}
-
+};
+// <<-- MODIFIED SECTION END -->>
 
 window.openPersonDetailsModal = async function(personId, personName) {
     showLoading(`Fetching details for ${personName}...`);

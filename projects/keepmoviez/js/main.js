@@ -275,10 +275,7 @@ if (menuThemeToggleBtn) {
         });
 
         $('#refreshRecommendationsBtnModal').on('click', async function() {
-            // This now just renders the next item from the cache
-            if (typeof renderNextSuggestion === 'function') {
-                await renderNextSuggestion();
-            }
+             displayPersonalizedSuggestionsModal();
         });
 
         $(document).on('click', '.achievement-badge', function() {
@@ -292,7 +289,38 @@ if (menuThemeToggleBtn) {
             const type = isAchieved ? 'success' : 'info';
             showToast(name, message, type, 5000);
         });
-// Person details modal event listeners
+        
+        // <<-- NEWLY ADDED SECTION START -->>
+        $('#detailsModalAddBtn').on('click', function() {
+            const tmdbObject = $(this).data('tmdbObject');
+            if (!tmdbObject) {
+                showToast("Error", "No TMDB data found to add.", "error");
+                return;
+            }
+
+            // This sequence is important to prevent modal conflicts
+            $('#detailsModal').modal('hide');
+            $('#detailsModal').one('hidden.bs.modal', async () => {
+                // 1. Open the "Add New" modal, which resets the form to a clean state
+                prepareAddModal(); 
+                
+                // 2. Populate the clean form with the TMDB data
+                await applyTmdbSelection(tmdbObject); 
+                
+                // 3. Ensure the Status is set to "To Watch" by default for new additions
+                const statusSelect = document.getElementById('status');
+                if (statusSelect) {
+                    statusSelect.value = 'To Watch';
+                    toggleConditionalFields(); // Re-run this to hide rating fields etc.
+                }
+
+                // The modal is already shown by prepareAddModal, but this ensures it if logic changes
+                $('#entryModal').modal('show'); 
+            });
+        });
+        // <<-- NEWLY ADDED SECTION END -->>
+
+        // Person details modal event listeners
         $(document).on('click', '.person-link', function(e) {
             e.preventDefault();
             const personId = $(this).data('person-id');

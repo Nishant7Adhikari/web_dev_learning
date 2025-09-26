@@ -129,6 +129,7 @@ window.handleFormSubmit = async function(event) {
             ...cachedTmdbData
         };
 
+        // <<-- MODIFIED SECTION START -->>
         // ### BUG FIX: Robust Manual Runtime Logic ###
         if (entry.Category === 'Series') {
             const manualSeasons = parseInt(formFieldsGlob.manualRuntimeSeriesSeasons.value, 10);
@@ -149,6 +150,7 @@ window.handleFormSubmit = async function(event) {
                 entry.runtime = manualRuntime;
             }
         }
+        // <<-- MODIFIED SECTION END -->>
 
         const editId = document.getElementById('editEntryId').value;
         if (editId) { const existingEntry = movieData.find(m => m && m.id === editId); if (existingEntry) entry.doNotRecommendDaily = existingEntry.doNotRecommendDaily; }
@@ -185,7 +187,7 @@ window.proceedWithEntrySave = async function(entryToSave, idToEdit) {
         $('#entryModal').modal('hide');
         pendingEntryForConfirmation = null; pendingEditIdForConfirmation = null;
 
-await checkAndNotifyNewAchievements();
+        await checkAndNotifyNewAchievements();
         
         // After a save, trigger the smart update for collection data if applicable
         if (entryToSave.tmdb_collection_id) await propagateCollectionDataUpdate(entryToSave);
@@ -510,4 +512,4 @@ window.checkAndNotifyNewAchievements = async function(isInitialLoad = false) {
 
     knownUnlockedAchievements = currentlyUnlocked;
 }
-// END CHUNK: Achievement and Usage Helpers```
+// END CHUNK: Achievement and Usage Helpers

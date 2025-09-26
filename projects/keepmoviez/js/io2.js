@@ -1,219 +1,214 @@
-/* io2.js */
-// START CHUNK: Process Uploaded Data
-async function processUploadedDataToAppend(dataFromFile, uploadedHeaders, fileName) {
-    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+/* io2.js (Complete & Reimagined) */
+
+let smartImportState = {
+    fileName: '',
+    analyzedEntries: [],
+    newEntries: [],
+    updateEntries: [],
+    overwriteEntries: [],
+    skippedEntries: []
+};
+
+// Main function to start the smart import process
+async function initiateSmartImport(dataFromFile, fileName) {
+    // 1. Reset state and analyze the file against the current library
+    smartImportState = {
+        fileName: fileName,
+        analyzedEntries: [],
+        newEntries: [],
+        updateEntries: [],
+        overwriteEntries: [],
+        skippedEntries: []
+    };
+
+    // Create maps for efficient lookups
+    const localIdMap = new Map(movieData.map(entry => [entry.id, entry]));
+    const localTmdbIdMap = new Map(movieData.filter(entry => entry.tmdbId).map(entry => [entry.tmdbId, entry]));
+    const localNameYearMap = new Map(movieData.map(entry => [`${(entry.Name || '').toLowerCase()}|${entry.Year || ''}`, entry]));
+
+    for (const row of dataFromFile) {
+        if (typeof row !== 'object' || row === null || !row.Name) {
+            smartImportState.skippedEntries.push({ entry: row, reason: 'Invalid or missing Name' });
+            continue;
+        }
+
+        const fileEntry = normalizeImportedRow(row);
+        let match = null;
+        let matchType = 'none';
+
+        // Hierarchy of matching
+        if (fileEntry.id && localIdMap.has(fileEntry.id)) {
+            match = localIdMap.get(fileEntry.id);
+            matchType = 'UUID Match';
+        } else if (fileEntry.tmdbId && localTmdbIdMap.has(fileEntry.tmdbId)) {
+            match = localTmdbIdMap.get(fileEntry.tmdbId);
+            matchType = 'TMDB ID Match';
+        } else {
+            const nameYearKey = `${(fileEntry.Name || '').toLowerCase()}|${fileEntry.Year || ''}`;
+            if (localNameYearMap.has(nameYearKey)) {
+                match = localNameYearMap.get(nameYearKey);
+                matchType = 'Name + Year Match';
+            }
+        }
+
+        smartImportState.analyzedEntries.push({ fileEntry, existingEntry: match, matchType });
+    }
+
+    // 2. Populate and show the modal
+    populateImportSummary();
+    hideLoading();
+    $('#smartImportModal').modal('show');
+
+    // 3. Set up event listeners for the modal buttons
+    $('#confirmImportBtn').off('click').on('click', processSmartImport);
+    $('#cancelImportBtn').off('click').on('click', () => {
+        showToast("Import Canceled", "No changes were made to your library.", "info");
+    });
+}
+
+// Populates the summary text in the modal
+function populateImportSummary() {
+    const summaryDiv = document.getElementById('importSummary');
+    const { analyzedEntries } = smartImportState;
+    
+    const newCount = analyzedEntries.filter(e => e.matchType === 'none').length;
+    const matchCount = analyzedEntries.filter(e => e.matchType !== 'none').length;
+    const skippedCount = smartImportState.skippedEntries.length;
+    const totalCount = analyzedEntries.length + skippedCount;
+
+    summaryDiv.innerHTML = `
+        <h5>Analysis of "${smartImportState.fileName}"</h5>
+        <ul class="list-group">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Total Rows in File
+                <span class="badge badge-secondary badge-pill">${totalCount}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <i class="fas fa-plus-circle text-success mr-2"></i> New Entries Found
+                <span class="badge badge-success badge-pill">${newCount}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <i class="fas fa-sync-alt text-info mr-2"></i> Potential Matches Found
+                <span class="badge badge-info badge-pill">${matchCount}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <i class="fas fa-exclamation-triangle text-warning mr-2"></i> Invalid/Skipped Rows
+                <span class="badge badge-warning badge-pill">${skippedCount}</span>
+            </li>
+        </ul>
+    `;
+}
+
+// This function executes when the user clicks "Process Import"
+async function processSmartImport() {
+    showLoading("Importing data...");
+    const strategy = $('input[name="importStrategy"]:checked').val();
+    const { analyzedEntries } = smartImportState;
 
     let appendedCount = 0;
     let updatedCount = 0;
-    let skippedCount = 0;
+    
+    for (const item of analyzedEntries) {
+        const { fileEntry, existingEntry, matchType } = item;
 
-    const processedEntriesFromFile = dataFromFile.map((row, idx) => {
-        if (typeof row !== 'object' || row === null) {
-            console.warn(`Skipping invalid row at index ${idx} in ${fileName}: not an object.`);
-            skippedCount++;
-            return null; // Mark for filtering out later
-        }
-
-        // Attempt to get an ID, generate if missing/invalid
-        let entryId = row.id || row.Id || row.ID;
-        if (!entryId || typeof entryId !== 'string' || !uuidRegex.test(entryId)) {
-            entryId = generateUUID();
-        }
-
-        // Initialize new entry. Keys should match your LOCAL `movieData` object structure.
-        const newEntry = {
-            id: entryId,
-            Name: String(row.Name || `Imported Entry ${idx + 1}`).trim(),
-            Category: String(row.Category || 'Movie').trim(),
-            Genre: String(row.Genre || '').trim(),
-            Status: String(row.Status || 'To Watch').trim(),
-            'Continue Details': String(row['Continue Details'] || '').trim(),
-            Recommendation: String(row.Recommendation || '').trim(),
-            overallRating: String(row.overallRating || '').trim(),
-            personalRecommendation: String(row.personalRecommendation || '').trim(),
-            Language: String(row.Language || '').trim(),
-            Year: String(row.Year || '').trim(),
-            Country: String(row.Country || '').trim(),
-            Description: String(row.Description || '').trim(),
-            'Poster URL': String(row['Poster URL'] || row.poster_url || '').trim(),
-            watchHistory: [],
-            relatedEntries: [],
-            doNotRecommendDaily: typeof row.doNotRecommendDaily === 'boolean' ? row.doNotRecommendDaily : false,
-            lastModifiedDate: new Date().toISOString(),
-            tmdbId: row.tmdbId ? String(row.tmdbId) : null,
-            tmdbMediaType: row.tmdbMediaType || null,
-            keywords: Array.isArray(row.keywords) ? row.keywords : [],
-            tmdb_collection_id: row.tmdb_collection_id ? parseInt(row.tmdb_collection_id, 10) : null,
-            tmdb_collection_name: row.tmdb_collection_name || null,
-            director_info: row.director_info || null,
-            full_cast: Array.isArray(row.full_cast) ? row.full_cast : [],
-            production_companies: Array.isArray(row.production_companies) ? row.production_companies : [],
-            tmdb_vote_average: row.tmdb_vote_average ? parseFloat(row.tmdb_vote_average) : null,
-            tmdb_vote_count: row.tmdb_vote_count ? parseInt(row.tmdb_vote_count, 10) : null,
-            runtime: row.runtime ? parseInt(row.runtime, 10) : null,
-        };
-        
-        // Parse lastModifiedDate carefully
-        if (row.lastModifiedDate) {
-            try {
-                const parsedLMD = new Date(row.lastModifiedDate);
-                if (!isNaN(parsedLMD.getTime())) {
-                    newEntry.lastModifiedDate = parsedLMD.toISOString();
-                } else {
-                    console.warn(`Invalid lastModifiedDate '${row.lastModifiedDate}' for entry ${newEntry.Name}, using current time.`);
-                }
-            } catch (e) {
-                console.warn(`Error parsing lastModifiedDate '${row.lastModifiedDate}' for entry ${newEntry.Name}, using current time.`, e);
-            }
-        }
-
-        // Parse watchHistory
-        if (Array.isArray(row.watchHistory)) {
-            newEntry.watchHistory = row.watchHistory.map(wh => {
-                if (typeof wh === 'object' && wh !== null) {
-                    return {
-                        watchId: (wh.watchId && uuidRegex.test(wh.watchId)) ? wh.watchId : generateUUID(),
-                        date: String(wh.date || ''),
-                        rating: String(wh.rating || ''),
-                        notes: String(wh.notes || '')
-                    };
-                }
-                return null;
-            }).filter(Boolean);
-        }
-
-        // Parse relatedEntries (ensure it's an array of strings/UUIDs)
-        if (Array.isArray(row.relatedEntries)) {
-            newEntry.relatedEntries = row.relatedEntries.filter(id => typeof id === 'string' && uuidRegex.test(id));
-        }
-
-        // Ensure numeric fields are valid numbers or null
-        ['Year', 'tmdb_collection_id', 'tmdb_vote_count', 'runtime'].forEach(key => {
-            if (newEntry[key] !== null && newEntry[key] !== undefined && newEntry[key] !== '') {
-                const parsed = parseInt(newEntry[key], 10);
-                newEntry[key] = isNaN(parsed) ? null : parsed;
-            } else {
-                newEntry[key] = null;
-            }
-        });
-        if (newEntry.tmdb_vote_average !== null && newEntry.tmdb_vote_average !== undefined && newEntry.tmdb_vote_average !== '') {
-            const parsed = parseFloat(newEntry.tmdb_vote_average);
-            newEntry.tmdb_vote_average = isNaN(parsed) ? null : parsed;
-        } else {
-            newEntry.tmdb_vote_average = null;
-        }
-
-        return newEntry;
-    }).filter(Boolean);
-
-    processedEntriesFromFile.forEach(fileEntry => {
-        const existingEntryIndex = movieData.findIndex(localEntry => localEntry && localEntry.id === fileEntry.id);
-
-        if (existingEntryIndex !== -1) {
-            const localEntry = movieData[existingEntryIndex];
-            const localLMDTime = new Date(localEntry.lastModifiedDate || 0).getTime();
-            const fileLMDTime = new Date(fileEntry.lastModifiedDate || 0).getTime();
-
-            const localComparable = { ...localEntry, lastModifiedDate: null, id: null };
-            const fileComparable = { ...fileEntry, lastModifiedDate: null, id: null };
-            const isContentDifferent = JSON.stringify(localComparable) !== JSON.stringify(fileComparable);
-
-            if (fileLMDTime > localLMDTime || (fileLMDTime === localLMDTime && isContentDifferent)) {
-                const mergedEntry = { ...localEntry, ...fileEntry };
-
-                ['watchHistory', 'relatedEntries', 'keywords', 'full_cast', 'production_companies'].forEach(key => {
-                    if (Array.isArray(localEntry[key]) && localEntry[key].length > 0 && (!Array.isArray(fileEntry[key]) || fileEntry[key].length === 0)) {
-                        mergedEntry[key] = localEntry[key];
-                    } else if (Array.isArray(fileEntry[key])) {
-                        mergedEntry[key] = fileEntry[key];
-                    } else {
-                        mergedEntry[key] = [];
-                    }
-                });
-                if (localEntry.director_info && !fileEntry.director_info) {
-                    mergedEntry.director_info = localEntry.director_info;
-                } else {
-                    mergedEntry.director_info = fileEntry.director_info || null;
-                }
-                
-                mergedEntry.lastModifiedDate = new Date(Math.max(localLMDTime, fileLMDTime)).toISOString();
-
-                movieData[existingEntryIndex] = mergedEntry;
-                updatedCount++;
-            } else {
-                skippedCount++;
-            }
-        } else {
+        if (matchType === 'none') {
+            // It's a new entry, always add it.
             movieData.push(fileEntry);
             appendedCount++;
+        } else {
+            // It's a match, apply the chosen strategy.
+            if (strategy === 'update_matches') {
+                const existingLMD = new Date(existingEntry.lastModifiedDate || 0).getTime();
+                const fileLMD = new Date(fileEntry.lastModifiedDate || 0).getTime();
+                if (fileLMD > existingLMD) {
+                    const index = movieData.findIndex(e => e.id === existingEntry.id);
+                    if (index !== -1) {
+                        movieData[index] = { ...existingEntry, ...fileEntry, id: existingEntry.id };
+                        updatedCount++;
+                    }
+                }
+            } else if (strategy === 'overwrite_all') {
+                const index = movieData.findIndex(e => e.id === existingEntry.id);
+                if (index !== -1) {
+                    movieData[index] = { ...existingEntry, ...fileEntry, id: existingEntry.id }; // Keep original ID
+                    updatedCount++;
+                }
+            }
+            // If strategy is 'append_new', we do nothing with matches.
         }
-    });
+    }
 
-    if (typeof recalculateAndApplyAllRelationships === 'function') recalculateAndApplyAllRelationships();
-
-    if (currentSortColumn && typeof sortMovies === 'function') {
+    if (appendedCount > 0 || updatedCount > 0) {
+        recalculateAndApplyAllRelationships();
         sortMovies(currentSortColumn, currentSortDirection);
+        await saveToIndexedDB();
+        renderMovieCards();
+        if (currentSupabaseUser) {
+            await comprehensiveSync(true); // Silently sync changes to the cloud
+        }
+        showToast("Import Complete", `${appendedCount} new entries added, ${updatedCount} entries updated.`, "success");
     } else {
-        currentSortColumn = 'Name'; currentSortDirection = 'asc';
-        if (typeof sortMovies === 'function') sortMovies(currentSortColumn, currentSortDirection);
+        showToast("Import Complete", "No changes were made based on your selected strategy.", "info");
     }
 
-    if (typeof renderTable === 'function') renderTable();
-    if (typeof saveToIndexedDB === 'function') await saveToIndexedDB();
-
-    if (currentSupabaseUser && (appendedCount > 0 || updatedCount > 0) && typeof comprehensiveSync === 'function') {
-        showLoading("Syncing imported data to cloud...");
-        await comprehensiveSync(true);
-        hideLoading();
-    }
-
-    const initialMsgEl = document.getElementById('initialMessage');
-    if (initialMsgEl && movieData.length > 0) initialMsgEl.style.display = 'none';
-
-    let message = `"${fileName}" processed. ${appendedCount} entries appended, ${updatedCount} entries updated.`;
-    if (skippedCount > 0) message += ` ${skippedCount} entries skipped (local was newer/identical or data was malformed).`;
-    message += ` Total entries: ${movieData.length}.`;
-    showToast("File Processed", message, "success", 7000);
+    $('#smartImportModal').modal('hide');
+    hideLoading();
 }
-// END CHUNK: Process Uploaded Data
 
-// START CHUNK: Generate and Download File
+
+// Helper to standardize an imported row into our app's data structure
+function normalizeImportedRow(row) {
+    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+    let entryId = row.id || row.Id || row.ID;
+    if (!entryId || typeof entryId !== 'string' || !uuidRegex.test(entryId)) {
+        entryId = generateUUID();
+    }
+
+    const newEntry = {
+        id: entryId,
+        Name: String(row.Name || '').trim(),
+        Category: String(row.Category || 'Movie').trim(),
+        Genre: String(row.Genre || '').trim(),
+        Status: String(row.Status || 'To Watch').trim(),
+        seasonsCompleted: row.seasonsCompleted || null,
+        currentSeasonEpisodesWatched: row.currentSeasonEpisodesWatched || null,
+        Recommendation: String(row.Recommendation || '').trim(),
+        overallRating: String(row.overallRating || '').trim(),
+        personalRecommendation: String(row.personalRecommendation || '').trim(),
+        Language: String(row.Language || '').trim(),
+        Year: String(row.Year || '').trim(),
+        Country: String(row.Country || '').trim(),
+        Description: String(row.Description || '').trim(),
+        'Poster URL': String(row['Poster URL'] || row.poster_url || '').trim(),
+        watchHistory: [],
+        relatedEntries: [],
+        lastModifiedDate: row.lastModifiedDate || new Date().toISOString(),
+        tmdbId: String(row.tmdbId || '').trim() || null,
+        tmdbMediaType: row.tmdbMediaType || null,
+    };
+    
+    // Attempt to parse watch history if it's a valid JSON string
+    if (typeof row.watchHistory === 'string' && row.watchHistory.startsWith('[')) {
+        try {
+            newEntry.watchHistory = JSON.parse(row.watchHistory);
+        } catch (e) { /* ignore parse error */ }
+    } else if (Array.isArray(row.watchHistory)) {
+        newEntry.watchHistory = row.watchHistory;
+    }
+
+    return newEntry;
+}
+
+// Legacy function, no longer directly used by file upload but kept for reference or other potential uses.
 function generateAndDownloadFile(downloadType) {
     if (!Array.isArray(movieData) || movieData.length === 0) {
         showToast("No Data", `No data to download.`, "info"); return;
     }
     let fileContent, fileMimeType, fileName;
-
-    const dataForExportProcessing = JSON.parse(JSON.stringify(movieData)); // Deep copy
+    const dataForExportProcessing = JSON.parse(JSON.stringify(movieData));
 
     if (downloadType === 'csv') {
-        const dataToExportForCsv = dataForExportProcessing.map(movie => {
-            const exportRow = {};
-            const latestWatch = typeof getLatestWatchInstance === 'function' ? getLatestWatchInstance(movie.watchHistory || []) : null;
-
-            CSV_HEADERS.forEach(headerKey => {
-                const propertyName = headerKey.replace(/\s*\(JSON\)\s*$/, '');
-
-                if (movie.hasOwnProperty(propertyName)) {
-                    const value = movie[propertyName];
-                    if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
-                        exportRow[headerKey] = JSON.stringify(value);
-                    } else if (value !== undefined && value !== null) {
-                        exportRow[headerKey] = String(value);
-                    } else {
-                        exportRow[headerKey] = '';
-                    }
-                } else if (headerKey === "Last Watched Date") {
-                    exportRow[headerKey] = latestWatch && latestWatch.date ? latestWatch.date : '';
-                } else if (headerKey === "Last Watch Rating") {
-                    exportRow[headerKey] = latestWatch && (latestWatch.rating !== undefined && latestWatch.rating !== null) ? String(latestWatch.rating) : '';
-                } else {
-                    exportRow[headerKey] = '';
-                }
-            });
-            return exportRow;
-        });
-        fileContent = Papa.unparse({ fields: CSV_HEADERS, data: dataToExportForCsv }, { quotes: true, newline: "\r\n" });
+        fileContent = Papa.unparse(dataForExportProcessing, { header: true });
         fileMimeType = 'text/csv;charset=utf-8;';
         fileName = 'keepmoviez_log.csv';
     } else if (downloadType === 'json') {
@@ -221,40 +216,15 @@ function generateAndDownloadFile(downloadType) {
         fileMimeType = 'application/json;charset=utf-8;';
         fileName = 'keepmoviez_log.json';
     } else {
-        showToast("Download Error", "Invalid download type specified.", "error"); return;
+        return;
     }
 
     const blob = new Blob([fileContent], { type: fileMimeType });
     const link = document.createElement("a");
-    if (link.download !== undefined) {
-        link.href = URL.createObjectURL(blob);
-        link.download = fileName;
-        document.body.appendChild(link);
-        try {
-            link.click();
-            showToast("Download Started", `${fileName} is downloading.`, "success");
-        } catch (e) {
-            console.error("Error triggering download:", e);
-            showToast("Download Failed", "Automatic download failed. Try again or check browser settings.", "error");
-        } finally {
-            document.body.removeChild(link);
-            URL.revokeObjectURL(link.href);
-        }
-    } else if (navigator.msSaveBlob) {
-        navigator.msSaveBlob(blob, fileName);
-        showToast("Download Started", `${fileName} is downloading.`, "success");
-    } else {
-        try {
-            const url = URL.createObjectURL(blob);
-            const newWindow = window.open(url, '_blank');
-            if (!newWindow) {
-                throw new Error("Popup blocked. Could not open file for manual saving.");
-            }
-            showToast("Manual Save Required", "Your file opened in a new tab. Please save it manually.", "info", 7000);
-        } catch (e) {
-             console.error("Error with fallback download:", e);
-             showToast("Download Failed", `Your browser does not support automatic downloads. Error: ${e.message}`, "error");
-        }
-    }
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
 }
-// END CHUNK: Generate and Download File

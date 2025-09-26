@@ -82,15 +82,15 @@
                     <i class="fas fa-sun mr-2"></i> Toggle Theme
                 </button>
                 <label for="menuCsvFileUploader" class="list-group-item list-group-item-action d-flex align-items-center" style="cursor:pointer;">
-                    <i class="fas fa-upload mr-2"></i> Append via. CSV/JSON
+                    <i class="fas fa-upload mr-2"></i>CSV/JSON
              </label>
                 <input type="file" class="d-none" id="menuCsvFileUploader" accept=".csv,.json">
                 
                 <button id="menuDownloadCsvBtn" class="list-group-item list-group-item-action d-flex align-items-center">
-                    <i class="fas fa-download mr-2"></i> Download CSV
+                    <i class="fas fa-download mr-2"></i>CSV
                 </button>
                 <button id="menuDownloadJsonBtn" class="list-group-item list-group-item-action d-flex align-items-center">
-                    <i class="fas fa-download mr-2"></i> Download JSON
+                    <i class="fas fa-download mr-2"></i>JSON
                 </button>
                 <button id="menuSyncDataBtn" class="list-group-item list-group-item-action d-flex align-items-center">
                     <i class="fas fa-sync-alt mr-2"></i> Sync with Cloud
@@ -152,7 +152,7 @@
         <div class="container-fluid mt-4">
             <div id="initialMessage" class="initial-upload-section text-center p-4 rounded shadow-sm">
                 <h4>Welcome to KeepMoviEZ !</h4>
-                <p>Your movie log is currently empty. Add your first entry using the '+' button below, or upload an existing collection using the "Append CSV/JSON" button in the menu.</p>
+                <p>Your movie log is currently empty. Add your first entry using the '+' button below, or upload an existing collection using the "CSV/JSON" button in the menu.</p>
                 <p class="text-info small mt-3"><strong>Tip:</strong>
                     You can find a demo CSV file here: <a href="https://drive.google.com/file/d/1Q_qiQuJfY030fOUcv2tdezAh4qPUgZPh/view?usp=drivesdk" target="_blank" rel="noopener noreferrer">Demo CSV</a>.
                 </p>
@@ -261,6 +261,52 @@
         </div>
     </div>
 <!-- END CHUNK: Modal - Filter & Sort -->
+
+<!-- START CHUNK: Modal - Smart Import -->
+    <div class="modal fade" id="smartImportModal" tabindex="-1" role="dialog" aria-labelledby="smartImportModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content fade-up">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="smartImportModalLabel">Smart Import Assistant</h5>
+                </div>
+                <div class="modal-body">
+                    <div id="importSummary">
+                        <p>Analyzing your file... <i class="fas fa-spinner fa-spin"></i></p>
+                    </div>
+                    <hr>
+                    <h6>Choose Your Import Strategy:</h6>
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="importStrategy" id="strategyAppendNew" value="append_new" checked>
+                            <label class="form-check-label" for="strategyAppendNew">
+                                <strong>Append New Entries Only</strong> (Safest)
+                                <small class="d-block text-muted">Only adds titles that are not found in your library. Ignores all potential matches and duplicates.</small>
+                            </label>
+                        </div>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="radio" name="importStrategy" id="strategyUpdate" value="update_matches">
+                            <label class="form-check-label" for="strategyUpdate">
+                                <strong>Append New & Update Matches</strong>
+                                <small class="d-block text-muted">Adds new titles and updates existing entries if the imported version is newer (based on `lastModifiedDate`).</small>
+                            </label>
+                        </div>
+                         <div class="form-check mt-2">
+                            <input class="form-check-input" type="radio" name="importStrategy" id="strategyOverwrite" value="overwrite_all">
+                            <label class="form-check-label" for="strategyOverwrite">
+                                <strong>Overwrite All Matches</strong> (Advanced)
+                                <small class="d-block text-danger">For every match found, the version from the file will completely replace your existing data for that entry.</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cancelImportBtn">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmImportBtn">Process Import</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- END CHUNK: Modal - Smart Import -->
 
 <!-- START CHUNK: Modal - Entry Form (Add/Edit) -->
     <div class="modal fade" id="entryModal" tabindex="-1" role="dialog" aria-labelledby="entryModalLabel" aria-hidden="true">
@@ -420,9 +466,19 @@
                             <div class="form-group col-md-4"> <label for="year">Year of Release</label> <input type="number" class="form-control form-control-sm" id="year" min="1888" max="2100"> </div>
                             <div class="form-group col-md-4"> <label for="country">Country</label> <input type="text" class="form-control form-control-sm" id="country" placeholder="e.g., US, IN"> </div>
                         </div>
-                        <div class="form-group"> <label for="description">Description</label> <textarea class="form-control form-control-sm" id="description" rows="3"></textarea> 
-            <label for="manualRuntimeMovie">Runtime (minutes)</label>
- <input type="number" class="form-control form-control-sm" id="manualRuntimeMovie" placeholder="e.g,103 , only fill this for already saved entries">            
+        
+<div id="manualMovieRuntimeGroup" class="form-row" style="display: none;">
+    <div class="form-group col-md-6">
+        <label for="manualRuntimeMovie">Runtime (minutes)</label>
+        <input type="number" class="form-control form-control-sm" id="manualRuntimeMovie" placeholder="e.g, 103">
+    </div>
+</div>
+
+<div class="form-group"> 
+    <label for="description">Description</label> 
+    <textarea class="form-control form-control-sm" id="description" rows="3"></textarea> 
+</div>
+    
                         </div>
                         <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Entry</button>
                     </form>

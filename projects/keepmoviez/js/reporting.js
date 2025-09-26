@@ -61,253 +61,248 @@ async function displayDailyRecommendationModal() {
     }
 }
 
-// ### SUGGESTION ENGINE V2 ###
-let suggestionCache = {
-    seedMovieId: null,
-    suggestions: [],
-    source: null, // 'tmdb', 'local_fallback'
-    localSearchPerformed: false
+
+// <<-- REIMAGINED SUGGESTION ENGINE START -->>
+
+// Global state for the suggestion engine to remember the last used seed
+let suggestionEngineState = {
+    lastUsedSeedIndex: -1
 };
 
+// <<-- MODIFIED SECTION START -->>
+// Main function to display the new "Suggestion Hub" modal
 async function displayPersonalizedSuggestionsModal(sourceMovieId = null) {
+    const modalBody = document.getElementById('personalizedSuggestionsModalBody');
     const listEl = document.getElementById('recommendationsListModal');
     const titleEl = document.getElementById('recommendationsListTitleModal');
-    if (!listEl || !titleEl) return;
+    const refreshBtn = document.getElementById('refreshRecommendationsBtnModal');
 
-    suggestionCache = { seedMovieId: null, suggestions: [], source: null, localSearchPerformed: false };
-    $('#refreshRecommendationsBtnModal').prop('disabled', false).show();
+    if (!modalBody || !listEl || !titleEl || !refreshBtn) return;
+
+    // Reset UI for loading state
+    titleEl.textContent = 'Engine Suggestions';
+    listEl.innerHTML = '<div class="text-center p-4"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">Building your suggestion hub...</p></div>';
+    
+    let seedMovie;
 
     if (sourceMovieId) {
-        suggestionCache.source = 'focused';
-        const seedMovie = movieData.find(m => m.id === sourceMovieId);
-        if (seedMovie) {
-            titleEl.textContent = `Because you liked "${seedMovie.Name}"...`;
-            listEl.innerHTML = '<p class="text-center text-muted p-3"><i class="fas fa-spinner fa-spin"></i> Finding similar titles...</p>';
-            await fetchAndCacheSuggestions(sourceMovieId);
-            await renderNextSuggestion();
-        }
+        // --- THIS IS THE FIX ---
+        // A specific movie ID was passed (from "Find Similar"), so we MUST use it as the seed.
+        seedMovie = movieData.find(m => m.id === sourceMovieId);
+        // The refresh button will now re-run suggestions for THIS specific movie.
+        $(refreshBtn).off('click').on('click', () => displayPersonalizedSuggestionsModal(sourceMovieId));
     } else {
-        suggestionCache.source = 'general';
-        titleEl.textContent = 'Choose a Spark for Your Suggestions';
-        listEl.innerHTML = '<p class="text-center text-muted p-3"><i class="fas fa-spinner fa-spin"></i> Finding your top titles...</p>';
-        $('#refreshRecommendationsBtnModal').hide();
-        
-        const potentialSeeds = movieData.filter(m => 
-            m.Status === 'Watched' && (
-                parseFloat(m.overallRating) === 5 ||
-                (m.Recommendation === 'Highly Recommended' && parseFloat(m.overallRating) >= 4)
-            )
-        ).sort((a, b) => new Date(b.lastModifiedDate) - new Date(a.lastModifiedDate));
-
-        if (potentialSeeds.length > 0) {
-            renderSeedSelectionScreen(potentialSeeds);
-        } else {
-            listEl.innerHTML = '<div class="list-group-item text-muted small p-3">Rate more movies with 5 stars or as "Highly Recommended" to unlock personalized suggestions.</div>';
-        }
+        // No specific movie was passed, so we use the automatic "best seed" logic.
+        const { seed, nextIndex } = findNextBestSeedMovie();
+        seedMovie = seed;
+        suggestionEngineState.lastUsedSeedIndex = nextIndex;
+        // The refresh button will find the NEXT best seed.
+        $(refreshBtn).off('click').on('click', () => displayPersonalizedSuggestionsModal(null));
     }
-}
 
-function renderSeedSelectionScreen(seeds) {
-    const listEl = document.getElementById('recommendationsListModal');
-    listEl.innerHTML = '';
-    
-    seeds.forEach(seed => {
-        const item = document.createElement('a');
-        item.href = '#';
-        item.className = 'list-group-item list-group-item-action recommendation-seed-item';
-        item.dataset.seedId = seed.id;
-        item.innerHTML = `
-            <h6>${seed.Name}</h6>
-            <small class="text-muted">
-                ${renderStars(seed.overallRating)} 
-                ${seed.Recommendation === 'Highly Recommended' ? `| <i class="fas fa-thumbs-up text-success"></i> Highly Recommended` : ''}
-            </small>`;
-        
-        item.addEventListener('click', async (e) => {
-            e.preventDefault();
-            const selectedSeedId = e.currentTarget.dataset.seedId;
-            const selectedSeed = movieData.find(m => m.id === selectedSeedId);
-            const titleEl = document.getElementById('recommendationsListTitleModal');
-            if (selectedSeed && titleEl) {
-                $('#refreshRecommendationsBtnModal').show();
-                titleEl.textContent = `Because you liked "${selectedSeed.Name}"...`;
-                listEl.innerHTML = '<p class="text-center text-muted p-3"><i class="fas fa-spinner fa-spin"></i> Finding recommendations...</p>';
-                await fetchAndCacheSuggestions(selectedSeedId);
-                await renderNextSuggestion();
-            }
-        });
-        listEl.appendChild(item);
-    });
-}
-
-async function fetchAndCacheSuggestions(seedMovieId) {
-    const seedMovie = movieData.find(m => m.id === seedMovieId);
-    if (!seedMovie || !seedMovie.tmdbId) {
-        showToast("Fallback Active", "No TMDB ID for seed. Finding similar titles in your library.", "info");
-        suggestionCache.suggestions = findSimilarByLocalCalculation(seedMovie);
-        suggestionCache.source = 'local_fallback';
-        suggestionCache.localSearchPerformed = true;
+    if (!seedMovie) {
+        listEl.innerHTML = '<div class="list-group-item text-muted small p-3">Could not generate suggestions. Try rating more movies highly, or adding TMDB info to your favorites.</div>';
+        titleEl.textContent = 'Engine Suggestions';
         return;
     }
+    
+    titleEl.textContent = `Suggestions based on "${seedMovie.Name}"`;
+    
+    const carousels = await fetchSuggestionCarousels(seedMovie);
 
+    if (carousels.length === 0) {
+        listEl.innerHTML = '<div class="list-group-item text-muted small p-3">No new suggestions found based on this movie. Try refreshing for a new seed!</div>';
+        return;
+    }
+    
+    listEl.innerHTML = ''; // Clear loading spinner
+    carousels.forEach(carousel => {
+        if (carousel.items.length > 0) {
+            listEl.appendChild(renderSuggestionCarousel(carousel.title, carousel.items));
+        }
+    });
+}
+// <<-- MODIFIED SECTION END -->>
+
+
+// Intelligent seed movie finder
+function findNextBestSeedMovie() {
+    // Find all potential candidates: Watched, have a good rating, and have a TMDB ID
+    const candidates = movieData.filter(m => 
+        m.Status === 'Watched' &&
+        m.tmdbId &&
+        (parseFloat(m.overallRating) >= 4 || m.Recommendation === 'Highly Recommended')
+    ).sort((a,b) => {
+        // Prioritize by rating, then by how recently they were modified/watched
+        const ratingA = parseFloat(a.overallRating) || 0;
+        const ratingB = parseFloat(b.overallRating) || 0;
+        if (ratingB !== ratingA) return ratingB - ratingA;
+        return new Date(b.lastModifiedDate) - new Date(a.lastModifiedDate);
+    });
+
+    if (candidates.length === 0) return { seed: null, nextIndex: -1 };
+
+    // Cycle through the best candidates
+    const nextIndex = (suggestionEngineState.lastUsedSeedIndex + 1) % candidates.length;
+    return { seed: candidates[nextIndex], nextIndex: nextIndex };
+}
+
+// Fetches data for all the different suggestion categories based on a seed movie
+async function fetchSuggestionCarousels(seedMovie) {
+    if (!seedMovie || !seedMovie.tmdbId) return [];
+
+    const carousels = [];
+    const loggedTmdbIds = new Set(movieData.map(m => m.tmdbId).filter(Boolean));
+    
+    // 1. "Because You Liked..." carousel
     try {
-        const data = await callTmdbApiDirect(`/movie/${seedMovie.tmdbId}/recommendations`);
-        const recommendations = data.results || [];
-        
-        if (recommendations.length === 0) {
-            throw new Error("No recommendations returned from TMDB.");
-        }
-
-        const loggedTmdbIds = new Set(movieData.map(m => m.tmdbId).filter(Boolean));
-        const newSuggestions = recommendations.filter(rec => rec.id && !loggedTmdbIds.has(String(rec.id)));
-        
-        suggestionCache = { seedMovieId, suggestions: newSuggestions, source: 'tmdb', localSearchPerformed: false };
-
-    } catch (error) {
-        console.warn("TMDB suggestion fetch failed:", error.message, "Activating local fallback.");
-        showToast("Fallback Active", "TMDB search failed. Finding similar titles in your library.", "info");
-        suggestionCache.suggestions = findSimilarByLocalCalculation(seedMovie);
-        suggestionCache.source = 'local_fallback';
-        suggestionCache.localSearchPerformed = true;
+        const data = await callTmdbApiDirect(`/${seedMovie.tmdbMediaType || 'movie'}/${seedMovie.tmdbId}/recommendations`);
+        const items = (data.results || []).filter(rec => !loggedTmdbIds.has(String(rec.id))).slice(0, 10);
+        if(items.length > 0) carousels.push({ title: `Because you liked "${seedMovie.Name}"`, items });
+    } catch (e) { console.warn("Could not fetch TMDB recommendations:", e); }
+    
+    // 2. "More from Director..." carousel
+    if (seedMovie.director_info && seedMovie.director_info.id) {
+        try {
+            const data = await callTmdbApiDirect(`/person/${seedMovie.director_info.id}/combined_credits`);
+            const items = (data.cast || []).concat(data.crew || [])
+                .filter(c => c.id !== parseInt(seedMovie.tmdbId) && (c.media_type === 'movie' || c.media_type === 'tv') && !loggedTmdbIds.has(String(c.id)))
+                .sort((a,b) => b.popularity - a.popularity)
+                .slice(0, 10);
+            if(items.length > 0) carousels.push({ title: `More from ${seedMovie.director_info.name}`, items });
+        } catch (e) { console.warn(`Could not fetch director credits for ${seedMovie.director_info.name}:`, e); }
     }
+    
+    // 3. "Complete the Collection" carousel
+    if (seedMovie.tmdb_collection_id) {
+         try {
+            const data = await callTmdbApiDirect(`/collection/${seedMovie.tmdb_collection_id}`);
+            const items = (data.parts || []).filter(rec => !loggedTmdbIds.has(String(rec.id))).slice(0, 10);
+            if(items.length > 0) carousels.push({ title: `Complete the "${seedMovie.tmdb_collection_name}"`, items });
+        } catch (e) { console.warn("Could not fetch collection details:", e); }
+    }
+    
+    // 4. Fallback: Popular Movies in the same Genre
+    const primaryGenre = (seedMovie.Genre || '').split(',')[0].trim();
+    const genreObject = GENRE_MAP.find(g => g.name === primaryGenre);
+    if(carousels.length < 2 && genreObject) {
+        try {
+            const data = await callTmdbApiDirect(`/discover/movie`, { with_genres: genreObject.id, sort_by: 'popularity.desc' });
+            const items = (data.results || []).filter(rec => !loggedTmdbIds.has(String(rec.id))).slice(0, 10);
+            if(items.length > 0) carousels.push({ title: `Popular in ${primaryGenre}`, items });
+        } catch (e) { console.warn("Could not fetch popular by genre:", e); }
+    }
+
+    return carousels;
 }
 
-async function renderNextSuggestion() {
-    const listEl = document.getElementById('recommendationsListModal');
-    const refreshBtn = $('#refreshRecommendationsBtnModal');
+// Renders a single carousel (title + cards)
+function renderSuggestionCarousel(title, items) {
+    const carouselWrapper = document.createElement('div');
+    carouselWrapper.className = 'suggestion-carousel-wrapper mb-4';
 
-    if (suggestionCache.suggestions && suggestionCache.suggestions.length > 0) {
-        const nextSuggestion = suggestionCache.suggestions.shift();
-        await renderSuggestionCard(nextSuggestion, listEl);
-        refreshBtn.prop('disabled', false);
-    } else {
-        if (suggestionCache.source === 'tmdb' && !suggestionCache.localSearchPerformed) {
-            // TMDB cache exhausted, now try local fallback
-            const seedMovie = movieData.find(m => m.id === suggestionCache.seedMovieId);
-            showToast("Phase 2", "Finding more suggestions from your own 'To Watch' list.", "info");
-            suggestionCache.suggestions = findSimilarByLocalCalculation(seedMovie);
-            suggestionCache.source = 'local_fallback';
-            suggestionCache.localSearchPerformed = true;
-            await renderNextSuggestion(); // Recursive call to render the first local result
-        } else {
-            const seedMovie = movieData.find(m => m.id === suggestionCache.seedMovieId);
-            const seedName = seedMovie ? ` for "${seedMovie.Name}"` : "";
-            listEl.innerHTML = `<div class="list-group-item text-center text-muted small p-3">No more suggestions${seedName}. Try another seed!</div>`;
-            refreshBtn.prop('disabled', true);
-        }
-    }
+    const carouselTitle = document.createElement('h6');
+    carouselTitle.className = 'pl-2';
+    carouselTitle.textContent = title;
+
+    const cardContainer = document.createElement('div');
+    cardContainer.className = 'd-flex flex-nowrap overflow-auto py-2';
+    
+    items.forEach(item => {
+        cardContainer.appendChild(renderSuggestionCard(item));
+    });
+
+    carouselWrapper.appendChild(carouselTitle);
+    carouselWrapper.appendChild(cardContainer);
+    return carouselWrapper;
 }
 
-async function renderSuggestionCard(suggestionData, targetElement) {
-    targetElement.innerHTML = '';
-    
-    const isFromTmdb = !suggestionData.hasOwnProperty('id'); // Local entries have our UUID 'id'
-    const name = suggestionData.title || suggestionData.name || suggestionData.Name;
-    const releaseDate = suggestionData.release_date || suggestionData.first_air_date || suggestionData.Year;
-    const year = releaseDate ? new Date(releaseDate).getFullYear() : 'N/A';
-    const overview = suggestionData.overview || suggestionData.Description || 'No description available.';
-    const voteAvg = suggestionData.vote_average || suggestionData.tmdb_vote_average;
-    
+// Renders a single suggestion card for the carousel
+function renderSuggestionCard(item) {
     const card = document.createElement('div');
-    card.className = 'recommendation-item list-group-item p-3 shadow-sm rounded';
+    card.className = 'suggestion-card';
+
+    const posterPath = item.poster_path ? `${TMDB_IMAGE_BASE_URL}w342${item.poster_path}` : 'icons/placeholder-poster.png';
+    const name = item.title || item.name;
+    const year = (item.release_date || item.first_air_date || '').substring(0, 4);
+
     card.innerHTML = `
-        <div class="d-flex w-100 justify-content-between">
-            <h6 class="mb-1">${name} <small class="text-muted">(${year})</small></h6>
-            ${voteAvg ? `<small class="text-info" title="TMDB Rating">TMDB: ${voteAvg.toFixed(1)} <i class="fas fa-star text-warning"></i></small>` : ''}
-        </div>
-        <p class="mb-2 text-muted small">${overview.substring(0, 150)}${overview.length > 150 ? '...' : ''}</p>
-        <div class="text-right mt-2">
-            <button class="btn btn-sm btn-info view-details-btn"><i class="fas fa-eye"></i> View Details</button>
-            ${isFromTmdb ? `<button class="btn btn-sm btn-primary add-to-list-btn"><i class="fas fa-plus-circle"></i> Add to List</button>` : ''}
+        <img src="${posterPath}" alt="Poster for ${name}" loading="lazy">
+        <div class="suggestion-card-info">
+            <strong>${name}</strong>
+            <small class="text-muted">${year || 'N/A'}</small>
         </div>
     `;
 
-    card.querySelector('.view-details-btn').addEventListener('click', async () => {
+    // Add tooltip with more info
+    const voteAvg = item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
+    card.setAttribute('title', `${name} (${year || 'N/A'}) - TMDB Rating: ${voteAvg}/10`);
+    $(card).tooltip({ boundary: 'window', trigger: 'hover' });
+
+    card.addEventListener('click', () => {
         $('#personalizedSuggestionsModal').modal('hide');
         $('#personalizedSuggestionsModal').one('hidden.bs.modal', () => {
-            if (isFromTmdb) {
-                openDetailsModal(null, suggestionData); // Pass TMDB object
-            } else {
-                openDetailsModal(suggestionData.id); // Pass local ID
-            }
+            openDetailsModal(null, item);
         });
     });
 
-    if (isFromTmdb) {
-        card.querySelector('.add-to-list-btn').addEventListener('click', async () => {
-            showLoading(`Adding "${name}"...`);
-            try {
-                await prepareAddModal();
-                await applyTmdbSelection(suggestionData);
-                $('#personalizedSuggestionsModal').modal('hide');
-                $('#entryModal').modal('show');
-            } catch(e){
-                showToast("Error", "Could not prepare the entry form.", "error");
-            } finally {
-                hideLoading();
-            }
-        });
-    }
-
-    targetElement.appendChild(card);
+    return card;
 }
 
-// ### NEW FALLBACK ENGINE ###
-function findSimilarByLocalCalculation(seedMovie) {
-    if (!seedMovie) return [];
+// A simple map for TMDB genre IDs. In a real app, this would be fetched from the API.
+const GENRE_MAP = [
+    {id: 28, name: "Action"}, {id: 12, name: "Adventure"}, {id: 16, name: "Animation"}, {id: 35, name: "Comedy"},
+    {id: 80, name: "Crime"}, {id: 99, name: "Documentary"}, {id: 18, name: "Drama"}, {id: 10751, name: "Family"},
+    {id: 14, name: "Fantasy"}, {id: 36, name: "History"}, {id: 27, name: "Horror"}, {id: 10402, name: "Music"},
+    {id: 9648, name: "Mystery"}, {id: 10749, name: "Romance"}, {id: 878, name: "Science Fiction"},
+    {id: 10770, name: "TV Movie"}, {id: 53, name: "Thriller"}, {id: 10752, name: "War"}, {id: 37, name: "Western"}
+];
 
-    const seedKeywords = new Set((seedMovie.keywords || []).map(k => k.id));
-    const seedGenres = new Set((seedMovie.Genre || "").split(',').map(g => g.trim()).filter(Boolean));
-    const seedDirectorId = seedMovie.director_info?.id;
-    const seedActorIds = new Set((seedMovie.full_cast || []).slice(0, 5).map(a => a.id));
-    const seedStudioIds = new Set((seedMovie.production_companies || []).slice(0,3).map(s => s.id));
-
-    const candidates = movieData.filter(m => 
-        m.id !== seedMovie.id && m.Status === 'To Watch'
-    );
-
-    const scoredCandidates = candidates.map(candidate => {
-        let similarityScore = 0;
-
-        // Director Match (High Value)
-        if (seedDirectorId && candidate.director_info?.id === seedDirectorId) {
-            similarityScore += 10;
+// Add some CSS to style.css for the new suggestion hub
+if (!document.getElementById('suggestion-hub-styles')) {
+    const suggestionHubCSS = `
+        .suggestion-carousel-wrapper .overflow-auto { -ms-overflow-style: none; scrollbar-width: none; }
+        .suggestion-carousel-wrapper .overflow-auto::-webkit-scrollbar { display: none; }
+        .suggestion-card {
+            flex: 0 0 auto;
+            width: 140px;
+            margin: 0 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background: var(--table-header-bg);
         }
-
-        // Genre Match
-        const candidateGenres = new Set((candidate.Genre || "").split(',').map(g => g.trim()).filter(Boolean));
-        const sharedGenres = [...seedGenres].filter(g => candidateGenres.has(g));
-        if (sharedGenres.length > 0) {
-            similarityScore += 5; // Base score for any genre match
-            if (sharedGenres.length > 1) {
-                similarityScore += (sharedGenres.length - 1) * 2; // Bonus for more matches
-            }
+        .suggestion-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-
-        // Keyword Match
-        const candidateKeywords = new Set((candidate.keywords || []).map(k => k.id));
-        const sharedKeywordsCount = [...seedKeywords].filter(k => candidateKeywords.has(k)).length;
-        similarityScore += sharedKeywordsCount * 3;
-
-        // Actor Match (Top 5)
-        const candidateActorIds = new Set((candidate.full_cast || []).slice(0, 5).map(a => a.id));
-        const sharedActorsCount = [...seedActorIds].filter(a => candidateActorIds.has(a)).length;
-        similarityScore += sharedActorsCount * 4;
-
-        // Studio Match
-        const candidateStudioIds = new Set((candidate.production_companies || []).slice(0, 3).map(s => s.id));
-        const sharedStudiosCount = [...seedStudioIds].filter(s => candidateStudioIds.has(s)).length;
-        similarityScore += sharedStudiosCount * 2;
-        
-        return { ...candidate, similarityScore };
-    });
-
-    return scoredCandidates
-        .filter(c => c.similarityScore >= 5) // Minimum threshold for a decent match
-        .sort((a, b) => b.similarityScore - a.similarityScore);
+        .suggestion-card img { width: 100%; height: 210px; object-fit: cover; display: block; }
+        .suggestion-card-info {
+            padding: 8px;
+            background: var(--card-bg);
+            color: var(--body-text-color);
+            font-size: 0.8rem;
+        }
+        .suggestion-card-info strong {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-height: 2.4em; /* Approx 2 lines */
+        }
+    `;
+    const styleSheet = document.createElement("style");
+    styleSheet.id = 'suggestion-hub-styles';
+    styleSheet.innerText = suggestionHubCSS;
+    document.head.appendChild(styleSheet);
 }
 
+// <<-- REIMAGINED SUGGESTION ENGINE END -->>
 
+// ... (The rest of the file from displayAchievementsModal onwards remains unchanged)
 function displayAchievementsModal() {
     const badgesContainer = document.getElementById('achievementBadgesModal');
     if (!badgesContainer) { console.warn("Achievements modal badges container not found."); return; }
@@ -478,13 +473,11 @@ function generateBadgesAndAchievements(achievementStats, container) {
     container.innerHTML = '';
     let achievedCountForMeta = 0;
     const achievementsToDisplay = ACHIEVEMENTS.map(ach => {
-        // Pass the entire stats object to checkAchievement
         const { isAchieved, progress } = checkAchievement(ach, achievementStats);
         if (isAchieved && ach.type !== 'meta_achievement_count') achievedCountForMeta++;
         return { ...ach, isAchieved, progress };
     });
 
-    // We need to update the stats object for the meta achievements check
     const statsForMeta = { ...achievementStats, unlockedCountForMeta: achievedCountForMeta };
 
     achievementsToDisplay.forEach(ach => {
@@ -521,15 +514,13 @@ function generateBadgesAndAchievements(achievementStats, container) {
     });
 }
 
-// START CHUNK: PDF Export Function
 async function exportStatsAsPdf(filename = 'KeepMovizEZ_Report.pdf') {
     if (!globalStatsData || !globalStatsData.totalEntries) {
         showToast("Export Error", "No statistics data available to export.", "error"); 
         return;
     }
     showLoading("Generating Your Comprehensive PDF Report...");
-    await new Promise(resolve => setTimeout(resolve, 50)); // Allow UI to update
-
+    await new Promise(resolve => setTimeout(resolve, 50)); 
     try {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
@@ -537,7 +528,6 @@ async function exportStatsAsPdf(filename = 'KeepMovizEZ_Report.pdf') {
         const pageWidth = doc.internal.pageSize.width;
         const margin = 14;
         let yPos = 22;
-
         const addHeaderAndFooter = () => {
             const pageCount = doc.internal.getNumberOfPages();
             for (let i = 1; i <= pageCount; i++) {
@@ -548,25 +538,21 @@ async function exportStatsAsPdf(filename = 'KeepMovizEZ_Report.pdf') {
                 doc.text(`KeepMovizEZ Report | ${new Date().toLocaleDateString()}`, margin, pageHeight - 10);
             }
         };
-
         const renderChartOffscreen = async (type, chartLabels, chartDataSets, options = {}) => {
             const offscreenCanvas = document.createElement('canvas');
-            // Use higher resolution for better PDF quality
             offscreenCanvas.width = 800;
             offscreenCanvas.height = 600;
-
-            const chartTextColor = '#333'; // Use a fixed color for PDF consistency
+            const chartTextColor = '#333';
             const gridColor = '#e0e0e0';
             
             let chartOptions = {
                 responsive: false,
-                animation: false, // Important for static rendering
+                animation: false,
                 plugins: { legend: { display: true, labels: { color: chartTextColor, font: { size: 18 } } } },
                 scales: { x: { display: (type === 'bar' || type === 'line'), ticks: { color: chartTextColor }, grid: { color: gridColor } }, y: { display: (type === 'bar' || type === 'line'), ticks: { color: chartTextColor }, grid: { color: gridColor }, beginAtZero: true } },
                 ...options
             };
             if (type === 'radar') chartOptions.scales = { r: { angleLines: { color: gridColor }, grid: { color: gridColor }, pointLabels: { color: chartTextColor, font: { size: 14 } }, ticks: { backdropColor: 'transparent', color: chartTextColor, stepSize: 1, min: 0, max: 5 } } };
-
             const chart = new Chart(offscreenCanvas.getContext('2d'), {
                 type,
                 data: {
@@ -581,15 +567,11 @@ async function exportStatsAsPdf(filename = 'KeepMovizEZ_Report.pdf') {
                 },
                 options: chartOptions
             });
-
-            // Wait for chart to render. A small timeout is often needed.
             await new Promise(resolve => setTimeout(resolve, 250)); 
             const imgData = chart.toBase64Image();
             chart.destroy();
             return imgData;
         };
-
-        // --- PAGE 1: TITLE, SUMMARY & KEY CHARTS ---
         doc.setFontSize(18); doc.setTextColor(44, 62, 80); doc.text("Statistics Report", margin, yPos);
         yPos += 13;
         doc.setFontSize(12); doc.text("Overall Summary", margin, yPos);
@@ -608,81 +590,60 @@ async function exportStatsAsPdf(filename = 'KeepMovizEZ_Report.pdf') {
             ]
         });
         yPos = doc.lastAutoTable.finalY + 10;
-
         doc.setFontSize(12); doc.text("Visual Overview", margin, yPos);
         yPos += 5;
-        
         const chartImage1 = await renderChartOffscreen('pie', globalStatsData.statuses.map(d => d.label), [{ data: globalStatsData.statuses.map(d => d.value) }]);
         const chartImage2 = await renderChartOffscreen('doughnut', globalStatsData.overallRatingDistributionData.map(d => d.label), [{ data: globalStatsData.overallRatingDistributionData.map(d => d.value) }]);
-
         if (chartImage1) doc.addImage(chartImage1, 'PNG', margin, yPos, 80, 60);
         if (chartImage2) doc.addImage(chartImage2, 'PNG', pageWidth - 80 - margin, yPos, 80, 60);
-        
-        // --- PAGE 2: DETAILED BREAKDOWNS ---
         doc.addPage();
         yPos = 22;
         doc.setFontSize(12); doc.setTextColor(44, 62, 80); doc.text("Detailed Breakdowns", margin, yPos);
         yPos += 8;
-
         const tableWidth = (pageWidth - (margin * 2) - 10) / 2;
         doc.autoTable({ startY: yPos, head: [['Category', 'Count']], body: globalStatsData.categories.map(item => [item.label, item.value]), theme: 'striped', headStyles: { fillColor: [44, 62, 80] }, margin: { right: pageWidth - margin - tableWidth } });
         doc.autoTable({ startY: yPos, head: [['Top 10 Countries', 'Count']], body: globalStatsData.topCountries.slice(0, 10).map(item => [item.label, item.value]), theme: 'striped', headStyles: { fillColor: [44, 62, 80] }, margin: { left: margin + tableWidth + 10 } });
         yPos = doc.lastAutoTable.finalY + 10;
-
         doc.setFontSize(11); doc.text("Watch Activity by Year", margin, yPos);
         yPos += 5;
         doc.autoTable({ startY: yPos, head: [['Year', 'Instances', 'Unique Titles', 'Avg. Rating']], body: globalStatsData.watchesByYear.slice(0, 20).map(r => [r.year, r.instances, r.unique_titles, r.avg_rating]), theme: 'grid', headStyles: { fillColor: [44, 62, 80] } });
-        
-        // --- PAGE 3: PEOPLE & PRODUCTION ---
         doc.addPage();
         yPos = 22;
         doc.setFontSize(12); doc.setTextColor(44, 62, 80); doc.text("People & Production", margin, yPos);
         yPos += 8;
-        
         doc.autoTable({ startY: yPos, head: [['Top 10 Watched Actors', 'Appearances']], body: globalStatsData.mostWatchedActors.slice(0, 10).map(item => [item.label, item.value]), theme: 'striped', headStyles: { fillColor: [44, 62, 80] }, margin: { right: pageWidth / 2 + 5 } });
         doc.autoTable({ startY: yPos, head: [['Top 10 Watched Directors', 'Films']], body: globalStatsData.mostWatchedDirectors.slice(0, 10).map(item => [item.label, item.value]), theme: 'striped', headStyles: { fillColor: [44, 62, 80] }, margin: { left: pageWidth / 2 + 5 } });
         yPos = doc.lastAutoTable.finalY + 10;
-
         doc.setFontSize(11); doc.text("Top 10 Production Companies", margin, yPos);
         yPos += 5;
         doc.autoTable({ startY: yPos, head: [['Company', 'Count']], body: globalStatsData.mostFrequentProductionCompanies.slice(0, 10).map(item => [item.label, item.value]), theme: 'grid', headStyles: { fillColor: [44, 62, 80] } });
-
-        // --- PAGE 4: VISUAL DATA ---
         doc.addPage();
         yPos = 22;
         doc.setFontSize(12); doc.setTextColor(44, 62, 80); doc.text("Visual Data Insights", margin, yPos);
         yPos += 8;
-
         const chartImage3 = await renderChartOffscreen('bar', globalStatsData.watchesByYear.map(d => d.year).reverse(), [{ label: 'Watch Instances', data: globalStatsData.watchesByYear.map(d => d.instances).reverse() }]);
         const topGenresForChart = globalStatsData.topSingleGenres.slice(0, 10);
         const chartImage4 = await renderChartOffscreen('bar', topGenresForChart.map(d => d.label), [{ label: 'Entries', data: topGenresForChart.map(d => d.value) }], { indexAxis: 'y' });
-        
         if (chartImage3) doc.addImage(chartImage3, 'PNG', margin, yPos, (pageWidth - margin * 2), 80);
         yPos += 90;
         if (chartImage4) doc.addImage(chartImage4, 'PNG', margin, yPos, (pageWidth - margin * 2), 100);
-
-        // --- PAGE 5: ACHIEVEMENTS ---
         doc.addPage();
         yPos = 22;
         doc.setFontSize(12); doc.setTextColor(44, 62, 80); doc.text("Achievements Unlocked", margin, yPos);
         yPos += 10;
-
         const unlockedAchievements = [];
         ACHIEVEMENTS.forEach(ach => {
             const { isAchieved } = checkAchievement(ach, globalStatsData);
             if (isAchieved) unlockedAchievements.push([ach.name, ach.description]);
         });
-
         if (unlockedAchievements.length > 0) {
             doc.autoTable({ startY: yPos, head: [['Achievement', 'Description']], body: unlockedAchievements, theme: 'grid', headStyles: { fillColor: [44, 62, 80] } });
         } else {
             doc.setFontSize(10).setTextColor(100).text("No achievements unlocked yet. Keep watching!", margin, yPos);
         }
-
         addHeaderAndFooter();
         doc.save(filename);
         showToast("PDF Exported", `${filename} has been generated.`, "success");
-
     } catch (error) {
         console.error('Error exporting PDF:', error);
         showToast("PDF Export Error", `Failed: ${error.message}. Check console for details.`, "error", 7000);
@@ -690,53 +651,36 @@ async function exportStatsAsPdf(filename = 'KeepMovizEZ_Report.pdf') {
         hideLoading();
     }
 }
-// END CHUNK: PDF Export function 
-
-// START CHUNK: Daily Recommendation Logic
 function getDailyRecommendationMovie() {
     let message = "No recommendations available. Try adding more movies to your 'To Watch' list!";
     const today = new Date().toISOString().slice(0, 10);
     const lastRecDate = localStorage.getItem(DAILY_RECOMMENDATION_DATE_KEY);
     const lastRecId = localStorage.getItem(DAILY_RECOMMENDATION_ID_KEY);
     let dailyRecSkipCount = parseInt(localStorage.getItem(DAILY_REC_SKIP_COUNT_KEY) || '0');
-
-    // If it's a new day, reset the skip counter and the last known recommendation ID
     if (lastRecDate !== today) {
         dailyRecSkipCount = 0;
         localStorage.setItem(DAILY_REC_SKIP_COUNT_KEY, '0');
         localStorage.removeItem(DAILY_RECOMMENDATION_ID_KEY);
     }
-
     if (lastRecDate === today && dailyRecSkipCount >= MAX_DAILY_SKIPS) {
         return { message: "You've skipped the maximum number of daily recommendations. Check back tomorrow!", movie: null, dailyRecSkipCount };
     }
-
-    // Check if a valid recommendation already exists for today
     if (lastRecDate === today && lastRecId) {
         const existingRec = movieData.find(m => m.id === lastRecId && m.Status === 'To Watch' && !m.doNotRecommendDaily);
         if (existingRec) {
             return { message: "Success", movie: existingRec, dailyRecSkipCount };
         }
     }
-
-    // If we are here, we need to generate a new recommendation for today
     const toWatchList = movieData.filter(m => m.Status === 'To Watch' && !m.doNotRecommendDaily);
     if (toWatchList.length === 0) return { message, movie: null, dailyRecSkipCount };
-
-    // Make sure we don't pick the same movie that was just skipped or became invalid
     const potentialPicks = toWatchList.filter(m => m.id !== lastRecId);
     const listToPickFrom = potentialPicks.length > 0 ? potentialPicks : toWatchList;
-
     const recommendedMovie = listToPickFrom[Math.floor(Math.random() * listToPickFrom.length)];
-
     localStorage.setItem(DAILY_RECOMMENDATION_ID_KEY, recommendedMovie.id);
     localStorage.setItem(DAILY_RECOMMENDATION_DATE_KEY, today);
-
-    // Only show the introductory toast on the very first recommendation of the day
     if (lastRecDate !== today) {
         showToast("Daily Recommendation", "Here is your pick for today!", "info", 4000, DO_NOT_SHOW_AGAIN_KEYS.DAILY_RECOMMENDATION_INTRO);
     }
     
     return { message: "Success", movie: recommendedMovie, dailyRecSkipCount };
 }
-//END CHUNK: Daily Recommendation Logic

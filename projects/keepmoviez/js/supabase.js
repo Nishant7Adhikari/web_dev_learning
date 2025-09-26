@@ -141,7 +141,6 @@ async function comprehensiveSync(silent = false) {
 }
 // END CHUNK: 2
 
-// <<-- MODIFIED SECTION START -->>
 // START CHUNK: 3: Authentication and Application State
 let currentSupabaseUser = null;
 
@@ -252,7 +251,7 @@ async function resetAppForLogout(message) {
     currentSupabaseUser = null;
     if (typeof clearLocalMovieCache === 'function') await clearLocalMovieCache();
     if (typeof destroyCharts === 'function') destroyCharts(chartInstances);
-    if (window.isMultiSelectMode && typeof window.disableMultiSelectMode === 'function') window.disableMultiSelectMode();
+    if (window.isMultiSelectMode && typeof window.disableMultiSelectMode === 'function') window.disableMulti-select-actions-bar();
     if (typeof $ !== 'undefined' && $.fn.modal) $('.modal.show').modal('hide');
     document.getElementById('appMenu')?.classList.remove('show');
     document.getElementById('appMenuBackdrop')?.classList.remove('show');
@@ -271,7 +270,6 @@ async function resetAppForLogout(message) {
     hideLoading();
 }
 // END CHUNK: 3
-// <<-- MODIFIED SECTION END -->>
 
 //START CHUNK: 4: User Authentication Actions
 // --- This chunk remains unchanged. ---

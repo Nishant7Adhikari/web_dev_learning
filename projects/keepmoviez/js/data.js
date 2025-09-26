@@ -66,6 +66,7 @@ async function loadFromIndexedDB() {
         const request = store.get(IDB_USER_DATA_KEY);
 
         return await new Promise((resolve, reject) => {
+            // <<-- MODIFIED SECTION START -->>
             request.onsuccess = (event) => {
                 const jsonData = event.target.result;
                 if (jsonData) {
@@ -87,6 +88,7 @@ async function loadFromIndexedDB() {
                     resolve([]); // No data found for the key
                 }
             };
+            // <<-- MODIFIED SECTION END -->>
             request.onerror = (event) => {
                 console.error("Error fetching from IndexedDB (local cache):", event.target.error);
                 showToast("Local Cache Error", "Failed to load data from local cache.", "error");
@@ -126,7 +128,7 @@ async function migrateVeryOldLocalStorageData() {
             localStorage.removeItem(ancientLocalStorageKey);
 
             // Also remove other potentially very old keys
- localStorage.removeItem(DAILY_RECOMMENDATION_ID_KEY.replace('_v2', ''));
+             localStorage.removeItem(DAILY_RECOMMENDATION_ID_KEY.replace('_v2', ''));
             localStorage.removeItem(DAILY_RECOMMENDATION_DATE_KEY.replace('_v2', ''));
             localStorage.removeItem(DAILY_REC_SKIP_COUNT_KEY.replace('_v2', ''));
             return true;
