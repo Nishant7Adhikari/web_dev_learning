@@ -70,28 +70,32 @@ async function loadFromIndexedDB() {
                 const jsonData = event.target.result;
                 if (jsonData) {
                     try {
-                        const parsedData = JSON.parse(jsonData);
-                        resolve(Array.isArray(parsedData) ? parsedData : []);
+                        let parsedData = JSON.parse(jsonData);
+                        if (Array.isArray(parsedData)) {
+                            // --- MODIFIED: Filter out soft-deleted entries on load ---
+                            parsedData = parsedData.filter(entry => !entry.is_deleted);
+                            resolve(parsedData);
+                        } else {
+                            resolve([]);
+                        }
                     } catch (e) {
                         console.error("Error parsing cached data from IndexedDB:", e);
-                        // *** SAFETY FIX IMPLEMENTED HERE ***
                         showToast(
                             "CRITICAL: Local Cache Corrupted", 
                             "Your local data was unreadable and has been cleared to prevent further issues. Please sync with the cloud to restore your data.", 
                             "error", 
-                            0, // 0 delay means it won't auto-hide
-                            null // No "don't show again" option for this critical error
+                            0,
+                            null
                         );
                         
-                        // Attempt to clear the corrupted cache entry to prevent future hangs
                         const writeTransaction = db.transaction([STORE_NAME], 'readwrite');
                         const writeStore = writeTransaction.objectStore(STORE_NAME);
                         writeStore.delete(IDB_USER_DATA_KEY);
                         
-                        resolve([]); // Return an empty array to allow the app to start cleanly
+                        resolve([]);
                     }
                 } else {
-                    resolve([]); // No data found for the key
+                    resolve([]);
                 }
             };
             request.onerror = (event) => {
@@ -103,7 +107,7 @@ async function loadFromIndexedDB() {
     } catch (e) {
         console.error("IndexedDB local cache load process failed:", e);
         showToast("Local Cache Error", "Failed to load data from local cache.", "error");
-        return []; // Ensure an array is returned on failure
+        return [];
     }
 }
 // END CHUNK: Load Data from IndexedDB
@@ -132,8 +136,7 @@ async function migrateVeryOldLocalStorageData() {
             }
             localStorage.removeItem(ancientLocalStorageKey);
 
-            // Also remove other potentially very old keys
-             localStorage.removeItem(DAILY_RECOMMENDATION_ID_KEY.replace('_v2', ''));
+            localStorage.removeItem(DAILY_RECOMMENDATION_ID_KEY.replace('_v2', ''));
             localStorage.removeItem(DAILY_RECOMMENDATION_DATE_KEY.replace('_v2', ''));
             localStorage.removeItem(DAILY_REC_SKIP_COUNT_KEY.replace('_v2', ''));
             return true;
@@ -165,7 +168,6 @@ function recalculateAndApplyAllRelationships() {
             if (!adj.has(relatedId)) adj.set(relatedId, new Set());
             adj.get(relatedId).add(movie.id); // Ensure bidirectionality
         });
-        // Overwrite with validated list initially
         movie.relatedEntries = validRelatedIds;
     });
 
@@ -202,11 +204,8 @@ function recalculateAndApplyAllRelationships() {
         if (!movie || !movie.id) return;
         const component = allComponents.find(comp => comp.includes(movie.id));
         if (component) {
-            // The movie is part of a larger group, so its related entries are all other members of that group
             movie.relatedEntries = component.filter(id => id && id !== movie.id && movieIds.has(id));
         } else {
-            // The movie might be a singleton or part of a relationship that was already processed.
-            // Ensure its list is still valid.
             movie.relatedEntries = (movie.relatedEntries || []).filter(id => id && id !== movie.id && movieIds.has(id));
         }
     });

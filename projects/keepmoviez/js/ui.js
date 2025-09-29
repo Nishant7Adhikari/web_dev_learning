@@ -190,7 +190,8 @@ function sortMovies(column, direction) {
 }
 
 function applyFilters(data) {
-    let filteredData = [...data];
+    // --- MODIFIED: Added a filter to always exclude soft-deleted items ---
+    let filteredData = data.filter(m => !m.is_deleted);
 
     if (filterQuery) {
         const lowerFilterQuery = filterQuery.toLowerCase();
@@ -240,11 +241,11 @@ function renderMovieCards() {
     const filteredData = applyFilters(movieData);
 
     if (initialMessage) {
-        initialMessage.style.display = (movieData.length === 0) ? 'block' : 'none';
+        initialMessage.style.display = (movieData.filter(m => !m.is_deleted).length === 0) ? 'block' : 'none';
     }
 
     if (filteredData.length === 0) {
-        if (movieData.length > 0) {
+        if (movieData.filter(m => !m.is_deleted).length > 0) {
             cardContainer.innerHTML = `<div class="col-12 text-center text-muted py-5"><h4>No Entries Found</h4><p>No entries match your current search and filter criteria.</p></div>`;
         }
         return;
@@ -306,9 +307,10 @@ function renderMovieCards() {
 
 // START CHUNK: Filter Modal UI
 function populateFilterModalOptions() {
-    const categories = [...new Set(movieData.map(m => m.Category).filter(Boolean))].sort();
-    const countries = [...new Set(movieData.map(m => m.Country).filter(Boolean))].sort((a,b) => getCountryFullName(a).localeCompare(getCountryFullName(b)));
-    const languages = [...new Set(movieData.map(m => m.Language).filter(Boolean))].sort();
+    const activeMovieData = movieData.filter(m => !m.is_deleted);
+    const categories = [...new Set(activeMovieData.map(m => m.Category).filter(Boolean))].sort();
+    const countries = [...new Set(activeMovieData.map(m => m.Country).filter(Boolean))].sort((a,b) => getCountryFullName(a).localeCompare(getCountryFullName(b)));
+    const languages = [...new Set(activeMovieData.map(m => m.Language).filter(Boolean))].sort();
 
     const populateSelect = (elementId, options, allLabel) => {
         const select = document.getElementById(elementId);
@@ -409,7 +411,7 @@ function populateFilterGenreDropdown() {
     container.innerHTML = '';
     const filterText = searchInput.value.toLowerCase().trim();
     
-    const allKnownGenres = [...new Set(movieData.flatMap(m => m.Genre ? m.Genre.split(',').map(g => g.trim()) : []).filter(Boolean))];
+    const allKnownGenres = [...new Set(movieData.filter(m => !m.is_deleted).flatMap(m => m.Genre ? m.Genre.split(',').map(g => g.trim()) : []).filter(Boolean))];
     const availableGenres = [...new Set([...UNIQUE_ALL_GENRES, ...allKnownGenres])]
         .filter(g => 
             !selectedFilterGenres.includes(g) &&
@@ -493,8 +495,6 @@ window.prepareEditModal = function(id) {
     formFieldsGlob.description.value = movie.Description || ''; formFieldsGlob.posterUrl.value = movie['Poster URL'] || '';
     formFieldsGlob.tmdbSearchYear.value = '';
     
-    // <<-- MODIFIED SECTION START -->>
-    // Populate new runtime fields from existing data
     if (movie.Category === 'Series' && typeof movie.runtime === 'object' && movie.runtime) {
         formFieldsGlob.runtimeSeriesSeasons.value = movie.runtime.seasons || '';
         formFieldsGlob.runtimeSeriesEpisodes.value = movie.runtime.episodes || '';
@@ -502,8 +502,7 @@ window.prepareEditModal = function(id) {
     } else if (typeof movie.runtime === 'number') {
         formFieldsGlob.runtimeMovie.value = movie.runtime;
     }
-    // <<-- MODIFIED SECTION END -->>
-
+    
     const relatedNames = (movie.relatedEntries || []).map(relatedId => movieData.find(m => m && m.id === relatedId)?.Name).filter(Boolean).join(', ');
     formFieldsGlob.relatedEntriesNames.value = relatedNames;
     
@@ -550,7 +549,6 @@ window.showDeleteConfirmationModal = function(id = null) {
     $('#confirmDeleteModal').modal('show');
 }
 
-// <<-- MODIFIED SECTION START -->>
 window.openDetailsModal = async function(id = null, tmdbObject = null) {
     showLoading("Loading details...");
     try {
@@ -563,11 +561,10 @@ window.openDetailsModal = async function(id = null, tmdbObject = null) {
                 showToast("Error", "Entry details not found.", "error");
                 return;
             }
-            fullDetails = sourceData; // It's already the full object
+            fullDetails = sourceData;
         } else if (tmdbObject) {
             sourceData = tmdbObject;
             isLocalEntry = false;
-            // Fetch full details for the TMDB object
             fullDetails = await callTmdbApiDirect(`/${sourceData.media_type}/${sourceData.id}`, { append_to_response: 'keywords,credits,collection' });
             if (!fullDetails) {
                  showToast("Error", "Could not fetch full TMDB details.", "error");
@@ -578,7 +575,6 @@ window.openDetailsModal = async function(id = null, tmdbObject = null) {
             return;
         }
 
-        // --- Create a normalized display object ---
         const displayObject = {
             name: fullDetails.Name || fullDetails.title || fullDetails.name || 'Details',
             year: fullDetails.Year || (fullDetails.release_date || fullDetails.first_air_date || '').substring(0, 4) || 'N/A',
@@ -608,7 +604,6 @@ window.openDetailsModal = async function(id = null, tmdbObject = null) {
         const setHtml = (selector, html) => { const el = document.querySelector(selector); if (el) el.innerHTML = html || 'N/A'; };
         const toggle = (selector, condition) => $(selector).toggle(!!condition);
 
-        // --- Populate UI using the normalized displayObject ---
         $('#detailsModal .modal-title').text(displayObject.name);
         
         if (displayObject.posterUrl) {
@@ -626,7 +621,6 @@ window.openDetailsModal = async function(id = null, tmdbObject = null) {
         setText('#detailsLanguage', displayObject.language);
         setText('#detailsCountry', displayObject.country);
 
-        // Runtime
         let runtimeText = 'N/A';
         if (typeof displayObject.runtimeData === 'number' && displayObject.runtimeData > 0) {
             const hours = Math.floor(displayObject.runtimeData / 60);
@@ -643,20 +637,17 @@ window.openDetailsModal = async function(id = null, tmdbObject = null) {
         toggle('#detailsRuntimeGroup', runtimeText !== 'N/A');
         setHtml('#detailsRuntime', runtimeText);
         
-        // TMDB Rating
         const hasTmdbRating = typeof displayObject.tmdbVoteAvg === 'number' && displayObject.tmdbVoteCount > 0;
         toggle('#detailsTMDBRatingGroup', hasTmdbRating);
         if (hasTmdbRating) {
             setHtml('#detailsTMDBRating', `${displayObject.tmdbVoteAvg.toFixed(1)}/10 <small>(${displayObject.tmdbVoteCount} votes)</small>`);
         }
         
-        // Keywords
         toggle('#detailsKeywords', displayObject.keywords.length > 0);
         if (displayObject.keywords.length > 0) {
             setText('#detailsKeywords', displayObject.keywords.map(k => k.name).join(', '));
         }
 
-        // Cast & Crew
         const hasDirector = !!displayObject.director;
         const hasCast = displayObject.cast.length > 0;
         toggle('#detailsCastCrewSection, #castCrewSeparator', hasDirector || hasCast);
@@ -672,7 +663,6 @@ window.openDetailsModal = async function(id = null, tmdbObject = null) {
             });
         }
 
-        // Local-only fields
         toggle('#detailsStatus', isLocalEntry);
         setText('#detailsStatus', displayObject.status);
         const isWatchedOrContinue = isLocalEntry && (displayObject.status === 'Watched' || displayObject.status === 'Continue');
@@ -691,7 +681,6 @@ window.openDetailsModal = async function(id = null, tmdbObject = null) {
             setText('#detailsContinue', `Season ${(displayObject.seasonsCompleted || 0) + 1}, Ep ${displayObject.currentSeasonEpisodesWatched || '?'}`);
         }
 
-        // Watch History
         const whList = $('#detailsWatchHistoryList').empty();
         toggle('#detailsWatchHistorySection', isLocalEntry && displayObject.watchHistory.length > 0);
         if(isLocalEntry && displayObject.watchHistory.length > 0) {
@@ -700,7 +689,6 @@ window.openDetailsModal = async function(id = null, tmdbObject = null) {
             });
         }
         
-        // Footer buttons
         toggle('#findSimilarBtn', isLocalEntry && !!fullDetails.tmdbId && isWatchedOrContinue);
         $('#findSimilarBtn').data('current-movie-id', isLocalEntry ? fullDetails.id : null);
         
@@ -715,7 +703,6 @@ window.openDetailsModal = async function(id = null, tmdbObject = null) {
         hideLoading(); 
     }
 };
-// <<-- MODIFIED SECTION END -->>
 
 window.openPersonDetailsModal = async function(personId, personName) {
     showLoading(`Fetching details for ${personName}...`);
@@ -800,12 +787,9 @@ function toggleConditionalFields() {
     $('#seriesContinueGroup').toggle(isContinueSeries);
     $('#recommendationGroup, #overallRatingGroup, #watchHistorySection, #watchHistorySeparator').toggle(isWatchedOrContinue);
 
-    // <<-- MODIFIED SECTION START -->>
-    // New, simplified logic for runtime fields
     const isSeries = category === 'Series';
     $('#movieRuntimeGroup').toggle(!isSeries);
     $('#seriesRuntimeGroup').toggle(isSeries);
-    // <<-- MODIFIED SECTION END -->>
 }
 
 function updateSyncButtonState() {
@@ -845,7 +829,6 @@ function getGenreGradient(genre) {
     return gradients[primaryGenre] || gradients['default'];
 }
 
-// Helper to draw text that wraps
 function wrapText(context, text, x, y, maxWidth, lineHeight) {
     let words = text.split(' ');
     let line = '';
@@ -873,20 +856,18 @@ function wrapText(context, text, x, y, maxWidth, lineHeight) {
     return y + lineHeight;
 }
 
-// Helper to draw stars on the canvas
 function drawStarsOnCanvas(ctx, x, y, ratingString, size = 30) {
     const ratingValue = (ratingString.match(/fas fa-star/g) || []).length + (ratingString.match(/fa-star-half-alt/g) || []).length * 0.5;
     if (isNaN(ratingValue) || ratingValue === 0) return;
 
     for (let i = 0; i < 5; i++) {
         ctx.font = `900 ${size}px "Font Awesome 5 Free"`;
-        const starChar = '\uf005'; // fas fa-star
+        const starChar = '\uf005';
         ctx.fillStyle = i < ratingValue ? '#FFD700' : 'rgba(255, 255, 255, 0.4)';
         ctx.fillText(starChar, x + i * (size + 8), y);
     }
 }
 
-// Function to show the modal with Share/Download options
 function showShareOptionsModal(blob, fileName) {
     $('#shareOptionsModal').remove();
 
@@ -956,7 +937,6 @@ function showShareOptionsModal(blob, fileName) {
     shareModal.on('hidden.bs.modal', function() { $(this).remove(); });
 }
 
-// Main function for generating the PNG
 window.downloadDetailsAsPNG = async function() {
     const detailsModal = document.getElementById('detailsModal');
     if (!detailsModal) return;
@@ -981,7 +961,6 @@ window.downloadDetailsAsPNG = async function() {
         canvas.height = 1080;
         const ctx = canvas.getContext('2d');
 
-        // --- 1. Genre-based Gradient Background ---
         const [color1, color2] = getGenreGradient(details.genre);
         const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
         gradient.addColorStop(0, color1);
@@ -989,24 +968,21 @@ window.downloadDetailsAsPNG = async function() {
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // --- 2. NEW: Repeating Diagonal Watermark in the Background ---
         ctx.save();
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.08)'; // Very subtle white
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
         ctx.font = `bold 60px 'Poppins', Arial`;
         ctx.textAlign = 'center';
-        ctx.translate(canvas.width / 2, canvas.height / 2); // Move origin to center
-        ctx.rotate(-Math.PI / 4); // Rotate by -45 degrees
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(-Math.PI / 4);
         const watermarkText = 'KeepMovizEZ';
-        // Loop to create a tiled pattern, covering the whole canvas even after rotation
         for (let y = -canvas.height; y < canvas.height * 1.5; y += 150) {
             for (let x = -canvas.width; x < canvas.width * 1.5; x += 400) {
                 ctx.fillText(watermarkText, x, y);
             }
         }
-        ctx.restore(); // Restore canvas state (rotation, translation)
+        ctx.restore();
 
         let yOffset = 70;
-        // --- 3. Poster Image with Card Effect ---
         if (posterSrc) {
             const img = new Image();
             img.crossOrigin = 'anonymous';
@@ -1039,7 +1015,6 @@ window.downloadDetailsAsPNG = async function() {
             } else { yOffset += 50; }
         }
 
-        // --- 4. Text Content ---
         ctx.textAlign = 'center';
         ctx.fillStyle = '#ffffff';
         ctx.shadowColor = 'rgba(0,0,0,0.5)';
@@ -1055,7 +1030,6 @@ window.downloadDetailsAsPNG = async function() {
         ctx.fillText(infoLine, canvas.width / 2, yOffset + 30);
         yOffset += 130;
 
-        // --- 5. User Rating Showcase ---
         if (details.ratingHTML && !details.ratingHTML.includes('N/A')) {
             const ratingBoxWidth = 450;
             const ratingBoxHeight = 150;
@@ -1074,7 +1048,6 @@ window.downloadDetailsAsPNG = async function() {
             drawStarsOnCanvas(ctx, ratingBoxX + 95, yOffset + 115, details.ratingHTML, 48);
         }
         
-        // --- 6. Hand off to the share/download modal ---
         const safeName = details.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
         const fileName = `${safeName}_details.png`;
 
@@ -1091,7 +1064,6 @@ window.downloadDetailsAsPNG = async function() {
     }
 }
 
-// Helper for rounded rectangles used in the card effect
 function roundRect(ctx, x, y, width, height, radius) {
     ctx.beginPath();
     ctx.moveTo(x + radius, y);

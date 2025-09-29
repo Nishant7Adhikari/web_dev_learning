@@ -115,6 +115,8 @@ window.handleFormSubmit = async function(event) {
         let countryCodeToStore = countryInput.toUpperCase();
         if (countryInput.length > 3) { for (const [code, name] of Object.entries(countryCodeToNameMap)) { if (name.toLowerCase() === countryInput.toLowerCase()) { countryCodeToStore = code; break; } } }
         
+        const editId = document.getElementById('editEntryId').value;
+
         const entry = {
             Name: nameValue, Category: formFieldsGlob.category.value, Genre: Array.isArray(selectedGenres) ? selectedGenres.join(', ') : '', Status: formFieldsGlob.status.value,
             seasonsCompleted: (formFieldsGlob.status.value === 'Continue' && formFieldsGlob.category.value === 'Series') ? parseInt(formFieldsGlob.seasonsCompleted.value, 10) || 0 : null,
@@ -126,7 +128,10 @@ window.handleFormSubmit = async function(event) {
             watchHistory: JSON.parse(document.getElementById('currentWatchHistory').value || '[]'), relatedEntries: [...new Set(directRelatedEntriesIds)],
             lastModifiedDate: new Date().toISOString(), doNotRecommendDaily: false,
             tmdbId: document.getElementById('tmdbId').value || null, tmdbMediaType: document.getElementById('tmdbMediaType').value || null,
-            ...cachedTmdbData
+            ...cachedTmdbData,
+            // --- NEW: Add sync state properties ---
+            is_deleted: false, // Always false when saving
+            _sync_state: editId ? 'edited' : 'new'
         };
 
         // ### Cleaned Up Runtime Logic ###
@@ -149,10 +154,9 @@ window.handleFormSubmit = async function(event) {
             }
         }
 
-        const editId = document.getElementById('editEntryId').value;
         if (editId) { const existingEntry = movieData.find(m => m && m.id === editId); if (existingEntry) entry.doNotRecommendDaily = existingEntry.doNotRecommendDaily; }
         
-        const isDuplicate = movieData.some(m => m && m.Name && String(m.Name).toLowerCase() === entry.Name.toLowerCase() && m.id !== editId);
+        const isDuplicate = movieData.some(m => m && m.Name && String(m.Name).toLowerCase() === entry.Name.toLowerCase() && m.id !== editId && !m.is_deleted);
         if (isDuplicate) {
             pendingEntryForConfirmation = entry; pendingEditIdForConfirmation = editId;
             $('#duplicateNameConfirmModal').modal('show');
@@ -167,15 +171,20 @@ window.proceedWithEntrySave = async function(entryToSave, idToEdit) {
         if (!idToEdit) {
             entryToSave.id = entryToSave.id || generateUUID();
             movieData.push(entryToSave);
-            showToast("Entry Added", `"${entryToSave.Name}" added.`, "success", undefined, DO_NOT_SHOW_AGAIN_KEYS.ENTRY_ADDED);
+            showToast("Entry Added", `"${entryToSave.Name}" added locally.`, "success", undefined, DO_NOT_SHOW_AGAIN_KEYS.ENTRY_ADDED);
         } else {
             const existingIndex = movieData.findIndex(m => m && m.id === idToEdit);
             if (existingIndex !== -1) {
+                // Preserve original sync state if it was 'new'
+                const originalSyncState = movieData[existingIndex]._sync_state;
                 movieData[existingIndex] = { ...movieData[existingIndex], ...entryToSave, id: idToEdit };
-                showToast("Entry Updated", `"${entryToSave.Name}" updated.`, "success", undefined, DO_NOT_SHOW_AGAIN_KEYS.ENTRY_UPDATED);
+                if (originalSyncState === 'new') {
+                    movieData[existingIndex]._sync_state = 'new';
+                }
             } else {
                 showToast("Update Error", "Entry to update not found.", "error"); hideLoading(); return;
             }
+            showToast("Entry Updated", `"${entryToSave.Name}" updated locally.`, "success", undefined, DO_NOT_SHOW_AGAIN_KEYS.ENTRY_UPDATED);
         }
         recalculateAndApplyAllRelationships();
         sortMovies(currentSortColumn, currentSortDirection);
@@ -186,10 +195,10 @@ window.proceedWithEntrySave = async function(entryToSave, idToEdit) {
 
         await checkAndNotifyNewAchievements();
         
-        // After a save, trigger the smart update for collection data if applicable
         if (entryToSave.tmdb_collection_id) await propagateCollectionDataUpdate(entryToSave);
 
-        if (currentSupabaseUser && typeof comprehensiveSync === 'function') await comprehensiveSync(true);
+        // REMOVED: No automatic sync after save
+        // if (currentSupabaseUser && typeof comprehensiveSync === 'function') await comprehensiveSync(true);
     } catch (error) {
         console.error("Error in proceedWithEntrySave:", error);
         showToast("Save Error", `Error: ${error.message}`, "error");
@@ -200,40 +209,43 @@ window.proceedWithEntrySave = async function(entryToSave, idToEdit) {
 // END CHUNK: Entry Form Submission and Save Logic
 
 // START CHUNK: Deletion Logic
-// *** NEW HELPER FUNCTION FOR TRACKING DELETIONS ***
-function addDeletedIdToSyncQueue(idOrIds) {
-    if (!currentSupabaseUser) return; // No need to track if not logged in
-    const DELETED_IDS_KEY = `keepmoviez_deleted_ids_${currentSupabaseUser.id}`;
-    try {
-        const existingIds = new Set(JSON.parse(localStorage.getItem(DELETED_IDS_KEY) || '[]'));
-        const idsToAdd = Array.isArray(idOrIds) ? idOrIds : [idOrIds];
-        idsToAdd.forEach(id => existingIds.add(id));
-        localStorage.setItem(DELETED_IDS_KEY, JSON.stringify(Array.from(existingIds)));
-    } catch (e) {
-        console.error("Failed to update deleted IDs queue in localStorage", e);
-    }
-}
+// REMOVED: The old localStorage-based deletion queue is no longer needed.
 
 window.performDeleteEntry = async function() {
     if (!movieIdToDelete) { showToast("Error", "No entry selected.", "error"); $('#confirmDeleteModal').modal('hide'); return; }
-    showLoading("Deleting entry...");
+    showLoading("Deleting entry locally...");
     try {
-        const deletedMovieId = movieIdToDelete;
-        const movieName = movieData.find(m => m && m.id === deletedMovieId)?.Name || "The entry";
-        
-        // Add to deletion queue for next sync BEFORE removing locally
-        addDeletedIdToSyncQueue(deletedMovieId);
+        const entryIndex = movieData.findIndex(m => m && m.id === movieIdToDelete);
+        if (entryIndex === -1) {
+            showToast("Error", "Entry not found for deletion.", "error");
+            return;
+        }
 
-        movieData.forEach(movie => { if (movie && movie.relatedEntries && movie.relatedEntries.includes(deletedMovieId)) { movie.relatedEntries = movie.relatedEntries.filter(id => id !== deletedMovieId); movie.lastModifiedDate = new Date().toISOString(); } });
-        movieData = movieData.filter(m => m && m.id !== deletedMovieId);
+        const movieName = movieData[entryIndex].Name || "The entry";
+        
+        // --- NEW: Soft Delete Logic ---
+        movieData[entryIndex].is_deleted = true;
+        movieData[entryIndex]._sync_state = 'deleted';
+        movieData[entryIndex].lastModifiedDate = new Date().toISOString();
+
+        // Update relationships of other entries pointing to this one
+        movieData.forEach(movie => { 
+            if (movie && movie.relatedEntries && movie.relatedEntries.includes(movieIdToDelete)) { 
+                movie.relatedEntries = movie.relatedEntries.filter(id => id !== movieIdToDelete); 
+                movie.lastModifiedDate = new Date().toISOString(); 
+                if (movie._sync_state !== 'new') {
+                    movie._sync_state = 'edited';
+                }
+            } 
+        });
         
         recalculateAndApplyAllRelationships();
-        renderMovieCards();
+        renderMovieCards(); // This will now hide the soft-deleted entry
         await saveToIndexedDB();
-        showToast("Entry Deleted", `${movieName} removed locally. Will be removed from cloud on next sync.`, "warning", undefined, DO_NOT_SHOW_AGAIN_KEYS.ENTRY_DELETED);
+        showToast("Entry Deleted", `${movieName} removed locally. Sync with cloud to finalize.`, "warning", undefined, DO_NOT_SHOW_AGAIN_KEYS.ENTRY_DELETED);
 
-        // Trigger a silent sync in the background
-        if (currentSupabaseUser) await comprehensiveSync(true);
+        // REMOVED: No automatic sync
+        // if (currentSupabaseUser) await comprehensiveSync(true);
 
     } catch (error) { console.error("Error deleting entry:", error); showToast("Delete Failed", `Error: ${error.message}`, "error", 7000);
     } finally { movieIdToDelete = null; $('#confirmDeleteModal').modal('hide'); hideLoading(); }
@@ -242,23 +254,48 @@ window.performDeleteEntry = async function() {
 window.performBatchDelete = async function() {
     if (!isMultiSelectMode || selectedEntryIds.length === 0) return;
     const idsToDelete = [...selectedEntryIds]; const numToDelete = idsToDelete.length;
-    showLoading(`Deleting ${numToDelete} entries...`);
+    showLoading(`Deleting ${numToDelete} entries locally...`);
     try {
-        // Add all selected IDs to the deletion queue for sync
-        addDeletedIdToSyncQueue(idsToDelete);
+        const currentTimestamp = new Date().toISOString();
+        let changesMade = false;
 
-        idsToDelete.forEach(deletedId => { movieData.forEach(movie => { if (movie && movie.relatedEntries && movie.relatedEntries.includes(deletedId)) { movie.relatedEntries = movie.relatedEntries.filter(id => id !== deletedId); movie.lastModifiedDate = new Date().toISOString(); } }); });
-        movieData = movieData.filter(m => m && !idsToDelete.includes(m.id));
+        // --- NEW: Batch Soft Delete Logic ---
+        idsToDelete.forEach(deletedId => {
+            const entryIndex = movieData.findIndex(m => m && m.id === deletedId);
+            if (entryIndex !== -1) {
+                movieData[entryIndex].is_deleted = true;
+                movieData[entryIndex]._sync_state = 'deleted';
+                movieData[entryIndex].lastModifiedDate = currentTimestamp;
+                changesMade = true;
+            }
+        });
 
-        recalculateAndApplyAllRelationships();
-        await saveToIndexedDB();
-        showToast("Local Deletion", `${numToDelete} entries removed locally. Will sync deletion to cloud.`, "warning");
+        // Update relationships
+        movieData.forEach(movie => {
+            if (movie && movie.relatedEntries) {
+                const originalCount = movie.relatedEntries.length;
+                movie.relatedEntries = movie.relatedEntries.filter(id => !idsToDelete.includes(id));
+                if (movie.relatedEntries.length < originalCount) {
+                    movie.lastModifiedDate = currentTimestamp;
+                     if (movie._sync_state !== 'new') {
+                        movie._sync_state = 'edited';
+                    }
+                }
+            }
+        });
+
+        if (changesMade) {
+            recalculateAndApplyAllRelationships();
+            await saveToIndexedDB();
+            renderMovieCards();
+            showToast("Local Deletion", `${numToDelete} entries removed locally. Sync with cloud to finalize.`, "warning");
+        }
         
-        // Trigger a silent sync
-        if (currentSupabaseUser) await comprehensiveSync(true);
+        // REMOVED: No automatic sync
+        // if (currentSupabaseUser) await comprehensiveSync(true);
 
     } catch (error) { console.error("Batch delete error:", error); showToast("Batch Delete Failed", `Error: ${error.message}`, "error", 7000);
-    } finally { renderMovieCards(); disableMultiSelectMode(); $('#confirmDeleteModal').modal('hide'); hideLoading(); }
+    } finally { disableMultiSelectMode(); $('#confirmDeleteModal').modal('hide'); hideLoading(); }
 }
 // END CHUNK: Deletion Logic
 
@@ -280,7 +317,7 @@ window.performDataCheckAndRepair = async function() {
                 entry.relatedEntries = entry.relatedEntries.filter(id => allValidIds.has(id));
                 if (entry.relatedEntries.length < originalCount) { issues.push(`Entry "${entry.Name}": Removed ${originalCount - entry.relatedEntries.length} orphaned related entries.`); entryModified = true; }
             }
-            if (entryModified) { entry.lastModifiedDate = new Date().toISOString(); changesMade = true; }
+            if (entryModified) { entry.lastModifiedDate = new Date().toISOString(); if(entry._sync_state !== 'new') entry._sync_state = 'edited'; changesMade = true; }
         }
         if (changesMade) recalculateAndApplyAllRelationships();
         let message = issues.length > 0 ? `Data check complete. Found and fixed ${issues.length} issue(s).` : "Data check complete. No integrity issues found!";
@@ -336,7 +373,6 @@ window.handleBatchEditFormSubmit = async function(event) {
             let entry = movieData[entryIndex];
             let entryModified = false;
 
-            // Handle standard property updates
             const standardKeys = ['Status', 'Category', 'overallRating', 'Recommendation', 'personalRecommendation', 'Year', 'Country', 'Language'];
             standardKeys.forEach(key => {
                 if (key in changes && entry[key] !== changes[key]) {
@@ -345,28 +381,21 @@ window.handleBatchEditFormSubmit = async function(event) {
                 }
             });
 
-            // Handle genre additions
             if ('addGenre' in changes && changes.addGenre) {
                 let genres = new Set((entry.Genre || '').split(',').map(g => g.trim()).filter(Boolean));
-                if (!genres.has(changes.addGenre)) {
-                    genres.add(changes.addGenre);
-                    entry.Genre = Array.from(genres).sort().join(', ');
-                    entryModified = true;
-                }
+                if (!genres.has(changes.addGenre)) { genres.add(changes.addGenre); entry.Genre = Array.from(genres).sort().join(', '); entryModified = true; }
             }
 
-            // Handle genre removals
             if ('removeGenre' in changes && changes.removeGenre) {
                 let genres = new Set((entry.Genre || '').split(',').map(g => g.trim()).filter(Boolean));
-                if (genres.has(changes.removeGenre)) {
-                    genres.delete(changes.removeGenre);
-                    entry.Genre = Array.from(genres).sort().join(', ');
-                    entryModified = true;
-                }
+                if (genres.has(changes.removeGenre)) { genres.delete(changes.removeGenre); entry.Genre = Array.from(genres).sort().join(', '); entryModified = true; }
             }
             
             if (entryModified) {
                 entry.lastModifiedDate = currentLMD;
+                if (entry._sync_state !== 'new') { // Don't overwrite 'new' status
+                    entry._sync_state = 'edited';
+                }
                 changesMadeCount++;
             }
         });
@@ -374,8 +403,9 @@ window.handleBatchEditFormSubmit = async function(event) {
         if (changesMadeCount > 0) {
             await saveToIndexedDB();
             renderMovieCards();
-            showToast("Batch Edit Complete", `${changesMadeCount} of ${selectedEntryIds.length} entries updated.`, "success");
-            if (currentSupabaseUser) await comprehensiveSync(true);
+            showToast("Batch Edit Complete", `${changesMadeCount} of ${selectedEntryIds.length} entries updated locally.`, "success");
+            // REMOVED: No automatic sync
+            // if (currentSupabaseUser) await comprehensiveSync(true);
         } else {
             showToast("No Changes Applied", "Entries already had the specified values.", "info");
         }
@@ -396,12 +426,19 @@ window.markDailyRecCompleted = async function(event) {
         if(!Array.isArray(movieData[movieIndex].watchHistory)) movieData[movieIndex].watchHistory = [];
         movieData[movieIndex].watchHistory.push({ watchId: generateUUID(), date: new Date().toISOString().slice(0,10), rating: '', notes: 'Marked as Watched from Daily Recommendation' });
         
+        // --- NEW: Mark as edited for sync ---
+        if (movieData[movieIndex]._sync_state !== 'new') {
+            movieData[movieIndex]._sync_state = 'edited';
+        }
+
         incrementLocalStorageCounter('daily_rec_watched_achievement');
         
         await saveToIndexedDB();
         renderMovieCards();
         showToast("Great!", `Marked "${movieData[movieIndex].Name}" as Watched.`, "success");
-        if(currentSupabaseUser) await comprehensiveSync(true);
+
+        // REMOVED: No automatic sync
+        // if(currentSupabaseUser) await comprehensiveSync(true);
     }
 }
 
@@ -459,7 +496,6 @@ window.checkAndNotifyNewAchievements = async function(isInitialLoad = false) {
     let unlockedCountForMeta = 0;
     const currentlyUnlocked = new Set();
     
-    // First pass to get non-meta achievement counts
     ACHIEVEMENTS.forEach(ach => {
         if (ach.type !== 'meta_achievement_count') {
             const { isAchieved } = checkAchievement(ach, stats);
@@ -472,7 +508,6 @@ window.checkAndNotifyNewAchievements = async function(isInitialLoad = false) {
 
     stats.unlockedCountForMeta = unlockedCountForMeta;
 
-    // Second pass for meta achievements
     ACHIEVEMENTS.forEach(ach => {
         if (ach.type === 'meta_achievement_count') {
             const { isAchieved } = checkAchievement(ach, stats);
@@ -503,13 +538,12 @@ window.checkAndNotifyNewAchievements = async function(isInitialLoad = false) {
                         }
                     }
                 }];
-                // Stagger toasts slightly to prevent them from overlapping completely
                 setTimeout(() => { 
                     showToast(
                         `🏆 Achievement Unlocked!`,
                         `<strong>${achievement.name}</strong><br><small>${achievement.description}</small>`,
                         'success',
-                        0, // Don't autohide, let user dismiss
+                        0,
                         null,
                         toastActions
                     );

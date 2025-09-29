@@ -373,13 +373,43 @@ if (menuThemeToggleBtn) {
             document.getElementById('cancelDuplicateSaveBtn')?.addEventListener('click', () => { pendingEntryForConfirmation = null; pendingEditIdForConfirmation = null; });
             document.getElementById('exportStatsPdfBtn')?.addEventListener('click', () => exportStatsAsPdf());
             
-            // Auth & Sync
+            // Auth, Sync, and Data Management
             document.getElementById('supabaseLoginBtn')?.addEventListener('click', () => supabaseSignInUser(document.getElementById('supabaseEmail').value, document.getElementById('supabasePassword').value));
             document.getElementById('supabaseSignupBtn')?.addEventListener('click', () => supabaseSignUpUser(document.getElementById('supabaseEmail').value, document.getElementById('supabasePassword').value));
             document.getElementById('supabasePasswordResetBtn')?.addEventListener('click', () => supabaseSendPasswordResetEmail(document.getElementById('supabaseEmail').value));
             document.getElementById('menuSupabaseLogoutBtn')?.addEventListener('click', supabaseSignOutUser);
+            
+            // Standard Sync
             document.getElementById('menuSyncDataBtn')?.addEventListener('click', () => { closeMenu(); comprehensiveSync(false); });
             
+            // New Import/Export Modal Triggers
+            document.getElementById('menuImportBtn')?.addEventListener('click', () => { $('#importModal').modal('show'); closeMenu(); });
+            document.getElementById('menuExportBtn')?.addEventListener('click', () => { $('#exportModal').modal('show'); closeMenu(); });
+            
+            // Event listeners for buttons INSIDE the new modals
+            document.getElementById('exportCsvBtn')?.addEventListener('click', () => { generateAndDownloadFile('csv'); $('#exportModal').modal('hide'); });
+            document.getElementById('exportJsonBtn')?.addEventListener('click', () => { generateAndDownloadFile('json'); $('#exportModal').modal('hide'); });
+            
+            // Listeners for the "trigger" buttons that show confirmation modals
+            document.getElementById('forcePullTriggerBtn')?.addEventListener('click', () => {
+                $('#importModal').modal('hide');
+                $('#confirmForcePullModal').modal('show');
+            });
+            document.getElementById('forcePushTriggerBtn')?.addEventListener('click', () => {
+                $('#exportModal').modal('hide');
+                $('#confirmForcePushModal').modal('show');
+            });
+
+            // Listeners for the final confirmation buttons
+            document.getElementById('confirmForcePullBtn')?.addEventListener('click', async () => {
+                $('#confirmForcePullModal').modal('hide');
+                await forcePullFromSupabase();
+            });
+            document.getElementById('confirmForcePushBtn')?.addEventListener('click', async () => {
+                $('#confirmForcePushModal').modal('hide');
+                await forcePushToSupabase();
+            });
+
             // Multi-Select Bar
             document.getElementById('batchEditSelectedBtn')?.addEventListener('click', prepareBatchEditModal);
             document.getElementById('batchDeleteSelectedBtn')?.addEventListener('click', () => showDeleteConfirmationModal());
@@ -431,7 +461,7 @@ if (menuThemeToggleBtn) {
                 }
                 showToast("Connection Lost", "You are offline. Changes will be synced later.", "warning");
             });
-        /* END CHUNK: 7: Final Event Listener Wiring & Global Listeners */
+/* END CHUNK: 7: Final Event Listener Wiring & Global Listeners */
 
 //START CHUNK: 8: Application Initialization
    // --- App Initialization ---

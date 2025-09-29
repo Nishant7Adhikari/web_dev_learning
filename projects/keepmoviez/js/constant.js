@@ -6,7 +6,7 @@ const SUPABASE_ANON_KEY =/*if you misuse this key or even use this key for yours
 const TMDB_API_KEY = 'public_placeholder'; // <--- IMPORTANT: this key is setup at supabase 
 const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/';
 
-const DB_NAME = 'KeepMovieZ_UserCacheDB_V2';
+const DB_NAME = 'KeepMovieZ_UserCacheDB_v1';
 const DB_VERSION = 1;
 const STORE_NAME = 'movieEntries';
 const IDB_USER_DATA_KEY = 'userMovieData';
@@ -233,10 +233,6 @@ try {
     if (typeof SUPABASE_URL !== 'undefined' && typeof SUPABASE_ANON_KEY !== 'undefined' &&
         SUPABASE_URL && SUPABASE_ANON_KEY &&
         SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY') {
-
-        if (TMDB_API_KEY === 'YOUR_ACTUAL_TMDB_API_KEY_HERE' || TMDB_API_KEY.length < 30) {
-            console.warn("WARNING: TMDB_API_KEY is not configured or is a placeholder in constant.js. TMDB features will be disabled.");
-        }
 
         if (window.supabase && typeof window.supabase.createClient === 'function') {
             supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
