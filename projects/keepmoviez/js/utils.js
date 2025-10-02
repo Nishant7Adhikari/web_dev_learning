@@ -79,6 +79,32 @@ function getRatingTextLabel(rating) {
     const label = `${numRating % 1 === 0 ? numRating : numRating.toFixed(1)} Star${numRating !== 1 ? 's' : ''}`;
     return label;
 }
+
+function formatDuration(totalMinutes, format = 'days') {
+    if (totalMinutes === null || isNaN(totalMinutes) || totalMinutes < 0) {
+        return "N/A";
+    }
+    if (format === 'hours') {
+        return `${Math.round(totalMinutes / 60).toLocaleString()} hours`;
+    }
+    const days = Math.floor(totalMinutes / 1440);
+    const remainingMinutes = totalMinutes % 1440;
+    const hours = Math.floor(remainingMinutes / 60);
+    const minutes = Math.round(remainingMinutes % 60);
+    let result = '';
+    if (days > 0) result += `${days}d `;
+    if (hours > 0) result += `${hours}h `;
+    if (minutes > 0 || (days === 0 && hours === 0)) result += `${minutes}m`;
+    return result.trim() || '0m';
+}
+
+function formatDays(totalDays, format = 'days') {
+    if (totalDays === null || isNaN(totalDays) || totalDays < 0) {
+        return "N/A";
+    }
+    const totalMinutes = totalDays * 24 * 60;
+    return formatDuration(totalMinutes, format);
+}
 // END CHUNK: UI Enhancements and Helpers
 
 // START CHUNK: Toast Notification System
@@ -276,3 +302,35 @@ function populateRelatedEntriesSuggestions() {
     relatedEntriesSuggestionsContainer.style.display = 'block';
 }
 // END CHUNK: Autocomplete Input Logic
+
+// START CHUNK: Watchlist Activity Logger
+const WATCHLIST_ACTIVITY_LOG_KEY = 'watchlistActivityLog_v1';
+const MAX_LOG_SIZE = 200; // Keep the log from growing indefinitely
+
+function logWatchlistActivity(type) {
+    if (type !== 'added' && type !== 'completed') {
+        console.warn(`Invalid watchlist activity type: ${type}`);
+        return;
+    }
+
+    try {
+        let log = JSON.parse(localStorage.getItem(WATCHLIST_ACTIVITY_LOG_KEY) || '[]');
+        if (!Array.isArray(log)) {
+            log = [];
+        }
+
+        const today = new Date().toISOString().slice(0, 10);
+        log.push({ type, date: today });
+
+        // Trim the log to prevent it from getting too large
+        if (log.length > MAX_LOG_SIZE) {
+            log = log.slice(log.length - MAX_LOG_SIZE);
+        }
+
+        localStorage.setItem(WATCHLIST_ACTIVITY_LOG_KEY, JSON.stringify(log));
+
+    } catch (e) {
+        console.error("Failed to log watchlist activity:", e);
+    }
+}
+// END CHUNK: Watchlist Activity Logger```

@@ -346,11 +346,11 @@ if (menuThemeToggleBtn) {
             document.getElementById('confirmEraseDataBtn')?.addEventListener('click', window.eraseAllData);
             document.getElementById('checkRepairDataBtn')?.addEventListener('click', window.performDataCheckAndRepair);
             document.getElementById('status')?.addEventListener('change', toggleConditionalFields);
-            // <<-- MODIFIED SECTION START -->>
             document.getElementById('category')?.addEventListener('change', toggleConditionalFields);
-            // <<-- MODIFIED SECTION END -->>
             document.getElementById('searchTmdbBtn')?.addEventListener('click', () => fetchMovieInfoFromTmdb(formFieldsGlob.name.value, formFieldsGlob.tmdbSearchYear.value));
             
+            formFieldsGlob.relatedEntriesNames?.addEventListener('input', debounce(populateRelatedEntriesSuggestions, 300));
+
             // Filter Modal
             document.getElementById('applyFiltersBtn')?.addEventListener('click', () => {
                 activeFilters.category = document.getElementById('filterCategory').value;
@@ -462,7 +462,7 @@ if (menuThemeToggleBtn) {
                 showToast("Connection Lost", "You are offline. Changes will be synced later.", "warning");
             });
 /* END CHUNK: 7: Final Event Listener Wiring & Global Listeners */
-
+            
 //START CHUNK: 8: Application Initialization
    // --- App Initialization ---
     if ('serviceWorker' in navigator) {

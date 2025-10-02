@@ -1,20 +1,20 @@
-<!-- KeepMoviEZ  v4.2.0 -->
+<!-- KeepMoviEZ  v4.2.1-->
 <!DOCTYPE html>
 <html lang="en">
 <!-- START CHUNK: Document Head and Core Dependencies -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>KeepMoviEZ </title>
+    <title>KeepMoviEZ</title>
     <link rel="icon" type="image/x-icon" href="favicon.png">
     <!-- Primary Meta Tags -->
   <title>KeepMoviEZ  - Smart Movie & Series Tracker | Log, Rate & Visualize</title>
   <meta name="title" content="KeepMoviEZ  - Smart Movie & Series Tracker | Log, Rate & Visualize">
-  <meta name="description" content="KeepMoviEZ  is your personal smart movie and series tracking app. Log your watch history, rate entries, get recommendations, visualize stats, and sync to the cloud.">
+  <meta name="description" content="KeepMoviEZ  is your personal smart movie and series tracking app. Created by Nishant Adhikari @  nishantadhikari.info.np">
   <meta name="keywords" content="KeepMoviEZ , movie tracker, TV tracker, watchlist manager, movie log app, film log, media tracker, movie history app, watch stats, TMDB log, personal movie diary, PWA movie app, Supabase media app, media collection, KMZLogger, MovizEZCloudTracker, KMZMediaStats">
   <meta name="robots" content="index, follow">
   <meta name="author" content="KeepMoviEZ  Team">
-  <link rel="canonical" href="nishantadhikari.info.np/projects/keepmoviez/">
+  <link rel="canonical" href="keepmoviez.nishantadhikari.info.np">
 
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
@@ -79,7 +79,7 @@
             </div>
             <div class="list-group list-group-flush">
                 <button id="menuThemeToggleBtn" class="list-group-item list-group-item-action d-flex align-items-center">
-                    <i class="fas fa-sun mr-2"></i> Toggle Theme
+                    <i class="fas fa-sun mr-2"></i> Theme
                 </button>
                 <!-- NEW Import/Pull Button -->
                 <button id="menuImportBtn" class="list-group-item list-group-item-action d-flex align-items-center">
@@ -739,9 +739,17 @@
                                 </div>
                                 <p class="mt-2"><strong>Watched:</strong> <span id="watchedCountProgress">0</span> / <span id="totalRelevantCountProgress">0</span></p>
                                 <hr>
-                                <h6>Watch Pace</h6>
-                                <p><strong>Average entries per month (last 12 months):</strong> <span id="avgMonthlyPace">N/A</span></p>
+                                <h6>Pace & Predictions</h6>
                                 <p><strong>Estimated time to finish 'To Watch' list:</strong> <span id="estimatedCompletionTime">N/A</span></p>
+                                <p><strong>Completion Prediction (30-day pace):</strong> <span id="completionPrediction30">N/A</span></p>
+                                <p><strong>Completion Prediction (90-day pace):</strong> <span id="completionPrediction90">N/A</span></p>
+                                <p><strong>Completion Prediction (365-day pace):</strong> <span id="completionPrediction365">N/A</span></p>
+                                <hr>
+                                <h6>Watchlist Growth (Last 30 Days)</h6>
+                                <p><strong>Net Change:</strong> <span id="watchlistGrowth30">N/A</span></p>
+                                <div class="stats-chart-container" style="height: 250px;">
+                                    <canvas id="chartWatchlistGrowth"></canvas>
+                                </div>
                             </div>
                         </div>
                         <div class="tab-pane fade" id="stats-temporal-detailed" role="tabpanel" aria-labelledby="temporal-detailed-tab">
@@ -805,9 +813,15 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="exportStatsPdfBtn"><i class="fas fa-file-pdf"></i> Export as PDF</button>
+                <div class="modal-footer justify-content-between">
+                  <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="timeFormatToggle">
+                     <label class="custom-control-label small" for="timeFormatToggle"></label>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="exportStatsPdfBtn"><i class="fas fa-file-pdf"></i> Export as PDF</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -892,6 +906,7 @@
                 </div>
                 <div class="modal-body row" id="chartsModalBody" style="max-height: 80vh; overflow-y: auto;">
                     <div class="col-md-6 stats-chart-container"><h6>Watch Instances by Year</h6><canvas id="chartModalWatchInstancesByYear"></canvas></div>
+                    <div class="col-lg-12 stats-chart-container"><h6>Pace Comparison (30, 90, 365 Days)</h6><canvas id="chartNormalizedPace"></canvas></div>
                     <div class="col-md-6 stats-chart-container"><h6>Entries Watched per Genre</h6><canvas id="chartModalMoviesPerGenre"></canvas></div>
                     <div class="col-md-6 stats-chart-container"><h6>Overall Entry Rating Distribution</h6><canvas id="chartModalOverallRatingDistribution"></canvas></div>
                     <div class="col-md-6 stats-chart-container"><h6>Individual Watch Rating Distribution</h6><canvas id="chartModalWatchInstanceRatingDistribution"></canvas></div>
@@ -899,7 +914,7 @@
                     <div class="col-md-6 stats-chart-container"><h6>Language Distribution</h6><canvas id="chartModalLanguageDistribution"></canvas></div>
                     <div class="col-md-6 stats-chart-container"><h6>Top 10 Country Distributions</h6><canvas id="chartModalCountryDistribution"></canvas></div>
                     <div class="col-md-6 stats-chart-container"><h6>Monthly Watch Activity</h6><canvas id="chartModalWatchActivityOverTime"></canvas></div>
-                    <div class="col-md-6 stats-chart-container"><h6>Monthly Average Rating</h6><canvas id="chartModalAvgRatingOverTime"></canvas></div>
+                   <!-- <div class="col-md-6 stats-chart-container"><h6>Monthly Average Rating</h6><canvas id="chartModalAvgRatingOverTime"></canvas></div> -->
                     <div class="col-md-6 stats-chart-container"><h6>Average Overall Rating by Genre</h6><canvas id="chartModalRatingByGenreRadar"></canvas></div>
                 </div>
                 <div class="modal-footer">

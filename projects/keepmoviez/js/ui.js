@@ -597,7 +597,8 @@ window.openDetailsModal = async function(id = null, tmdbObject = null) {
             watchHistory: isLocalEntry ? fullDetails.watchHistory : [],
             seasonsCompleted: isLocalEntry ? fullDetails.seasonsCompleted : null,
             currentSeasonEpisodesWatched: isLocalEntry ? fullDetails.currentSeasonEpisodesWatched : null,
-            runtimeData: fullDetails.runtime
+            runtimeData: fullDetails.runtime,
+            relatedEntries: isLocalEntry ? fullDetails.relatedEntries : [] // Added for the fix
         };
 
         const setText = (selector, text) => { const el = document.querySelector(selector); if (el) el.textContent = text || 'N/A'; };
@@ -662,6 +663,20 @@ window.openDetailsModal = async function(id = null, tmdbObject = null) {
                 if (member && member.name) castListEl.append(`<div class="col-md-4 col-6 mb-2 person-list-item"><a href="#" class="person-link" data-person-id="${member.id}" data-person-name="${member.name}">${member.name}</a> <small class="text-muted">(${member.character || 'N/A'})</small></div>`);
             });
         }
+        
+        // --- START: RELATED ENTRIES FIX ---
+        const manualLinksList = $('#detailsManualLinksList').empty();
+        const hasManualLinks = isLocalEntry && displayObject.relatedEntries && displayObject.relatedEntries.length > 0;
+        toggle('#detailsManualLinksGroup, #manualLinksSeparator', hasManualLinks);
+        if (hasManualLinks) {
+            displayObject.relatedEntries.forEach(relatedId => {
+                const relatedMovie = movieData.find(m => m && m.id === relatedId);
+                if (relatedMovie) {
+                    manualLinksList.append(`<li><a href="#" class="related-item-link" data-movie-id="${relatedMovie.id}">${relatedMovie.Name}</a></li>`);
+                }
+            });
+        }
+        // --- END: RELATED ENTRIES FIX ---
 
         toggle('#detailsStatus', isLocalEntry);
         setText('#detailsStatus', displayObject.status);

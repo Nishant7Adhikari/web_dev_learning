@@ -7,9 +7,7 @@ function calculateAllStatistics(currentMovieData) {
 
     const stats = {};
     const achievementData = {};
-    let totalWatchTimeMinutes = 0; // This will be calculated with the new logic
-    
-    // ### NEW: Variable to track runtime of "To Watch" list ###
+    let totalWatchTimeMinutes = 0;
     let toWatchTotalMinutes = 0;
 
     const isWatchedOrContinue = (movie) => movie.Status === 'Watched' || movie.Status === 'Continue';
@@ -34,22 +32,14 @@ function calculateAllStatistics(currentMovieData) {
     currentMovieData.forEach(movie => {
         if (!movie || !movie.id) return;
 
-        // --- BUG FIX: Total Watch Time Calculation ---
-        if (movie.Status === 'Watched') {
-            if (movie.Category === 'Series') {
-                if (movie.runtime && typeof movie.runtime === 'object' && movie.runtime.episodes && movie.runtime.episode_run_time) {
-                    totalWatchTimeMinutes += movie.runtime.episodes * movie.runtime.episode_run_time;
-                }
-            } else {
-                if (typeof movie.runtime === 'number' && movie.runtime > 0) {
-                    totalWatchTimeMinutes += movie.runtime;
-                }
-            }
-        } else if (movie.Status === 'Continue' && movie.Category === 'Series') {
-            if (
-                movie.runtime && typeof movie.runtime === 'object' &&
-                typeof movie.seasonsCompleted === 'number' && typeof movie.currentSeasonEpisodesWatched === 'number'
-            ) {
+        // --- REFINED: Total Watch Time Calculation ---
+        const watchHistoryCount = Array.isArray(movie.watchHistory) ? movie.watchHistory.length : 0;
+        
+        if (movie.Category === 'Series') {
+            // For Series, count its runtime only ONCE, based on its status.
+            if (movie.Status === 'Watched' && movie.runtime && typeof movie.runtime === 'object' && movie.runtime.episodes && movie.runtime.episode_run_time) {
+                totalWatchTimeMinutes += movie.runtime.episodes * movie.runtime.episode_run_time;
+            } else if (movie.Status === 'Continue' && movie.runtime && typeof movie.runtime === 'object' && typeof movie.seasonsCompleted === 'number' && typeof movie.currentSeasonEpisodesWatched === 'number') {
                 const { seasons, episodes, episode_run_time: episodeRunTime } = movie.runtime;
                 if (seasons > 0 && episodes > 0 && episodeRunTime > 0) {
                     const avgEpisodesPerSeason = episodes / seasons;
@@ -57,9 +47,14 @@ function calculateAllStatistics(currentMovieData) {
                     totalWatchTimeMinutes += totalEpisodesWatched * episodeRunTime;
                 }
             }
+        } else {
+            // For Movies/Docs/Specials, count runtime for EACH watch instance.
+            if (typeof movie.runtime === 'number' && movie.runtime > 0 && watchHistoryCount > 0) {
+                totalWatchTimeMinutes += movie.runtime * watchHistoryCount;
+            }
         }
 
-        // ### NEW: "To Watch" list runtime calculation ###
+        // --- "To Watch" list runtime calculation ---
         if (movie.Status === 'To Watch') {
             if (movie.Category === 'Series' && movie.runtime && typeof movie.runtime === 'object' && movie.runtime.episodes && movie.runtime.episode_run_time) {
                 toWatchTotalMinutes += movie.runtime.episodes * movie.runtime.episode_run_time;
@@ -68,13 +63,11 @@ function calculateAllStatistics(currentMovieData) {
             }
         }
 
-        // Base counts for reporting
         categoryCounts[movie.Category || 'N/A'] = (categoryCounts[movie.Category || 'N/A'] || 0) + 1;
         statusCounts[movie.Status || 'N/A'] = (statusCounts[movie.Status || 'N/A'] || 0) + 1;
         if(movie.Description && movie.Description.length > 30) detailedDescriptionCount++;
         if(Array.isArray(movie.relatedEntries)) manualLinksCount += movie.relatedEntries.length;
 
-        // For watched/continue entries
         if (isWatchedOrContinue(movie)) {
             const overallRatingKey = (movie.overallRating && String(movie.overallRating).trim() !== '') ? String(movie.overallRating) : 'N/A';
             if (overallRatingKey !== 'N/A') {
@@ -141,15 +134,15 @@ function calculateAllStatistics(currentMovieData) {
             overallRatingCounts[overallRatingKey] = (overallRatingCounts[overallRatingKey] || 0) + 1;
         }
 
-        if (Array.isArray(movie.watchHistory)) {
-            rewatchCountsPerTitle[movie.id] = movie.watchHistory.length;
+        if (watchHistoryCount > 0) {
+            rewatchCountsPerTitle[movie.id] = watchHistoryCount;
             movie.watchHistory.forEach(wh => {
                 if (!wh || !wh.date) return;
                 try {
                     const d = new Date(wh.date);
                     if (isNaN(d.getTime())) return;
                     const dateStr = d.toISOString().slice(0, 10);
-                    allWatchInstances.push({ date: dateStr, genre: movie.Genre, time: d.getHours() });
+                    allWatchInstances.push({ date: dateStr, genre: movie.Genre, time: d.getHours(), movie: movie });
 
                     const ratingKey = (wh.rating && String(wh.rating).trim() !== '') ? String(wh.rating) : 'N/A';
                     watchInstanceRatingCounts[ratingKey] = (watchInstanceRatingCounts[ratingKey] || 0) + 1;
@@ -160,8 +153,12 @@ function calculateAllStatistics(currentMovieData) {
                     watchesByYear[y].instances++; watchesByYear[y].titles.add(movie.Name);
                     if (ratingKey !== 'N/A') { watchesByYear[y].ratingsSum += parseFloat(wh.rating); watchesByYear[y].ratedCount++; }
                     
-                    watchesByMonth[ymISO] = watchesByMonth[ymISO] || { instances: 0, titles: new Set(), month_year_iso: ymISO, month_year_label: `${d.toLocaleString('default', { month: 'short' })} ${y}` };
+                    watchesByMonth[ymISO] = watchesByMonth[ymISO] || { instances: 0, titles: new Set(), month_year_iso: ymISO, month_year_label: `${d.toLocaleString('default', { month: 'short' })} ${y}`, ratingsSum: 0, ratedCount: 0 };
                     watchesByMonth[ymISO].instances++; watchesByMonth[ymISO].titles.add(movie.Name);
+                    if (ratingKey !== 'N/A') {
+                        watchesByMonth[ymISO].ratingsSum += parseFloat(wh.rating);
+                        watchesByMonth[ymISO].ratedCount++;
+                    }
                     
                     const dayOfWeek = d.getDay();
                     if (dayOfWeek === 0 || dayOfWeek === 6) {
@@ -182,7 +179,6 @@ function calculateAllStatistics(currentMovieData) {
         }
     });
 
-    // --- Post-Loop Calculations & Achievement Data Construction ---
     achievementData.total_entries = currentMovieData.length;
     achievementData.total_titles_watched = currentMovieData.filter(isWatchedOrContinue).length;
     achievementData.distinct_titles_rewatched = Object.values(rewatchCountsPerTitle).filter(c => c > 1).length;
@@ -249,28 +245,14 @@ function calculateAllStatistics(currentMovieData) {
     achievementData.stats_modal_opened_count = parseInt(localStorage.getItem('stats_modal_opened_count') || '0');
     achievementData.daily_recommendation_watched_count = parseInt(localStorage.getItem('daily_rec_watched_achievement') || '0');
 
-    // --- Final Stats Object Construction for Reporting ---
+    // --- Final Stats Object Construction ---
     stats.achievementData = achievementData;
     stats.totalEntries = achievementData.total_entries;
     stats.totalTitlesWatched = achievementData.total_titles_watched;
-    const formatDuration = (totalMinutes) => {
-        if (!totalMinutes || totalMinutes <= 0) {
-            return "N/A";
-        }
 
-        const MINUTES_IN_AN_HOUR = 60;
-
-        const hours = Math.floor(totalMinutes / MINUTES_IN_AN_HOUR);
-        const remainingMinutes = Math.round(totalMinutes % MINUTES_IN_AN_HOUR);
-
-        let result = [];
-        if (hours > 0) result.push(`${hours} Hour${hours > 1 ? 's' : ''}`);
-        if (remainingMinutes > 0 || result.length === 0) result.push(`${remainingMinutes} Minute${remainingMinutes !== 1 ? 's' : ''}`);
-        
-        return result.join(', ');
-    };
-
-    stats.totalWatchTime = formatDuration(totalWatchTimeMinutes);
+    // Return raw minutes for flexible formatting in the UI
+    stats.totalWatchTimeMinutes = totalWatchTimeMinutes;
+    stats.toWatchTotalMinutes = toWatchTotalMinutes;
     
     const formatCounts = (countsObj) => Object.entries(countsObj).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value || a.label.localeCompare(b.label));
     stats.categories = formatCounts(categoryCounts);
@@ -283,6 +265,7 @@ function calculateAllStatistics(currentMovieData) {
     stats.topRatedGenresOverall = Object.keys(genreRatedEntriesCount).map(g => ({ label: g, value: (genreRatingsSum[g] / genreRatedEntriesCount[g]).toFixed(2), count: genreRatedEntriesCount[g] })).filter(g => g.count > 1).sort((a,b) => b.value - a.value || b.count - a.count);
     stats.watchesByYear = Object.entries(watchesByYear).map(([year, data]) => ({ year, instances: data.instances, unique_titles: data.titles.size, avg_rating: data.ratedCount > 0 ? (data.ratingsSum / data.ratedCount).toFixed(2) : 'N/A' })).sort((a,b) => b.year - a.year);
     stats.watchesByMonth = Object.values(watchesByMonth).sort((a,b) => new Date(b.month_year_iso) - new Date(a.month_year_iso));
+    stats.avgRatingByMonth = Object.values(watchesByMonth).filter(m => m.ratedCount > 0).map(m => ({ label: m.month_year_label, value: (m.ratingsSum / m.ratedCount).toFixed(2), iso: m.month_year_iso })).sort((a, b) => new Date(a.iso) - new Date(b.iso));
     stats.topSingleGenres = formatCounts(watchedGenreCounts);
     stats.genreCombinations = formatCounts(genreCombinationsCounts).filter(c => c.value > 1);
     const sortRatings = (a, b) => (b.rating === 'N/A' ? -1 : parseFloat(b.rating)) - (a.rating === 'N/A' ? -1 : parseFloat(a.rating));
@@ -296,13 +279,105 @@ function calculateAllStatistics(currentMovieData) {
     stats.topCountries = Object.entries(countryCounts).map(([code, count]) => ({ label: getCountryFullName(code), value: count })).sort((a,b) => b.value - a.value || a.label.localeCompare(b.label));
     stats.topLanguages = formatCounts(languageCounts);
     
-    const lastYearISO = new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toISOString().slice(0, 7);
-    const recentMonthlyWatches = Object.values(watchesByMonth).filter(m => m.month_year_iso >= lastYearISO);
-    const totalRecentWatches = recentMonthlyWatches.reduce((sum, m) => sum + m.instances, 0);
-    stats.avgMonthlyPace = recentMonthlyWatches.length > 0 ? (totalRecentWatches / recentMonthlyWatches.length).toFixed(1) : 'N/A';
+    // --- Pace & Prediction Calculations ---
+    const now = new Date();
+    const calculatePace = (days) => {
+        const cutoffDate = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000));
+        let minutesInPeriod = 0;
+        allWatchInstances.filter(wi => new Date(wi.date) >= cutoffDate).forEach(wi => {
+            const movie = wi.movie;
+            if (!movie) return;
+            if (movie.Category === 'Series') { /* Series are not re-counted in pace for rewatches */ } 
+            else if (typeof movie.runtime === 'number' && movie.runtime > 0) {
+                minutesInPeriod += movie.runtime;
+            }
+        });
+        return minutesInPeriod / days;
+    };
+    
+    const pace30 = calculatePace(30);
+    const pace90 = calculatePace(90);
+    const pace365 = calculatePace(365);
 
-    stats.estimatedCompletionTime = formatDuration(toWatchTotalMinutes);
+    const getPredictionDays = (pace) => {
+        if (pace <= 0 || toWatchTotalMinutes <= 0) return null;
+        return toWatchTotalMinutes / pace;
+    };
 
+    stats.estimatedCompletionTimeMinutes = toWatchTotalMinutes;
+    stats.completionPredictionDays30 = getPredictionDays(pace30);
+    stats.completionPredictionDays90 = getPredictionDays(pace90);
+    stats.completionPredictionDays365 = getPredictionDays(pace365);
+
+    // --- Watchlist Growth Calculation ---
+    try {
+        const log = JSON.parse(localStorage.getItem('watchlistActivityLog_v1') || '[]');
+        if(Array.isArray(log)) {
+            const cutoffDate30 = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+            const dailyChanges = {};
+            let netChange = 0;
+            
+            for (let i = 29; i >= 0; i--) {
+                const date = new Date(now.getTime() - (i * 24 * 60 * 60 * 1000));
+                const dateStr = date.toISOString().slice(0, 10);
+                dailyChanges[dateStr] = 0;
+            }
+
+            log.forEach(item => {
+                if (new Date(item.date) >= cutoffDate30) {
+                    if (dailyChanges[item.date] !== undefined) {
+                        dailyChanges[item.date] += (item.type === 'completed' ? -1 : 1);
+                    }
+                }
+            });
+
+            const chartLabels = [], chartData = [];
+            let cumulativeChange = 0;
+            Object.keys(dailyChanges).sort().forEach(dateStr => {
+                cumulativeChange += dailyChanges[dateStr];
+                chartLabels.push(new Date(dateStr).toLocaleDateString(undefined, {month: 'short', day: 'numeric'}));
+                chartData.push(cumulativeChange);
+                netChange += dailyChanges[dateStr];
+            });
+
+            stats.watchlistGrowth30 = `${netChange >= 0 ? '+' : ''}${netChange} items`;
+            stats.watchlistGrowthChartData = { labels: chartLabels, data: chartData };
+        } else {
+            stats.watchlistGrowth30 = "N/A";
+            stats.watchlistGrowthChartData = null;
+        }
+    } catch(e) {
+        stats.watchlistGrowth30 = "N/A";
+        stats.watchlistGrowthChartData = null;
+    }
+
+    // --- Normalized Pace Calculation ---
+    const getNormalizedPaceData = (days) => {
+        const cutoffDate = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000));
+        const relevantInstances = allWatchInstances.filter(wi => new Date(wi.date) >= cutoffDate);
+        const bins = Array(10).fill(0);
+        
+        relevantInstances.forEach(wi => {
+            const dayIndex = Math.floor((new Date(wi.date) - cutoffDate) / (1000 * 60 * 60 * 24));
+            const binIndex = Math.min(9, Math.floor(dayIndex / (days / 10)));
+            bins[binIndex]++;
+        });
+
+        for (let i = 1; i < bins.length; i++) {
+            bins[i] += bins[i-1];
+        }
+        return [0, ...bins]; // Start at 0
+    };
+
+    stats.normalizedPaceData = {
+        labels: ['Start', '10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', 'End'],
+        datasets: [
+            { label: 'Last 30 Days', data: getNormalizedPaceData(30) },
+            { label: 'Last 90 Days', data: getNormalizedPaceData(90) },
+            { label: 'Last 365 Days', data: getNormalizedPaceData(365) }
+        ]
+    };
+    
     return stats;
 }
 // END CHUNK: Comprehensive Statistics Engine

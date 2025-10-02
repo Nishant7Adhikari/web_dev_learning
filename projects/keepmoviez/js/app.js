@@ -172,9 +172,21 @@ window.proceedWithEntrySave = async function(entryToSave, idToEdit) {
             entryToSave.id = entryToSave.id || generateUUID();
             movieData.push(entryToSave);
             showToast("Entry Added", `"${entryToSave.Name}" added locally.`, "success", undefined, DO_NOT_SHOW_AGAIN_KEYS.ENTRY_ADDED);
+            
+            // LOGGING FOR WATCHLIST GROWTH: Log if a new item is added directly to the watchlist
+            if (entryToSave.Status === 'To Watch') {
+                logWatchlistActivity('added');
+            }
         } else {
             const existingIndex = movieData.findIndex(m => m && m.id === idToEdit);
             if (existingIndex !== -1) {
+                // LOGGING FOR WATCHLIST GROWTH: Log if an item is completed
+                const oldStatus = movieData[existingIndex].Status;
+                const newStatus = entryToSave.Status;
+                if (oldStatus === 'To Watch' && newStatus === 'Watched') {
+                    logWatchlistActivity('completed');
+                }
+
                 // Preserve original sync state if it was 'new'
                 const originalSyncState = movieData[existingIndex]._sync_state;
                 movieData[existingIndex] = { ...movieData[existingIndex], ...entryToSave, id: idToEdit };
@@ -197,8 +209,6 @@ window.proceedWithEntrySave = async function(entryToSave, idToEdit) {
         
         if (entryToSave.tmdb_collection_id) await propagateCollectionDataUpdate(entryToSave);
 
-        // REMOVED: No automatic sync after save
-        // if (currentSupabaseUser && typeof comprehensiveSync === 'function') await comprehensiveSync(true);
     } catch (error) {
         console.error("Error in proceedWithEntrySave:", error);
         showToast("Save Error", `Error: ${error.message}`, "error");
@@ -373,6 +383,15 @@ window.handleBatchEditFormSubmit = async function(event) {
             let entry = movieData[entryIndex];
             let entryModified = false;
 
+            // LOGGING FOR WATCHLIST GROWTH: Detect and log completions during batch edit
+            if ('Status' in changes) {
+                const oldStatus = entry.Status;
+                const newStatus = changes.Status;
+                if (oldStatus === 'To Watch' && newStatus === 'Watched') {
+                    logWatchlistActivity('completed');
+                }
+            }
+
             const standardKeys = ['Status', 'Category', 'overallRating', 'Recommendation', 'personalRecommendation', 'Year', 'Country', 'Language'];
             standardKeys.forEach(key => {
                 if (key in changes && entry[key] !== changes[key]) {
@@ -404,8 +423,6 @@ window.handleBatchEditFormSubmit = async function(event) {
             await saveToIndexedDB();
             renderMovieCards();
             showToast("Batch Edit Complete", `${changesMadeCount} of ${selectedEntryIds.length} entries updated locally.`, "success");
-            // REMOVED: No automatic sync
-            // if (currentSupabaseUser) await comprehensiveSync(true);
         } else {
             showToast("No Changes Applied", "Entries already had the specified values.", "info");
         }

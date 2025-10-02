@@ -267,7 +267,7 @@ let activeFilters = {
     country: 'all',
     language: 'all',
     genres: [],
-    genreLogic: 'AND' // NEW: Default logic for genre filtering
+    genreLogic: 'AND'
 };
 let selectedGenres = []; // For the entry modal
 let selectedFilterGenres = []; // For the filter modal
@@ -286,6 +286,10 @@ let currentSortColumn = 'Name';
 let currentSortDirection = 'asc';
 let filterQuery = '';
 
+// App state
+let preferredTimeFormat = localStorage.getItem('preferredTimeFormat') || 'days'; // 'days' or 'hours'
+let knownUnlockedAchievements = new Set(); // For new achievement notifications
+
 // Modal related state
 let movieIdToDelete = null;
 let pendingEntryForConfirmation = null;
@@ -297,9 +301,6 @@ let globalStatsData = {};
 
 // IndexedDB
 let db;
-
-// App state
-let knownUnlockedAchievements = new Set(); // For new achievement notifications
 
 function initializeDOMElements() {
     loadingOverlay = document.getElementById('loadingOverlay');

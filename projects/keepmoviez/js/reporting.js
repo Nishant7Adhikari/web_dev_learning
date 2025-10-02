@@ -349,6 +349,32 @@ async function displayDetailedStatsModal() {
     }
 
     const stats = globalStatsData;
+    const timeFormatToggle = document.getElementById('timeFormatToggle');
+    const preferredFormat = localStorage.getItem('preferredTimeFormat') || 'days';
+    timeFormatToggle.checked = preferredFormat === 'hours';
+
+    const updateDetailedStatsTimeFormat = () => {
+        const currentFormat = timeFormatToggle.checked ? 'hours' : 'days';
+        localStorage.setItem('preferredTimeFormat', currentFormat);
+
+        const totalWatchTimeEl = document.getElementById('statsTotalWatchTime');
+        if (totalWatchTimeEl) totalWatchTimeEl.textContent = formatDuration(globalStatsData.totalWatchTimeMinutes, currentFormat);
+        
+        const estimatedCompletionEl = document.getElementById('estimatedCompletionTime');
+        if (estimatedCompletionEl) estimatedCompletionEl.textContent = formatDuration(globalStatsData.estimatedCompletionTimeMinutes, currentFormat);
+
+        const pred30El = document.getElementById('completionPrediction30');
+        if (pred30El) pred30El.textContent = formatDays(globalStatsData.completionPredictionDays30, currentFormat);
+
+        const pred90El = document.getElementById('completionPrediction90');
+        if (pred90El) pred90El.textContent = formatDays(globalStatsData.completionPredictionDays90, currentFormat);
+
+        const pred365El = document.getElementById('completionPrediction365');
+        if (pred365El) pred365El.textContent = formatDays(globalStatsData.completionPredictionDays365, currentFormat);
+    };
+
+    timeFormatToggle.removeEventListener('change', updateDetailedStatsTimeFormat);
+    timeFormatToggle.addEventListener('change', updateDetailedStatsTimeFormat);
 
     const populateList = (elementId, dataArray, maxItems = 0) => {
         const listEl = document.getElementById(elementId);
@@ -387,15 +413,16 @@ async function displayDetailedStatsModal() {
         });
     };
 
+    // Summary Tab
     document.getElementById('statsTotalEntries').textContent = stats.totalEntries;
     document.getElementById('statsTotalTitlesWatched').textContent = stats.totalTitlesWatched;
     document.getElementById('statsTotalWatchInstances').textContent = stats.totalWatchInstances;
-    document.getElementById('statsTotalWatchTime').textContent = stats.totalWatchTime;
     document.getElementById('statsAvgOverallRating').innerHTML = `${renderStars(stats.avgOverallRating)} (${stats.avgOverallRating})`;
     populateList('statsByCategory', stats.categories);
     populateList('statsByStatus', stats.statuses);
     populateList('statsTopRatedGenresOverall', stats.topRatedGenresOverall.map(g => ({ label: g.label, value: `${g.value} avg (${g.count})` })), 5);
 
+    // Progress Tab
     const toWatchCount = stats.statuses.find(s => s.label === 'To Watch')?.value || 0;
     const watchedCount = stats.statuses.find(s => s.label === 'Watched')?.value || 0;
     const totalForProgress = toWatchCount + watchedCount;
@@ -405,27 +432,34 @@ async function displayDetailedStatsModal() {
     document.getElementById('toWatchProgressBar').setAttribute('aria-valuenow', progressPercent);
     document.getElementById('watchedCountProgress').textContent = watchedCount;
     document.getElementById('totalRelevantCountProgress').textContent = totalForProgress;
-    document.getElementById('avgMonthlyPace').textContent = stats.avgMonthlyPace || 'N/A';
-    document.getElementById('estimatedCompletionTime').textContent = stats.estimatedCompletionTime || 'N/A';
+    
+    document.getElementById('watchlistGrowth30').textContent = stats.watchlistGrowth30 || 'N/A';
 
+    // Temporal Tab
     populateTable('statsWatchesByYear', stats.watchesByYear, [{ key: 'year', label: 'Year' }, { key: 'instances', label: 'Instances' }, { key: 'unique_titles', label: 'Unique Titles' }, { key: 'avg_rating', label: 'Avg. Rating' }]);
     populateTable('statsWatchesByMonth', stats.watchesByMonth.slice(0, 12), [{ key: 'month_year_label', label: 'Month' }, { key: 'instances', label: 'Instances' }, { key: 'unique_titles', label: 'Unique Titles' }]);
 
+    // Genre Tab
     populateList('statsTopSingleGenres', stats.topSingleGenres.slice(0, 10));
     populateList('statsAvgRatingByGenre', stats.topRatedGenresOverall.slice(0, 10).map(g => ({ label: g.label, value: `${g.value} avg (${g.count})` })), 10);
     populateList('genreCombinations', stats.genreCombinations);
 
+    // Ratings Tab
     populateList('statsByOverallRating', stats.overallRatingDistributionData);
     populateList('statsByWatchInstanceRating', stats.watchInstanceRatingDistributionData);
     populateList('statsAvgOverallRatingByCategory', stats.avgOverallRatingByCategory);
 
-    populateList('statsMostWatchedActors', stats.mostWatchedActors);
-    populateList('statsMostWatchedDirectors', stats.mostWatchedDirectors);
-    populateList('statsMostFrequentProductionCompanies', stats.mostFrequentProductionCompanies);
+    // People & Production Tab
+    populateList('statsMostWatchedActors', stats.mostWatchedActors, 10);
+    populateList('statsMostWatchedDirectors', stats.mostWatchedDirectors, 10);
+    populateList('statsMostFrequentProductionCompanies', stats.mostFrequentProductionCompanies, 10);
     populateList('statsAvgRatingByStudio', stats.avgRatingByStudio.map(s => ({ label: s.label, value: `${s.value} avg (${s.count})` })), 5);
 
-    populateList('statsTopCountries', stats.topCountries);
-    populateList('statsTopLanguages', stats.topLanguages);
+    // Country & Language Tab
+    populateList('statsTopCountries', stats.topCountries, 10);
+    populateList('statsTopLanguages', stats.topLanguages, 10);
+
+    updateDetailedStatsTimeFormat();
 
     if (typeof $ !== 'undefined' && !$('#detailedStatsTab .nav-link.active').length) {
         $('#detailedStatsTab a[href="#stats-summary-detailed"]').tab('show');
@@ -455,6 +489,7 @@ function renderChartsForModal(statsData, chartInstanceObj) {
     };
 
     renderSingleChart('chartModalWatchInstancesByYear', 'bar', (statsData.watchesByYear || []).map(d => d.year).reverse(), [{ label: 'Watch Instances', data: (statsData.watchesByYear || []).map(d => d.instances).reverse() }]);
+    renderSingleChart('chartNormalizedPace', 'line', statsData.normalizedPaceData.labels, statsData.normalizedPaceData.datasets.map(ds => ({...ds, fill: false })), { plugins: { legend: { display: true } }, scales: { y: { title: { display: true, text: 'Cumulative Watches' } } }});
     const topGenresForChart = (statsData.topSingleGenres || []).slice(0, 10);
     renderSingleChart('chartModalMoviesPerGenre', 'bar', topGenresForChart.map(d => d.label), [{ label: 'Entries', data: topGenresForChart.map(d => d.value) }], { indexAxis: 'y' });
     renderSingleChart('chartModalOverallRatingDistribution', 'doughnut', (statsData.overallRatingDistributionData || []).map(d => d.label), [{ data: (statsData.overallRatingDistributionData || []).map(d => d.value) }]);
@@ -464,6 +499,8 @@ function renderChartsForModal(statsData, chartInstanceObj) {
     renderSingleChart('chartModalCountryDistribution', 'doughnut', (statsData.topCountries || []).map(d => d.label), [{ data: (statsData.topCountries || []).map(d => d.value) }]);
     const sortedMonthly = [...(statsData.watchesByMonth || [])].slice(0, 12).sort((a, b) => new Date(a.month_year_iso) - new Date(b.month_year_iso));
     renderSingleChart('chartModalWatchActivityOverTime', 'line', sortedMonthly.map(d => d.month_year_label), [{ label: 'Watch Instances', data: sortedMonthly.map(d => d.instances) }]);
+    const sortedMonthlyRatings = [...(statsData.avgRatingByMonth || [])].slice(-12);
+    renderSingleChart('chartModalAvgRatingOverTime', 'line', sortedMonthlyRatings.map(d => d.label), [{ label: 'Average Rating', data: sortedMonthlyRatings.map(d => d.value) }], { scales: { y: { beginAtZero: false, min: 1, max: 5 } } });
     const ratedGenres = (statsData.topRatedGenresOverall || []).filter(g => g.count >= 2).slice(0, 7);
     if (ratedGenres.length >= 3) renderSingleChart('chartModalRatingByGenreRadar', 'radar', ratedGenres.map(d => d.label), [{ label: 'Average Overall Rating', data: ratedGenres.map(d => parseFloat(d.value)) }]);
 }
@@ -585,7 +622,7 @@ async function exportStatsAsPdf(filename = 'KeepMovizEZ_Report.pdf') {
                 ['Total Entries in Log', globalStatsData.totalEntries],
                 ['Total Titles Watched', globalStatsData.totalTitlesWatched],
                 ['Total Individual Watch Instances', globalStatsData.totalWatchInstances],
-                ['Estimated Total Watch Time', globalStatsData.totalWatchTime],
+                ['Estimated Total Watch Time', formatDuration(globalStatsData.totalWatchTimeMinutes, 'days')],
                 ['Average Overall Rating (Watched)', `${globalStatsData.avgOverallRating} / 5`],
             ]
         });
