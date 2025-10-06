@@ -339,7 +339,7 @@ if (menuThemeToggleBtn) {
         });
 
     } else { console.warn("jQuery not loaded. Some features may not work."); }
-    /* END CHUNK: 6: jQuery-Dependent Event Listeners */
+/* END CHUNK: 6: jQuery-Dependent Event Listeners */
 
 //START CHUNK: 7: Final Event Listener Wiring & Global Listeners
         // --- Non-jQuery Listeners ---
@@ -375,8 +375,25 @@ if (menuThemeToggleBtn) {
             
             // Auth, Sync, and Data Management
             document.getElementById('supabaseLoginBtn')?.addEventListener('click', () => supabaseSignInUser(document.getElementById('supabaseEmail').value, document.getElementById('supabasePassword').value));
+            document.getElementById('supabaseGoogleSignInBtn')?.addEventListener('click', supabaseSignInWithGoogle);
             document.getElementById('supabaseSignupBtn')?.addEventListener('click', () => supabaseSignUpUser(document.getElementById('supabaseEmail').value, document.getElementById('supabasePassword').value));
             document.getElementById('supabasePasswordResetBtn')?.addEventListener('click', () => supabaseSendPasswordResetEmail(document.getElementById('supabaseEmail').value));
+            document.getElementById('updatePasswordBtn')?.addEventListener('click', () => {
+                const newPass = document.getElementById('newPassword').value;
+                const confirmPass = document.getElementById('confirmNewPassword').value;
+                const errorDiv = document.getElementById('passwordResetError');
+                if (newPass.length < 6) {
+                    errorDiv.textContent = "Password must be at least 6 characters.";
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+                if (newPass !== confirmPass) {
+                    errorDiv.textContent = "Passwords do not match.";
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+                supabaseUpdateUserPassword(newPass);
+            });
             document.getElementById('menuSupabaseLogoutBtn')?.addEventListener('click', supabaseSignOutUser);
             
             // Standard Sync

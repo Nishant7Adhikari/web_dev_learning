@@ -299,6 +299,24 @@ async function initAuth() {
                 await resetAppForLogout("Your session has ended. Please log in.");
             }
         };
+        
+        // --- MODIFIED: Handle password recovery flow ---
+        let recoveryToken = null;
+        if (window.location.hash.includes('type=recovery')) {
+             const params = new URLSearchParams(window.location.hash.substring(1));
+             recoveryToken = params.get('access_token');
+        }
+
+        if (recoveryToken) {
+            console.log("Password recovery token found.");
+            document.getElementById('supabaseAuthForm').style.display = 'none';
+            document.getElementById('passwordSetupSection').style.display = 'block';
+            document.getElementById('authContainer').style.display = 'flex';
+            document.getElementById('appContent').style.display = 'none';
+            hideLoading();
+            // Stop further execution until user sets a new password
+            return; 
+        }
 
         window.supabaseClient.auth.onAuthStateChange(async (event, session) => {
             const user = session?.user || null;
@@ -310,6 +328,13 @@ async function initAuth() {
 
             if (event === 'SIGNED_OUT') {
                 await resetAppForLogout("You have been logged out.");
+            } else if (event === 'PASSWORD_RECOVERY') {
+                // This event is triggered after a new password is set
+                document.getElementById('supabaseAuthForm').style.display = 'block';
+                document.getElementById('passwordSetupSection').style.display = 'none';
+                showToast("Success", "Your password has been updated. Please log in.", "success");
+                // Clear the hash from the URL
+                window.history.replaceState(null, null, window.location.pathname + window.location.search);
             } else {
                 await handleUserSession(user);
             }
@@ -401,7 +426,8 @@ async function resetAppForLogout(message) {
 }
 // END CHUNK: 3
 
-//START CHUNK: 4: User Authentication Actions
+// START CHUNK: 4: User Authentication Actions
+
 async function supabaseSignInUser(email, password) {
     const authErrorDiv = document.getElementById('authError');
     if(authErrorDiv) authErrorDiv.style.display = 'none';
@@ -417,6 +443,26 @@ async function supabaseSignInUser(email, password) {
         hideLoading();
     }
 }
+
+async function supabaseSignInWithGoogle() {
+    showLoading("Redirecting to Google...");
+    try {
+        const { error } = await window.supabaseClient.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                // --- THIS IS THE FIX ---
+                // We use window.location.href to keep the full path
+                redirectTo: window.location.href, 
+            },
+        });
+        if (error) throw error;
+    } catch (error) {
+        console.error("Google sign in error:", error);
+        showToast("Google Sign-In Failed", error.message, "error");
+        hideLoading();
+    }
+}
+
 async function supabaseSignUpUser(email, password) {
     const authErrorDiv = document.getElementById('authError');
     if(authErrorDiv) authErrorDiv.style.display = 'none';
@@ -461,6 +507,24 @@ async function supabaseSendPasswordResetEmail(email) {
         console.error("Password reset error:", error);
         if (authErrorDiv) { authErrorDiv.textContent = error.message; authErrorDiv.style.display = 'block'; }
         showToast("Reset Failed", error.message, "error");
+    } finally {
+        hideLoading();
+    }
+}
+
+async function supabaseUpdateUserPassword(newPassword) {
+    const errorDiv = document.getElementById('passwordResetError');
+    errorDiv.style.display = 'none';
+    showLoading("Updating password...");
+    try {
+        const { error } = await window.supabaseClient.auth.updateUser({ password: newPassword });
+        if (error) throw error;
+        // The onAuthStateChange listener will handle the success message and UI swap
+    } catch (error) {
+        console.error("Password update error:", error);
+        errorDiv.textContent = error.message;
+        errorDiv.style.display = 'block';
+        showToast("Update Failed", error.message, "error");
     } finally {
         hideLoading();
     }
