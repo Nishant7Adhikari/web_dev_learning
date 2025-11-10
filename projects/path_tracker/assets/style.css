@@ -1,0 +1,309 @@
+/* assets/style.css */
+
+/* ~~~~~~~~~~ Basic Setup & Variables ~~~~~~~~~~ */
+:root {
+  --primary-color: #007bff;
+  --primary-color-dark: #0056b3;
+  --secondary-color: #6c757d;
+  --light-gray: #f8f9fa;
+  --dark-gray: #343a40;
+  --background-color: #e9ecef;
+  --card-background: #ffffff;
+  --text-color: #212529;
+  --border-radius: 8px;
+  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --nav-height: 60px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+/* ~~~~~~~~~~ Main App Layout ~~~~~~~~~~ */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-bottom: var(--nav-height);
+}
+
+.tab {
+  display: none;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.tab.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+header h1 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: var(--dark-gray);
+  padding: 0 0.5rem;
+}
+
+.container {
+  display: grid;
+  gap: 1rem;
+  padding: 0 0.5rem;
+}
+
+/* ~~~~~~~~~~ Reusable Components ~~~~~~~~~~ */
+.card {
+  background: var(--card-background);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1rem;
+}
+
+button, .button-like {
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius);
+  border: none;
+  background-color: var(--primary-color);
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  text-align: center;
+}
+
+button:hover, .button-like:hover {
+  background-color: var(--primary-color-dark);
+}
+
+button:disabled {
+  background-color: var(--secondary-color);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+button.secondary {
+    background-color: var(--secondary-color);
+}
+button.secondary:hover {
+    background-color: #5a6268;
+}
+
+input[type="text"], input[type="number"], select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+}
+
+/* ~~~~~~~~~~ Navigation Bar ~~~~~~~~~~ */
+.app-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--nav-height);
+  background-color: var(--card-background);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.nav-button {
+  flex-grow: 1;
+  height: 100%;
+  background: none;
+  color: var(--secondary-color);
+  font-size: 0.9rem;
+  border: none;
+  border-top: 3px solid transparent;
+}
+
+.nav-button.active {
+  color: var(--primary-color);
+  border-top-color: var(--primary-color);
+}
+
+/* ~~~~~~~~~~ Specific Tabs ~~~~~~~~~~ */
+
+/* Home Tab */
+#tracking-controls, #history-controls, #bulk-actions-container {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Map Tab */
+#map-tab { padding: 0; position: relative; height: 100%; }
+#map-container { width: 100%; height: 100%; }
+#info-panel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    z-index: 5;
+}
+#map-controls, #animation-controls {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    align-items: center;
+    z-index: 10; /* Ensures buttons are on top of the map canvas */
+}
+#map-controls button {
+    font-size: 1.5rem;
+    padding: 0.5rem;
+    line-height: 1;
+}
+.speed-control { display: flex; align-items: center; gap: 0.5rem; }
+
+/* Metrics Tab (Responsive) */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+.stats-grid > div {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+.stats-grid > div > span {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+.measure-controls { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.measure-section { margin-top: 1.5rem; }
+#historical-nodes-list {
+    max-height: 40vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.node-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid var(--background-color);
+    padding-bottom: 1rem;
+}
+.node-thumbnail {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: var(--border-radius);
+}
+.node-info { display: flex; flex-direction: column; }
+.node-info small { font-size: 0.8rem; color: var(--secondary-color); }
+
+/* History Tab */
+.journey-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.journey-info { display: flex; align-items: center; gap: 1rem; }
+.journey-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+
+/* ~~~~~~~~~~ Modals (Responsive) ~~~~~~~~~~ */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+.modal-overlay.active { display: flex; }
+.modal-content {
+  background: white;
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  animation: fadeIn 0.2s ease-in-out;
+}
+#image-preview {
+    max-height: 30vh; /* RESPONSIVE FIX */
+    max-width: 100%;
+    object-fit: contain;
+    align-self: center;
+}
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+/* Data Table */
+.data-table-container {
+    max-height: 400px;
+    overflow: auto;
+}
+table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+table.data-table th, table.data-table td {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    text-align: left;
+    font-size: 0.9rem;
+}
+table.data-table th {
+    background-color: var(--light-gray);
+    position: sticky;
+    top: 0;
+}
+.action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+}

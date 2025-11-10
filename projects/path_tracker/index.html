@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Path Tracker</title>
+    <link rel="stylesheet" href="assets/style.css" />
+  </head>
+  <body>
+    <!-- ~~~~~~~~~~~~~~~~~~~~ Main Application Container ~~~~~~~~~~~~~~~~~~~~ -->
+    <div class="app-container">
+      <!-- Tab Content -->
+      <main class="app-content">
+        <!-- Tab 1: Home/Tracking -->
+        <div id="home-tab" class="tab active">
+          <header><h1>Tracking</h1></header>
+          <div class="container">
+            <div id="tracking-controls" class="card">
+              <button id="start-btn">Start</button>
+              <button id="pause-btn" style="display: none">Pause</button>
+              <button id="stop-btn" style="display: none">
+                Finish Journey
+              </button>
+            </div>
+            <div id="active-journey-panel" class="card" style="display: none">
+              <h3>Current Journey Data</h3>
+              <p>Time: <span id="journey-timer">00:00:00</span></p>
+              <button id="add-data-btn">Add Manual Stop</button>
+              <div id="data-table-container"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Map -->
+        <div id="map-tab" class="tab">
+          <div id="map-container"></div>
+          <div id="info-panel">
+            Map is idle. Start a journey or view one from History.
+          </div>
+          <div id="map-controls">
+            <button id="reset-view-btn" title="Reset View">🔄</button>
+            <button id="preview-btn" title="Animate Path">▶️ Preview</button>
+          </div>
+          <div id="animation-controls" style="display: none">
+            <button id="anim-play-pause-btn">Pause</button>
+            <button id="anim-stop-btn">Stop</button>
+            <button id="anim-lock-camera-btn">Free Camera</button>
+            <div class="speed-control">
+              <label for="anim-speed-slider">Speed:</label>
+              <input type="range" id="anim-speed-slider" min="1" max="50" step="1" value="5"/>
+            </div>
+          </div>
+        </div>
+        
+        <!-- TAB 3: Metrics -->
+        <div id="metrics-tab" class="tab">
+            <header><h1>Metrics</h1></header>
+            <div class="container">
+                <div id="metrics-info-panel" class="card">
+                    <p>Start a journey or select one from the History tab to see detailed metrics.</p>
+                </div>
+                
+                <!-- Panel for Historical Journey Analysis -->
+                <div id="metrics-historical-panel" style="display: none;">
+                    <div class="card">
+                        <h3 id="metrics-journey-name-historical"></h3>
+                        <h4>Journey Statistics</h4>
+                        <div id="journey-stats-container" class="stats-grid"></div>
+                    </div>
+                     <div class="card">
+                        <h4>Distance & Time Between Points</h4>
+                        <div class="measure-controls">
+                            <select id="start-point-select"><option>Start</option></select>
+                            <span>to</span>
+                            <select id="end-point-select"><option>End</option></select>
+                        </div>
+                        <div class="measure-results">
+                            <p><strong>Distance:</strong> <span id="measured-distance">0.00 km</span></p>
+                            <p><strong>Elapsed Time:</strong> <span id="measured-time">00:00:00</span></p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h4>Data Points</h4>
+                        <div id="historical-nodes-list"></div>
+                    </div>
+                </div>
+
+                <!-- Panel for Live Journey Dashboard -->
+                <div id="metrics-live-panel" style="display: none;">
+                    <div class="card">
+                        <h3 id="metrics-journey-name-live"></h3>
+                        <div class="stats-grid">
+                            <div><strong>Total Distance</strong><span id="live-total-distance">0.00 km</span></div>
+                            <div><strong>Current Velocity</strong><span id="live-current-velocity">0 km/h</span></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h4>Estimated Time of Arrival (ETA)</h4>
+                        <div class="measure-controls">
+                            <label for="eta-distance-input">For next (km):</label>
+                            <input type="number" id="eta-distance-input" placeholder="e.g., 10.5">
+                        </div>
+                         <div class="measure-results">
+                            <p><strong>Estimated Time:</strong> <span id="eta-result">--:--:--</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 4: History -->
+        <div id="history-tab" class="tab">
+          <header><h1>History</h1></header>
+          <div class="container">
+            <div id="history-controls" class="card">
+              <label for="import-prkt-input" class="button-like">Import (.prkt)</label>
+              <input type="file" id="import-prkt-input" accept=".prkt" style="display: none"/>
+            </div>
+            <div id="bulk-actions-container" class="card" style="display: none">
+              <button id="export-selected-btn">Export Selected</button>
+              <button id="merge-selected-btn">Merge Selected</button>
+              <button id="delete-selected-btn">Delete Selected</button>
+            </div>
+            <div id="journey-list-container" class="card">
+              <p>No journeys recorded yet.</p>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Tab Navigation Bar -->
+      <nav class="app-nav">
+        <button data-tab="home-tab" class="nav-button active">Home</button>
+        <button data-tab="map-tab" class="nav-button">Map</button>
+        <button data-tab="metrics-tab" class="nav-button">Metrics</button>
+        <button data-tab="history-tab" class="nav-button">History</button>
+      </nav>
+    </div>
+
+    <!-- Add Stop Modal -->
+    <div id="add-stop-modal" class="modal-overlay">
+      <div class="modal-content">
+        <h3>Add a Manual Stop</h3>
+        <input type="text" id="node-name-input" placeholder="Name this stop (optional)"/>
+        
+        <div class="modal-actions" style="justify-content: center;">
+            <button id="capture-image-btn" class="secondary">Capture with Camera</button>
+            <button id="upload-image-btn" class="secondary">Upload from Gallery</button>
+        </div>
+        
+        <input type="file" id="image-capture-input" accept="image/*" capture="environment" style="display: none"/>
+        <input type="file" id="image-upload-input" accept="image/*" style="display: none"/>
+        
+        <img id="image-preview" src="#" alt="Image Preview" style="display: none;"/>
+        <div class="modal-actions">
+          <button id="save-stop-btn">Save</button>
+          <button id="cancel-stop-btn" class="secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Image Viewer Modal -->
+    <div id="image-viewer-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="image-viewer-title">Image</h3>
+            <img id="image-viewer-img" src="#" alt="Node Image" style="max-width: 100%; max-height: 60vh;"/>
+            <p><small id="image-viewer-timestamp"></small></p>
+            <div class="modal-actions">
+                <button id="image-viewer-close-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generic Dialog Modal -->
+    <div id="dialog-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="dialog-title"></h3>
+            <p id="dialog-message"></p>
+            <div id="dialog-buttons" class="modal-actions">
+                <!-- Buttons are dynamically injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="js/variable.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/gps.js"></script>
+    <script src="js/pathRenderer.js"></script>
+    <script src="js/exportImport.js"></script>
+    <script src="js/metrics.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
