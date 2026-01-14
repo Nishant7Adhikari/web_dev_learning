@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TU Exam Generator (Line Break Fixed)</title>
+    
+    <!-- Library: jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400&display=swap');
+        .paper-font { font-family: 'Tinos', 'Times New Roman', serif; line-height: 1.35; color: #000; }
+        
+        /* Editor Sheet */
+        .paper-sheet {
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin: 0 auto;
+            position: relative;
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 70vh;
+            padding: 20px; 
+            font-size: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .paper-sheet { width: 210mm; min-height: 297mm; padding: 20mm 20mm; }
+        }
+
+        .header-grid { display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: start; }
+        .header-right { text-align: right; white-space: nowrap; }
+        
+        .config-input { width: 100%; background: #f3f4f6; border: 1px solid #d1d5db; padding: 6px; border-radius: 4px; font-size: 0.85rem; }
+        .config-input:focus { outline: 2px solid #2563eb; background: white; }
+        
+        /* VISUAL EDITOR STYLES */
+        .editable-area { 
+            min-height: 1.5em; 
+            overflow-wrap: break-word; 
+            word-break: break-word; 
+            white-space: pre-wrap; /* Critical for seeing lines while typing */
+            max-width: 100%;
+        }
+        .editable-area:empty:before { content: attr(placeholder); color: #9ca3af; font-style: italic; }
+        .editable-area:focus { outline: none; background-color: #eff6ff; }
+        
+        .question-item .controls { opacity: 0; transition: opacity 0.2s; }
+        .question-item:hover .controls { opacity: 1; }
+        
+        .fab { position: fixed; bottom: 20px; right: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 40; }
+        header { z-index: 50; }
+        #mobile-menu-backdrop { z-index: 55; }
+        #mobile-menu { z-index: 60; }
+    </style>
+</head>
+<body class="bg-gray-100 h-screen flex flex-col overflow-hidden text-sm text-gray-800">
+
+    <!-- === HEADER (Sticky) === -->
+    <header class="bg-white border-b border-gray-200 px-4 py-3 shadow-sm sticky top-0 flex justify-between items-center shrink-0 w-full">
+        <div class="flex items-center gap-2">
+            <div class="bg-blue-600 text-white w-8 h-8 rounded-lg flex items-center justify-center font-bold shadow-sm">
+                <i class="fa-solid fa-database"></i>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-bold text-base leading-tight">ExamDB</span>
+                <span class="text-[10px] text-gray-500 uppercase tracking-wide">v4.2 Line Fix</span>
+            </div>
+        </div>
+
+        <div class="hidden md:flex items-center gap-2">
+            <button onclick="toggleConfig()" class="btn-secondary"><i class="fa-solid fa-sliders mr-1"></i> Config</button>
+            <div class="h-6 w-px bg-gray-300 mx-1"></div>
+            <label class="btn-secondary cursor-pointer hover:bg-blue-50 text-blue-700 border-blue-200">
+                <i class="fa-solid fa-file-import mr-1"></i> Import
+                <input type="file" id="json-upload-desktop" accept=".json" class="hidden" onchange="importJSON(this)">
+            </label>
+            <button onclick="downloadJSON()" class="btn-secondary"><i class="fa-solid fa-file-code mr-1"></i> JSON</button>
+            <button onclick="generateNativePDF()" class="btn-primary bg-red-600 hover:bg-red-700 text-white"><i class="fa-solid fa-file-pdf mr-1"></i> PDF</button>
+            <button onclick="nextYearStructure()" class="btn-secondary text-green-700 border-green-200 bg-green-50">Next Year <i class="fa-solid fa-arrow-right ml-1"></i></button>
+        </div>
+
+        <button onclick="toggleMobileMenu()" class="md:hidden text-gray-600 text-xl p-2 focus:outline-none"><i class="fa-solid fa-bars"></i></button>
+    </header>
+
+    <!-- === MOBILE MENU === -->
+    <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black/50 hidden" onclick="toggleMobileMenu()"></div>
+    <div id="mobile-menu" class="fixed top-0 right-0 h-full w-64 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col pt-16">
+        <button onclick="toggleMobileMenu()" class="absolute top-4 right-4 text-gray-400 text-xl"><i class="fa-solid fa-times"></i></button>
+        
+        <button onclick="toggleConfig(); toggleMobileMenu()" class="p-4 text-left border-b border-gray-50 hover:bg-gray-50 flex items-center gap-3">
+            <i class="fa-solid fa-sliders text-gray-400"></i> Settings / Config
+        </button>
+        <label class="p-4 text-left border-b border-gray-50 hover:bg-gray-50 flex items-center gap-3 cursor-pointer">
+            <i class="fa-solid fa-file-import text-blue-500"></i> Import JSON
+            <input type="file" id="json-upload-mobile" accept=".json" class="hidden" onchange="importJSON(this)">
+        </label>
+        <button onclick="downloadJSON(); toggleMobileMenu()" class="p-4 text-left border-b border-gray-50 hover:bg-gray-50 flex items-center gap-3">
+            <i class="fa-solid fa-file-code text-yellow-500"></i> Export JSON
+        </button>
+        <button onclick="generateNativePDF(); toggleMobileMenu()" class="p-4 text-left border-b border-gray-50 hover:bg-gray-50 flex items-center gap-3">
+            <i class="fa-solid fa-file-pdf text-red-500"></i> Download PDF
+        </button>
+        <button onclick="nextYearStructure(); toggleMobileMenu()" class="p-4 text-left hover:bg-green-50 flex items-center gap-3 text-green-700 font-bold bg-green-50">
+            <i class="fa-solid fa-forward"></i> Clear & Next Year
+        </button>
+    </div>
+
+    <!-- === MAIN WORKSPACE === -->
+    <div class="flex flex-1 overflow-hidden relative">
+        <aside id="config-panel" class="w-80 bg-white border-r border-gray-200 overflow-y-auto absolute h-full z-40 transition-transform transform -translate-x-full shadow-2xl">
+            <div class="p-5">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-bold text-gray-800 uppercase text-xs tracking-wider">Document Settings</h3>
+                    <button onclick="toggleConfig()" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-times text-lg"></i></button>
+                </div>
+                <div class="space-y-4">
+                    <div class="group">
+                        <label class="text-xs font-bold text-gray-500 uppercase">Year</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="conf-year" class="config-input font-bold text-blue-600 text-lg" value="2078" oninput="renderHeader()">
+                            <button onclick="incrementYear()" class="bg-gray-100 hover:bg-gray-200 px-3 rounded border border-gray-300 text-gray-600"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-gray-500 uppercase">University Info</label>
+                        <input type="text" id="conf-uni" class="config-input font-bold" value="Tribhuvan University" oninput="renderHeader()">
+                        <input type="text" id="conf-inst" class="config-input" value="Institute of Science and Technology" oninput="renderHeader()">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-gray-500 uppercase">Subject Details</label>
+                        <input type="text" id="conf-sub" class="config-input font-bold" value="Computer Science and Information Technology" oninput="renderHeader()">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="conf-code" class="config-input" value="CSc. 101" oninput="renderHeader()">
+                            <input type="text" id="conf-time" class="config-input" value="3 hours." oninput="renderHeader()">
+                        </div>
+                        <input type="text" id="conf-subt" class="config-input" value="(Introduction to Information Technology)" oninput="renderHeader()">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-gray-500 uppercase">Marks</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="conf-fm" class="config-input" value="60" oninput="renderHeader()">
+                            <input type="text" id="conf-pm" class="config-input" value="24" oninput="renderHeader()">
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-gray-500 uppercase">Level</label>
+                        <input type="text" id="conf-level" class="config-input" value="Bachelor Level/ First Year/ First Semester/ Science" oninput="renderHeader()">
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto bg-gray-100 p-2 md:p-8 flex justify-center items-start relative z-0" onclick="if(!document.getElementById('mobile-menu').classList.contains('translate-x-full')) closeMobileMenu()">
+            <div id="editor-container" class="paper-sheet paper-font text-base rounded-sm">
+                <div id="header-render"></div>
+                <div class="text-left mb-6 italic text-sm mt-4 text-gray-600">
+                    Candidates are required to give their answers in their own words as for as practicable.<br>
+                    The figures in the margin indicate full marks.
+                </div>
+                
+                <div id="sections-container"></div>
+                
+                <div class="text-center text-gray-400 mt-16" id="empty-state">
+                    <div class="bg-gray-50 inline-block p-4 rounded-full mb-3">
+                        <i class="fa-solid fa-file-circle-plus text-3xl text-gray-300"></i>
+                    </div>
+                    <p class="mb-2 font-medium">No questions added yet</p>
+                    <button onclick="openSectionModal()" class="text-blue-600 hover:underline text-sm">Create your first section</button>
+                </div>
+                <br>
+            </div>
+            <div class="h-24"></div> 
+        </main>
+
+        <button onclick="openSectionModal()" class="md:hidden fab bg-blue-600 hover:bg-blue-700 text-white w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-lg transition-transform active:scale-95">
+            <i class="fa-solid fa-plus"></i>
+        </button>
+        <button onclick="openSectionModal()" class="hidden md:flex fixed bottom-8 right-8 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full shadow-lg items-center gap-2 font-bold transition-transform active:scale-95 z-40">
+            <i class="fa-solid fa-plus"></i> Add Section
+        </button>
+    </div>
+
+    <!-- === MODAL === -->
+    <div id="modal-section" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100">
+            <div class="bg-gray-50 px-5 py-4 border-b flex justify-between items-center">
+                <h3 class="font-bold text-gray-800">Add Section</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <div class="p-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Title</label>
+                    <input type="text" id="sec-title" class="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Long Questions">
+                    <div class="flex gap-2 mt-2 overflow-x-auto">
+                        <span onclick="fillTitle('Long Questions:')" class="text-xs bg-blue-50 text-blue-600 border border-blue-100 px-3 py-1 rounded-full cursor-pointer hover:bg-blue-100 font-medium">Long</span>
+                        <span onclick="fillTitle('Short Questions:')" class="text-xs bg-green-50 text-green-600 border border-green-100 px-3 py-1 rounded-full cursor-pointer hover:bg-green-100 font-medium">Short</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Instructions</label>
+                    <input type="text" id="sec-inst" class="w-full border border-gray-300 p-2.5 rounded-lg outline-none" placeholder="e.g. Attempt any two: (2x10=20)">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Start #</label>
+                        <input type="number" id="sec-start" class="w-full border border-gray-300 p-2.5 rounded-lg outline-none" value="1">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Style</label>
+                        <select id="sec-type" class="w-full border border-gray-300 p-2.5 rounded-lg outline-none bg-white">
+                            <option value="1">1, 2, 3...</option>
+                            <option value="a">a, b, c...</option>
+                            <option value="none">Text Only</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="p-5 pt-0 flex justify-end gap-3">
+                <button onclick="closeModal()" class="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-lg font-medium">Cancel</button>
+                <button onclick="addSection()" class="px-5 py-2.5 bg-blue-600 text-white font-bold rounded-lg shadow hover:bg-blue-700">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let sectionsData = [];
+        let lastSectionConfig = {
+            title: "Long Questions:",
+            instruction: "",
+            listType: "1"
+        };
+
+        window.onload = function() {
+            renderHeader();
+            loadConfig(); 
+            updateEmptyState();
+        };
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const backdrop = document.getElementById('mobile-menu-backdrop');
+            
+            if (menu.classList.contains('translate-x-full')) {
+                menu.classList.remove('translate-x-full');
+                menu.classList.add('translate-x-0');
+                backdrop.classList.remove('hidden');
+            } else {
+                menu.classList.remove('translate-x-0');
+                menu.classList.add('translate-x-full');
+                backdrop.classList.add('hidden');
+            }
+        }
+        function closeMobileMenu() {
+            document.getElementById('mobile-menu').classList.remove('translate-x-0');
+            document.getElementById('mobile-menu').classList.add('translate-x-full');
+            document.getElementById('mobile-menu-backdrop').classList.add('hidden');
+        }
+
+        // --- RENDER UI ---
+        function renderHeader() {
+            const h = getHeaderData();
+            const html = `
+                <div class="text-center mb-6">
+                    <h3 class="font-bold text-lg">${h.uni}</h3>
+                    <h3 class="font-bold text-lg">${h.inst}</h3>
+                    <h3 class="font-bold text-lg">${h.year}</h3>
+                </div>
+                <div class="header-grid">
+                    <div class="text-left">${h.level}</div>
+                    <div class="header-right">Full Marks: ${h.fm}</div>
+                </div>
+                <div class="header-grid">
+                    <div class="font-bold text-left">${h.sub} (${h.code})</div>
+                    <div class="header-right">Pass Marks: ${h.pm}</div>
+                </div>
+                <div class="header-grid">
+                    <div class="text-left">${h.subt}</div>
+                    <div class="header-right">Time: ${h.time}</div>
+                </div>
+            `;
+            document.getElementById('header-render').innerHTML = html;
+            saveConfig();
+        }
+
+        function getHeaderData() {
+            return {
+                uni: document.getElementById('conf-uni').value,
+                inst: document.getElementById('conf-inst').value,
+                year: document.getElementById('conf-year').value,
+                level: document.getElementById('conf-level').value,
+                fm: document.getElementById('conf-fm').value,
+                pm: document.getElementById('conf-pm').value,
+                sub: document.getElementById('conf-sub').value,
+                code: document.getElementById('conf-code').value,
+                time: document.getElementById('conf-time').value,
+                subt: document.getElementById('conf-subt').value
+            };
+        }
+
+        function renderSections() {
+            const container = document.getElementById('sections-container');
+            container.innerHTML = sectionsData.map(sec => {
+                const listStyle = sec.listType === 'none' ? 'list-style: none; padding-left: 0;' : 
+                                  sec.listType === 'a' ? 'list-style-type: lower-alpha;' : 'list-style-type: decimal;';
+                
+                return `
+                <div class="mb-8 relative group border-l-4 border-transparent hover:border-blue-100 pl-4 transition-all" id="${sec.id}">
+                    <div class="flex justify-between items-start">
+                        <div class="w-full min-w-0">
+                            <div class="underline font-bold mt-4 mb-1 text-lg editable-area" contenteditable="true" 
+                                 onblur="updateSectionData('${sec.id}', 'title', this.innerText)">${sec.title}</div>
+                            <div class="font-bold mb-3 editable-area" contenteditable="true"
+                                 onblur="updateSectionData('${sec.id}', 'instruction', this.innerText)">${sec.instruction}</div>
+                        </div>
+                        <button onclick="deleteSection('${sec.id}')" class="text-red-300 hover:text-red-500 opacity-0 group-hover:opacity-100 p-2"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                    <ol class="pl-6 mb-2" style="${listStyle}" start="${sec.startNum}">
+                        ${sec.questions.map((q, idx) => `
+                            <li class="mb-4 text-justify question-item relative pl-1">
+                                <div class="editable-area outline-none min-h-[1.5em]" contenteditable="true" placeholder="Type question..." 
+                                     id="qtext-${sec.id}-${idx}"
+                                     oninput="updateQuestionText('${sec.id}', ${idx}, this.innerHTML)">${q.html}</div>
+                                <div class="absolute -left-8 top-0 controls flex flex-col gap-1">
+                                    <button onclick="removeQuestion('${sec.id}', ${idx})" class="text-red-300 hover:text-red-500"><i class="fa-solid fa-minus"></i></button>
+                                </div>
+                            </li>
+                        `).join('')}
+                    </ol>
+                    <button onclick="addQuestion('${sec.id}')" class="text-xs bg-gray-50 text-blue-600 px-3 py-1.5 rounded-full border border-gray-200 hover:bg-blue-50 font-medium opacity-60 hover:opacity-100 transition mt-2">
+                        <i class="fa-solid fa-plus mr-1"></i> Add Question
+                    </button>
+                </div>`;
+            }).join('');
+        }
+
+        // --- LOGIC ---
+        function addSection() {
+            const title = document.getElementById('sec-title').value;
+            const instruction = document.getElementById('sec-inst').value;
+            const listType = document.getElementById('sec-type').value;
+            const startNum = parseInt(document.getElementById('sec-start').value || 1);
+
+            if(!title) return alert("Title required");
+            lastSectionConfig = { title, instruction, listType };
+
+            const secId = `sec-${Date.now()}`;
+            sectionsData.push({
+                id: secId,
+                title: title,
+                instruction: instruction,
+                startNum: startNum,
+                listType: listType,
+                questions: []
+            });
+            renderSections();
+            closeModal();
+            addQuestion(secId);
+            updateEmptyState();
+        }
+
+        function addQuestion(secId) {
+            const sec = sectionsData.find(s => s.id === secId);
+            if(sec) sec.questions.push({ html: '' });
+            renderSections();
+            setTimeout(() => {
+                const inputs = document.querySelectorAll(`#${secId} .editable-area[contenteditable="true"]`);
+                if(inputs.length) inputs[inputs.length - 1].focus();
+            }, 50);
+        }
+
+        function updateQuestionText(secId, idx, html) { sectionsData.find(s => s.id === secId).questions[idx].html = html; }
+        function updateSectionData(secId, field, val) { sectionsData.find(s => s.id === secId)[field] = val; }
+        function removeQuestion(secId, idx) { sectionsData.find(s => s.id === secId).questions.splice(idx, 1); renderSections(); }
+        function deleteSection(secId) { if(confirm("Delete section?")) { sectionsData = sectionsData.filter(s => s.id !== secId); renderSections(); updateEmptyState(); } }
+        function updateEmptyState() { document.getElementById('empty-state').style.display = sectionsData.length === 0 ? 'block' : 'none'; }
+        
+        function openSectionModal() {
+            closeMobileMenu();
+            let totalQs = 0;
+            if(sectionsData.length > 0) {
+                const lastSec = sectionsData[sectionsData.length - 1];
+                totalQs = lastSec.startNum + lastSec.questions.length;
+                if(lastSec.listType === 'a') totalQs = 1; 
+            } else {
+                totalQs = 1;
+            }
+            document.getElementById('sec-start').value = totalQs;
+            if(lastSectionConfig) {
+                document.getElementById('sec-title').value = lastSectionConfig.title;
+                document.getElementById('sec-inst').value = lastSectionConfig.instruction;
+                document.getElementById('sec-type').value = lastSectionConfig.listType;
+            }
+            document.getElementById('modal-section').classList.remove('hidden');
+            document.getElementById('sec-title').focus();
+        }
+        function closeModal() { document.getElementById('modal-section').classList.add('hidden'); }
+        function fillTitle(t) { document.getElementById('sec-title').value = t; }
+
+        function nextYearStructure() {
+            closeMobileMenu();
+            if(sectionsData.length > 0 && !confirm("Finish this year?\n\nThis will clear the text answers but KEEP the questions/layout for the next year.")) return;
+            incrementYear();
+            sectionsData.forEach(section => {
+                section.questions.forEach(q => q.html = "");
+            });
+            renderSections();
+            updateEmptyState();
+            document.querySelector('main').scrollTop = 0;
+        }
+
+        function incrementYear() {
+            const yi = document.getElementById('conf-year');
+            yi.value = parseInt(yi.value) + 1;
+            renderHeader();
+        }
+
+        // --- NATIVE jsPDF GENERATION WITH LINE BREAK FIX ---
+        function generateNativePDF() {
+            closeMobileMenu();
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+            const h = getHeaderData();
+            
+            doc.setFont("times", "normal");
+            let y = 20; 
+
+            // HEADER
+            doc.setFont("times", "bold");
+            doc.setFontSize(14);
+            doc.text(h.uni, 105, y, { align: "center" }); y += 7;
+            doc.text(h.inst, 105, y, { align: "center" }); y += 7;
+            doc.text(h.year, 105, y, { align: "center" }); y += 12;
+
+            doc.setFontSize(11);
+            doc.text(h.level, 20, y); 
+            doc.text(`Full Marks: ${h.fm}`, 190, y, { align: "right" }); 
+            y += 6;
+
+            doc.text(`${h.sub} (${h.code})`, 20, y);
+            doc.text(`Pass Marks: ${h.pm}`, 190, y, { align: "right" });
+            y += 6;
+
+            doc.setFont("times", "normal");
+            doc.text(h.subt, 20, y);
+            doc.text(`Time: ${h.time}`, 190, y, { align: "right" });
+            y += 10;
+
+            doc.setFontSize(10);
+            doc.setFont("times", "italic");
+            doc.text("Candidates are required to give their answers in their own words as for as practicable.", 20, y); y+=5;
+            doc.text("The figures in the margin indicate full marks.", 20, y); 
+            y += 10;
+
+            // SECTIONS
+            doc.setFontSize(12);
+            doc.setFont("times", "normal");
+            
+            sectionsData.forEach(sec => {
+                if(y > 260) { doc.addPage(); y = 20; }
+
+                doc.setFont("times", "bold");
+                doc.text(sec.title, 20, y);
+                doc.setFont("times", "normal");
+                
+                y += 6;
+                if(sec.instruction) {
+                    doc.text(sec.instruction, 20, y);
+                    y += 8;
+                }
+
+                let qNum = sec.startNum;
+                sec.questions.forEach(q => {
+                    // --- THE FIX: Smart HTML to Text Conversion ---
+                    let formatted = q.html
+                        // 1. Convert Block Tags to Newlines
+                        .replace(/<br\s*\/?>/gi, "\n")
+                        .replace(/<\/?div>/gi, "\n")
+                        .replace(/<\/?p>/gi, "\n")
+                        .replace(/<\/?li>/gi, "\n");
+
+                    // 2. Strip remaining tags
+                    let plainText = formatted.replace(/<[^>]+>/g, '');
+                    
+                    // 3. Decode entities
+                    const txt = document.createElement("textarea");
+                    txt.innerHTML = plainText;
+                    plainText = txt.value;
+
+                    // 4. Clean up: split by lines, trim each line, remove empty lines
+                    // This prevents weird gaps but ensures separate lines exist
+                    plainText = plainText.split('\n')
+                        .map(line => line.trim())
+                        .filter(line => line.length > 0)
+                        .join('\n');
+                    
+                    if(!plainText) return;
+
+                    const prefix = sec.listType === 'a' ? String.fromCharCode(96 + qNum) + "." 
+                                 : sec.listType === 'none' ? '' 
+                                 : qNum + ".";
+
+                    const splitText = doc.splitTextToSize(plainText, 160);
+                    const dim = doc.getTextDimensions(splitText);
+                    
+                    if(y + dim.h > 275) { doc.addPage(); y = 20; }
+
+                    doc.text(prefix, 20, y);
+                    doc.text(splitText, 30, y);
+                    
+                    y += dim.h + 4; 
+                    qNum++;
+                });
+                y += 5; 
+            });
+
+            doc.save(`${h.code}_${h.year}.pdf`);
+        }
+
+        // --- IMPORT/EXPORT ---
+        function downloadJSON() {
+            closeMobileMenu();
+            const data = { meta: getHeaderData(), data: sectionsData };
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${data.meta.code}_${data.meta.year}.json`;
+            a.click();
+        }
+
+        function importJSON(input) {
+            closeMobileMenu();
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    if (json.meta) {
+                        Object.keys(json.meta).forEach(k => {
+                            if(document.getElementById('conf-'+k)) document.getElementById('conf-'+k).value = json.meta[k];
+                        });
+                    }
+                    if (json.data) sectionsData = json.data;
+                    renderHeader();
+                    renderSections();
+                    updateEmptyState();
+                    alert("Import successful!");
+                } catch (err) { alert("Error: " + err); }
+            };
+            reader.readAsText(file);
+            input.value = ''; 
+        }
+
+        function toggleConfig() { document.getElementById('config-panel').classList.toggle('-translate-x-full'); }
+        function saveConfig() {
+            const c = {};
+            document.querySelectorAll('.config-input').forEach(i => c[i.id] = i.value);
+            localStorage.setItem('exam_db_conf', JSON.stringify(c));
+        }
+        function loadConfig() {
+            const saved = JSON.parse(localStorage.getItem('exam_db_conf'));
+            if(saved) {
+                Object.keys(saved).forEach(k => {
+                   if(document.getElementById(k)) document.getElementById(k).value = saved[k];
+                });
+                renderHeader();
+            }
+        }
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            .btn-secondary { background: white; border: 1px solid #e5e7eb; color: #374151; padding: 6px 12px; rounded: 6px; font-weight: 600; font-size: 0.85rem; border-radius: 6px; display: flex; align-items: center; transition: all 0.2s; }
+            .btn-secondary:hover { background: #f9fafb; border-color: #d1d5db; }
+            .btn-primary { padding: 6px 16px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; transition: background 0.2s; }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
