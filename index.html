@@ -1,392 +1,512 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#8a2be2">
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/x-icon" href="favicon.png">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-</script>
-  <!-- Optimized SEO Meta -->
-  <title>Nishant Adhikari - Student & Web Developer</title>
-  <meta name="description" content="Nishant Adhikari – Student & Web Developer from Kathmandu, Nepal. Showcasing innovative projects including PWAs, AI-powered tools, and interactive apps using JavaScript, HTML, CSS, and modern web technologies.">
-  <meta name="author" content="Nishant Adhikari">
-  <meta name="robots" content="index, follow">
-  <meta name="language" content="en">
-  <link rel="canonical" href="https://nishantadhikari.info.np/">
-  
-  <meta name="keywords" content="Nishant Adhikari, web developer Nepal, student portfolio, JavaScript projects, HTML CSS, PWA developer, AI tools, Nishant Web Development, Kathmandu programmer">
-    
-  <!-- Open Graph Meta Tags -->
-<meta property="og:title" content="Nishant Adhikari - Student & Web Developer">
-<meta property="og:description" content="Nishant Adhikari - Student & Web Developer Portfolio | Showcasing innovative web development projects including Progressive Web Apps, AI-powered tools, and interactive applications. Based in Kathmandu, Nepal.">
-<meta property="og:site_name" content="Nishant Adhikari Portfolio">
-<meta property="og:locale" content="en_US">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#8a2be2" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" type="image/x-icon" href="favicon.png" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Optimized SEO Meta  -->
+    <title>Nishant Adhikari - Student & Web Developer</title>
+    <meta
+      name="description"
+      content="Nishant Adhikari – Student & Web Developer from Kathmandu, Nepal. Showcasing innovative projects including PWAs, AI-powered tools, and interactive apps using JavaScript, HTML, CSS, and modern web technologies."
+    />
+    <meta name="author" content="Nishant Adhikari" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="en" />
+    <link rel="canonical" href="https://nishantadhikari.info.np/" />
 
-<meta property="og:url" content="https://nishantadhikari.info.np">
-<meta property="og:type" content="website">
-<meta property="og:image" content="https://nishantadhikari.info.np/media/icon-512x512.png">
-  <!-- Twitter Card Meta Tags -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Nishant Adhikari - Student & Web Developer">
-<meta name="twitter:description" content="Nishant Adhikari - Student & Web Developer Portfolio | Showcasing innovative web development projects including Progressive Web Apps, AI-powered tools, and interactive applications.">
-<meta name="twitter:creator" content="@Nishant_OP11">
-<meta name="twitter:image" content="https://nishantadhikari.info.np/media/icon-512x512.png">
-<meta name="twitter:site" content="@Nishant_OP11">
-  <!--  Structured Data (Person Schema) -->
-  <script type="application/ld+json">
-  {
-      "@context": "https://schema.org",
-      "@type": "Person",
-      "name": "Nishant Adhikari",
-      "url": "https://nishantadhikari.info.np",
-      "sameAs": [
-        "https://github.com/Nishant7Adhikari",
-        "https://x.com/Nishant_OP11",
-        "https://www.instagram.com/nishant060211",
-        "https://www.facebook.com/share/172n6tfVsX/"
-      ],
-      "jobTitle": "Web Developer",
-      "description": "Student and web developer from Kathmandu, Nepal, specializing in JavaScript, HTML, CSS, Progressive Web Apps, and modern web technologies. Creator of innovative, user-friendly web applications and educational projects.",
-      "knowsAbout": ["JavaScript", "HTML", "CSS", "Progressive Web Apps", "React", "Web Development", "UI/UX Design", "Frontend Development"],
-      "worksFor": {
-        "@type": "Organization",
-        "name": "Nishant Adhikari"
-      },
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "Kathmandu",
-        "addressCountry": "Nepal"
-      }
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "CreativeWork",
-      "name": "Nishant Adhikari Web Development Portfolio",
-      "description": "A comprehensive collection of web development projects showcasing skills in JavaScript, HTML, CSS, PWAs, and modern web technologies.",
-      "author": {
-        "@type": "Person",
-        "name": "Nishant Adhikari"
-      },
-      "dateCreated": "2024",
-      "dateModified": "2025",
-      "inLanguage": "en",
-      "keywords": "web development, portfolio, JavaScript, HTML, CSS, PWA, student developer, Kathmandu, Nepal"
-    }
-  ]
-  </script>
-</head>
-<body>
-<!-- Modals -->
-<div class="modal" id="teamModal">
-    <div class="modal-content">
+    <meta
+      name="keywords"
+      content="Nishant Adhikari, web developer Nepal, student portfolio, JavaScript projects, HTML CSS, PWA developer, AI tools, Nishant Web Development, Kathmandu programmer"
+    />
+
+    <!-- Open Graph Meta Tags -->
+    <meta
+      property="og:title"
+      content="Nishant Adhikari - Student & Web Developer"
+    />
+    <meta
+      property="og:description"
+      content="Nishant Adhikari - Student & Web Developer Portfolio | Showcasing innovative web development projects including Progressive Web Apps, AI-powered tools, and interactive applications. Based in Kathmandu, Nepal."
+    />
+    <meta property="og:site_name" content="Nishant Adhikari Portfolio" />
+    <meta property="og:locale" content="en_US" />
+
+    <meta property="og:url" content="https://nishantadhikari.info.np" />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:image"
+      content="https://nishantadhikari.info.np/media/icon-512x512.png"
+    />
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Nishant Adhikari - Student & Web Developer"
+    />
+    <meta
+      name="twitter:description"
+      content="Nishant Adhikari - Student & Web Developer Portfolio | Showcasing innovative web development projects including Progressive Web Apps, AI-powered tools, and interactive applications."
+    />
+    <meta name="twitter:creator" content="@Nishant_OP11" />
+    <meta
+      name="twitter:image"
+      content="https://nishantadhikari.info.np/media/icon-512x512.png"
+    />
+    <meta name="twitter:site" content="@Nishant_OP11" />
+    <!--  Structured Data (Person Schema) -->
+    <script type="application/ld+json">
+      {
+          "@context": "https://schema.org",
+          "@type": "Person",
+          "name": "Nishant Adhikari",
+          "url": "https://nishantadhikari.info.np",
+          "sameAs": [
+            "https://github.com/Nishant7Adhikari",
+            "https://x.com/Nishant_OP11",
+            "https://www.instagram.com/nishant060211",
+            "https://www.facebook.com/share/172n6tfVsX/"
+          ],
+          "jobTitle": "Web Developer",
+          "description": "Student and web developer from Kathmandu, Nepal, specializing in JavaScript, HTML, CSS, Progressive Web Apps, and modern web technologies. Creator of innovative, user-friendly web applications and educational projects.",
+          "knowsAbout": ["JavaScript", "HTML", "CSS", "Progressive Web Apps", "React", "Web Development", "UI/UX Design", "Frontend Development"],
+          "worksFor": {
+            "@type": "Organization",
+            "name": "Nishant Adhikari"
+          },
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Kathmandu",
+            "addressCountry": "Nepal"
+          }
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "CreativeWork",
+          "name": "Nishant Adhikari Web Development Portfolio",
+          "description": "A comprehensive collection of web development projects showcasing skills in JavaScript, HTML, CSS, PWAs, and modern web technologies.",
+          "author": {
+            "@type": "Person",
+            "name": "Nishant Adhikari"
+          },
+          "dateCreated": "2024",
+          "dateModified": "2025",
+          "inLanguage": "en",
+          "keywords": "web development, portfolio, JavaScript, HTML, CSS, PWA, student developer, Kathmandu, Nepal"
+        }
+      ]
+    </script>
+  </head>
+  <body>
+    <!-- Modals -->
+    <div class="modal" id="teamModal">
+      <div class="modal-content">
         <span class="close-btn">&times;</span>
         <div id="teamContent">
-            <!-- SEO-Visible Content Starts Here -->
-            <h2>Collaboration</h2>
-            <div class="team-card">
-                <div class="team-card-header">
-                    <img src="media/icon-512x512.png" alt="Nishant Adhikari">
-                    <div class="team-card-identity">
-                        <h3>Nishant Adhikari</h3>
-                        <p>Founder</p>
-                    </div>
-                </div>
-                <p class="team-card-bio">Student and web developer from Kathmandu, Nepal, specializing in JavaScript, HTML, CSS, Progressive Web Apps, and modern web technologies. Creator of innovative, user-friendly web applications and educational projects.</p>
-                Interest &amp; Hobbies: 
-                <div class="interest-tags">
-                    <span class="tag">JavaScript</span>
-                    <span class="tag">PWA</span>
-                    <span class="tag">UI/UX</span>
-                    <span class="tag">Science</span>
-                </div>
-                <div class="social-links">
-                    <a href="https://github.com/Nishant7Adhikari" target="_blank" rel="noopener noreferrer" title="github"><img src="media/social/github.svg" alt="github"></a>
-                    <a href="https://x.com/Nishant_OP11" target="_blank" rel="noopener noreferrer" title="x"><img src="media/social/x.svg" alt="x"></a>
-                    <a href="https://www.instagram.com/nishant060211" target="_blank" rel="noopener noreferrer" title="instagram"><img src="media/social/instagram.svg" alt="instagram"></a>
-                </div>
+          <!-- SEO-Visible Content Starts Here -->
+          <h2>Collaboration</h2>
+          <div class="team-card">
+            <div class="team-card-header">
+              <img src="media/icon-512x512.png" alt="Nishant Adhikari" />
+              <div class="team-card-identity">
+                <h3>Nishant Adhikari</h3>
+                <p>Founder</p>
+              </div>
             </div>
+            <p class="team-card-bio">
+              Student and web developer from Kathmandu, Nepal, specializing in
+              JavaScript, HTML, CSS, Progressive Web Apps, and modern web
+              technologies. Creator of innovative, user-friendly web
+              applications and educational projects.
+            </p>
+            Interest &amp; Hobbies:
+            <div class="interest-tags">
+              <span class="tag">JavaScript</span>
+              <span class="tag">PWA</span>
+              <span class="tag">UI/UX</span>
+              <span class="tag">Science</span>
+            </div>
+            <div class="social-links">
+              <a
+                href="https://github.com/Nishant7Adhikari"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="github"
+                ><img src="media/social/github.svg" alt="github"
+              /></a>
+              <a
+                href="https://x.com/Nishant_OP11"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="x"
+                ><img src="media/social/x.svg" alt="x"
+              /></a>
+              <a
+                href="https://www.instagram.com/nishant060211"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="instagram"
+                ><img src="media/social/instagram.svg" alt="instagram"
+              /></a>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
-</div>
-<div class="background-gradient"></div>
+    <div class="background-gradient"></div>
 
-<header>
-    <div class="logo"> <img id="myLogo" src="media/icon-512x512.png" alt="Nishant Adhikari"> </div>
-    <div class="search-bar">
-    <input type="text" id="searchInput" placeholder="Search projects..." aria-label="Search Projects">
-</div>
-    <div class="menu-toggle" id="menuToggle" aria-label="Menu">☰</div>
-    <nav id="navMenu">
+    <header>
+      <div class="logo">
+        <img id="myLogo" src="media/icon-512x512.png" alt="Nishant Adhikari" />
+      </div>
+      <div class="search-bar">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search projects..."
+          aria-label="Search Projects"
+        />
+      </div>
+      <div class="menu-toggle" id="menuToggle" aria-label="Menu">☰</div>
+      <nav id="navMenu">
         <a id="themeToggle" aria-label="Toggle Theme">🌓 Theme</a>
         <a id="CollaboratorBTN">Collaboration</a>
         <a id="aboutBtn">About Me</a>
         <a id="contactBtn">Contact</a>
-    </nav>
-</header>
+      </nav>
+    </header>
 
-<main>
-    <div class="hero-section" id="heroSection">
-        <button id="hideHeroBtn" class="hide-hero-button" aria-label="Hide welcome message">&times;</button>
+    <main>
+      <div class="hero-section" id="heroSection">
+        <button
+          id="hideHeroBtn"
+          class="hide-hero-button"
+          aria-label="Hide welcome message"
+        >
+          &times;
+        </button>
         <h1>Nishant Adhikari: Student & Web Developer</h1>
-        <p>Welcome to my personal portfolio website showcasing a collection of web development projects. This is both my learning journey and a demonstration of my skills in HTML, CSS, JavaScript, and modern web technologies.</p>
+        <p>
+          Welcome to my personal portfolio website showcasing a collection of
+          web development projects. This is both my learning journey and a
+          demonstration of my skills in HTML, CSS, JavaScript, and modern web
+          technologies.
+        </p>
+      </div>
+      <section class="projects-grid" id="projectsGrid"></section>
+    </main>
+
+    <footer>
+      <p>&copy; 2025 Nishant Adhikari</p>
+    </footer>
+
+    <div class="modal" id="projectModal">
+      <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <div id="projectDetailContent"></div>
+      </div>
     </div>
-    <section class="projects-grid" id="projectsGrid"></section>
-</main>
 
-<footer>
-    <p>&copy; 2025 Nishant Adhikari</p>
-</footer>
-
-
-
-<div class="modal" id="projectModal"><div class="modal-content"><span class="close-btn">&times;</span><div id="projectDetailContent"></div></div></div>
-
-<div class="modal" id="aboutModal"><div class="modal-content"><span class="close-btn">&times;</span><div id="aboutContent">
-<div id="Markdown">
-## Nishant Adhikari 
----
-
-## 👤 About Me
-
-**Nishant Adhikari** - Student, Web Developer, Science Enthusiast  
-📍 Based in Kathmandu, Nepal
-
-I'm passionate about creating clean, functional, and user-friendly web experiences. This portfolio represents my journey in web development, from basic HTML pages to complex interactive applications. Some of the project are [Vibe coding](https://en.m.wikipedia.org/wiki/Vibe_coding).
-
-
->I may not have full coding knowledge on those projects with the keyword "vibecode".
-
-## 📋 About
-
-This portfolio website features:
-
-- **Interactive Project Gallery** - Browse through my web development projects with search functionality
-- **Progressive Web App (PWA)** - Installable, offline-capable, and mobile-friendly
-- **Responsive Design** - Works seamlessly across all devices and screen sizes  
-- **Dark/Light Theme** - Toggle between themes with persistent user preference
-- **Dynamic Content** - Projects and team information loaded from JSON data
-- **Service Worker Caching** - Optimized performance with smart caching strategies
-
-## 🎯 Highlighted Projects
-
-### **KeepMoviEZ** 
-*personal movie log, tracker and analytics*
-- Comprehensive movie tracking application
-- Custom watchlists and viewing history
-- Movie discovery and analytics
-- **Tech**: JavaScript, IndexedDB, TMDB API, Supabase
-
-### **Momoholics**
-
-## 🎨 Features
-
-- **🔍 Search Functionality** - Find projects by name or technology
-- **📱 Mobile Responsive** - Optimized for all screen sizes
-- **🌙 Theme Toggle** - Dark and light mode support
-- **⚡ Fast Loading** - Service worker caching for optimal performance
-- **📴 Offline Support** - Browse projects even without internet
-- **🎯 SEO Optimized** - Proper meta tags and semantic HTML
-
----
-
-### ⭐ Star this project in [<u>github</u>](https://GitHub.com/Nishant7Adhikari/web_dev_learning) if you found it helpful!  
-### 🤝 Feel free to reach out for collaborations or questions!
-</div>
-<script> document.getElementById('Markdown').innerHTML = marked.parse(document.getElementById('Markdown').textContent);
-</script>
-
-</div></div></div>
-<div class="modal" id="contactModal">
-    <div class="modal-content">
+    <div class="modal" id="aboutModal">
+      <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <div id="aboutContent">
+          <div id="Markdown">
+            ## Nishant Adhikari --- ## 👤 About Me **Nishant Adhikari** -
+            Student, Web Developer, Science Enthusiast 📍 Based in Kathmandu,
+            Nepal I'm passionate about creating clean, functional, and
+            user-friendly web experiences. This portfolio represents my journey
+            in web development, from basic HTML pages to complex interactive
+            applications. Some of the project are [Vibe
+            coding](https://en.m.wikipedia.org/wiki/Vibe_coding). >I may not
+            have full coding knowledge on those projects with the keyword
+            "vibecode". ## 📋 About This portfolio website features: -
+            **Interactive Project Gallery** - Browse through my web development
+            projects with search functionality - **Progressive Web App (PWA)** -
+            Installable, offline-capable, and mobile-friendly - **Responsive
+            Design** - Works seamlessly across all devices and screen sizes -
+            **Dark/Light Theme** - Toggle between themes with persistent user
+            preference - **Dynamic Content** - Projects and team information
+            loaded from JSON data - **Service Worker Caching** - Optimized
+            performance with smart caching strategies ## 🎯 Highlighted Projects
+            ### **KeepMoviEZ** *personal movie log, tracker and analytics* -
+            Comprehensive movie tracking application - Custom watchlists and
+            viewing history - Movie discovery and analytics - **Tech**:
+            JavaScript, IndexedDB, TMDB API, Supabase ### **Momoholics** ## 🎨
+            Features - **🔍 Search Functionality** - Find projects by name or
+            technology - **📱 Mobile Responsive** - Optimized for all screen
+            sizes - **🌙 Theme Toggle** - Dark and light mode support - **⚡
+            Fast Loading** - Service worker caching for optimal performance -
+            **📴 Offline Support** - Browse projects even without internet -
+            **🎯 SEO Optimized** - Proper meta tags and semantic HTML --- ### ⭐
+            Star this project in
+            [<u>github</u>](https://GitHub.com/Nishant7Adhikari/web_dev_learning)
+            if you found it helpful! ### 🤝 Feel free to reach out for
+            collaborations or questions!
+          </div>
+          <script>
+            document.getElementById("Markdown").innerHTML = marked.parse(
+              document.getElementById("Markdown").textContent
+            );
+          </script>
+        </div>
+      </div>
+    </div>
+    <div class="modal" id="contactModal">
+      <div class="modal-content">
         <span class="close-btn">&times;</span>
         <div id="contactContent">
-            <h2>Get in Touch</h2>
-            <p>Connect with me on social media or send an email directly.</p>
-            <div class="contact-socials" id="contactSocials"></div>
-            <hr>
-            <form id="emailForm">
-                <input type="text" id="emailName" placeholder="Your Name" required>
-                <input type="email" id="emailUser" placeholder="Your Email (for context)" required>
-                <textarea id="emailMessage" placeholder="Your Message" rows="4" required></textarea>
-                <button type="submit" class="detail-button">Send via Email</button>
-            </form>
+          <h2>Get in Touch</h2>
+          <p>Connect with me on social media or send an email directly.</p>
+          <div class="contact-socials" id="contactSocials"></div>
+          <hr />
+          <form id="emailForm">
+            <input
+              type="text"
+              id="emailName"
+              placeholder="Your Name"
+              required
+            />
+            <input
+              type="email"
+              id="emailUser"
+              placeholder="Your Email (for context)"
+              required
+            />
+            <textarea
+              id="emailMessage"
+              placeholder="Your Message"
+              rows="4"
+              required
+            ></textarea>
+            <button type="submit" class="detail-button">Send via Email</button>
+          </form>
         </div>
+      </div>
     </div>
-</div>
- <script>
-document.addEventListener('DOMContentLoaded', () => {
-    // Supabase Configuration
-    const SUPABASE_URL = 'https://kzvnxgmkgtlayvcdkoru.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt6dm54Z21rZ3RsYXl2Y2Rrb3J1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2NDcxOTcsImV4cCI6MjA3NDIyMzE5N30.Yg-5oEr_yKGZVYixKm9TLoNnFO51vVcB24atIgydags';
-    const { createClient } = supabase;
-    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // Supabase Configuration
+        const SUPABASE_URL = "https://kzvnxgmkgtlayvcdkoru.supabase.co";
+        const SUPABASE_ANON_KEY =
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt6dm54Z21rZ3RsYXl2Y2Rrb3J1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2NDcxOTcsImV4cCI6MjA3NDIyMzE5N30.Yg-5oEr_yKGZVYixKm9TLoNnFO51vVcB24atIgydags";
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const projectsGrid = document.getElementById('projectsGrid');
-    const searchInput = document.getElementById('searchInput');
-    let projectsData = [];
-    let teamData = [];
+        const projectsGrid = document.getElementById("projectsGrid");
+        const searchInput = document.getElementById("searchInput");
+        let projectsData = [];
+        let teamData = [];
 
-    // ---  MODIFIED: HERO SECTION HIDE LOGIC ---
-    const heroSection = document.getElementById('heroSection');
-    const hideHeroBtn = document.getElementById('hideHeroBtn');
-    
-    const hideHero = () => {
-        if (heroSection && !heroSection.classList.contains('hidden')) {
-            heroSection.classList.add('hidden');
-        }
-    };
-    
-    if (hideHeroBtn) {
-        hideHeroBtn.addEventListener('click', () => {
+        // ---  MODIFIED: HERO SECTION HIDE LOGIC ---
+        const heroSection = document.getElementById("heroSection");
+        const hideHeroBtn = document.getElementById("hideHeroBtn");
+
+        const hideHero = () => {
+          if (heroSection && !heroSection.classList.contains("hidden")) {
+            heroSection.classList.add("hidden");
+          }
+        };
+
+        if (hideHeroBtn) {
+          hideHeroBtn.addEventListener("click", () => {
             // clearTimeout(heroHideTimer); // No longer need to clear a timer
             hideHero(); // Just hide it immediately
-        });
-    }
+          });
+        }
 
-    // Modal, Navigation, and Theme Handling
-    const modals = { team: document.getElementById('teamModal'), project: document.getElementById('projectModal'), about: document.getElementById('aboutModal'), contact: document.getElementById('contactModal') };
-    const contentAreas = { team: document.getElementById('teamContent'), project: document.getElementById('projectDetailContent'), contactSocials: document.getElementById('contactSocials') };
-    document.getElementById('themeToggle').addEventListener('click', () => { const current = document.documentElement.getAttribute('data-theme'); applyTheme(current === 'dark' ? 'light' : 'dark'); });
-    document.getElementById('CollaboratorBTN').addEventListener('click', () => showTeamModal());
-    document.getElementById('aboutBtn').addEventListener('click', () => modals.about.classList.add('is-visible'));
-    document.getElementById('contactBtn').addEventListener('click', () => openContactModal());
-    document.getElementById('menuToggle').addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('navMenu').classList.toggle('show'); });
-    const applyTheme = (theme) => { document.documentElement.setAttribute('data-theme', theme); localStorage.setItem('theme', theme); };
-    applyTheme(localStorage.getItem('theme') || 'dark');
-    
-    // Decoupled data fetching for faster initial load
-    async function fetchData() {
-        try {
+        // Modal, Navigation, and Theme Handling
+        const modals = {
+          team: document.getElementById("teamModal"),
+          project: document.getElementById("projectModal"),
+          about: document.getElementById("aboutModal"),
+          contact: document.getElementById("contactModal"),
+        };
+        const contentAreas = {
+          team: document.getElementById("teamContent"),
+          project: document.getElementById("projectDetailContent"),
+          contactSocials: document.getElementById("contactSocials"),
+        };
+        document.getElementById("themeToggle").addEventListener("click", () => {
+          const current = document.documentElement.getAttribute("data-theme");
+          applyTheme(current === "dark" ? "light" : "dark");
+        });
+        document
+          .getElementById("CollaboratorBTN")
+          .addEventListener("click", () => showTeamModal());
+        document
+          .getElementById("aboutBtn")
+          .addEventListener("click", () =>
+            modals.about.classList.add("is-visible")
+          );
+        document
+          .getElementById("contactBtn")
+          .addEventListener("click", () => openContactModal());
+        document.getElementById("menuToggle").addEventListener("click", (e) => {
+          e.stopPropagation();
+          document.getElementById("navMenu").classList.toggle("show");
+        });
+        const applyTheme = (theme) => {
+          document.documentElement.setAttribute("data-theme", theme);
+          localStorage.setItem("theme", theme);
+        };
+        applyTheme(localStorage.getItem("theme") || "dark");
+
+        // Decoupled data fetching for faster initial load
+        async function fetchData() {
+          try {
             // Step 1: Fetch local data first for an immediate render
             const [projectsResponse, teamsResponse] = await Promise.all([
-                fetch('data/projects.json'),
-                fetch('data/teams.json')
+              fetch("data/projects.json"),
+              fetch("data/teams.json"),
             ]);
             let projects = await projectsResponse.json();
             teamData = await teamsResponse.json();
 
-            projectsData = projects.map(p => ({ ...p, view_count: 0 }));
-            
+            projectsData = projects.map((p) => ({ ...p, view_count: 0 }));
+
             // First Render: Display projects immediately
             loadProjects();
 
             // Step 2: Asynchronously fetch view counts and re-render
             const { data: viewCounts, error } = await supabaseClient
-                .from('projects')
-                .select('slug, view_count');
-            
+              .from("projects")
+              .select("slug, view_count");
+
             if (error) {
-                console.error("Error fetching view counts:", error);
-                return;
+              console.error("Error fetching view counts:", error);
+              return;
             }
-            
-            const viewCountMap = new Map(viewCounts.map(item => [item.slug, item.view_count]));
-            projectsData = projectsData.map(p => ({
-                ...p,
-                view_count: viewCountMap.get(p.slug) || p.view_count
+
+            const viewCountMap = new Map(
+              viewCounts.map((item) => [item.slug, item.view_count])
+            );
+            projectsData = projectsData.map((p) => ({
+              ...p,
+              view_count: viewCountMap.get(p.slug) || p.view_count,
             }));
-            
+
             // Second Render: Update the grid with sorted projects
             loadProjects(searchInput.value);
-
-        } catch (error) {
+          } catch (error) {
             console.error("Failed to load initial project data:", error);
             projectsGrid.innerHTML = `<p>Error loading projects. Please try again later.</p>`;
+          }
         }
-    }
 
-    // ---  MODIFIED: Trigger fetchData and then hide the hero section ---
-    // We call fetchData, and once it completes (successfully or not), the .finally() block will execute.
-    fetchData().finally(hideHero);
+        // ---  MODIFIED: Trigger fetchData and then hide the hero section ---
+        // We call fetchData, and once it completes (successfully or not), the .finally() block will execute.
+        fetchData().finally(hideHero);
 
+        // Project Scoring and Sorting Logic
+        function calculateScore(project) {
+          let score = 0;
+          const statusPoints = { completed: 3, continue: 2, planned: 1 };
+          score += statusPoints[project.status.toLowerCase()] || 0;
+          if (
+            project.keywords.map((k) => k.toLowerCase()).includes("javascript")
+          )
+            score += 2;
+          if (project.image && !project.image.includes("default")) score += 1;
+          return score;
+        }
 
-    // Project Scoring and Sorting Logic
-    function calculateScore(project) {
-        let score = 0;
-        const statusPoints = { 'completed': 3, 'continue': 2, 'planned': 1 };
-        score += statusPoints[project.status.toLowerCase()] || 0;
-        if (project.keywords.map(k => k.toLowerCase()).includes('javascript')) score += 2;
-        if (project.image && !project.image.includes('default')) score += 1;
-        return score;
-    }
+        function loadProjects(filter = "") {
+          const lowerCaseFilter = filter.toLowerCase();
+          let filtered = projectsData.filter(
+            (p) =>
+              p.name.toLowerCase().includes(lowerCaseFilter) ||
+              p.keywords.some((k) => k.toLowerCase().includes(lowerCaseFilter))
+          );
 
-    function loadProjects(filter = "") {
-        const lowerCaseFilter = filter.toLowerCase();
-        let filtered = projectsData.filter(p =>
-            p.name.toLowerCase().includes(lowerCaseFilter) ||
-            p.keywords.some(k => k.toLowerCase().includes(lowerCaseFilter))
-        );
-        
-        filtered.sort((a, b) => {
+          filtered.sort((a, b) => {
             if (b.view_count !== a.view_count) {
-                return b.view_count - a.view_count;
+              return b.view_count - a.view_count;
             }
             return calculateScore(b) - calculateScore(a);
-        });
+          });
 
-        if (!filtered.length) {
+          if (!filtered.length) {
             projectsGrid.innerHTML = `<p>No projects found matching "${filter}".</p>`;
             return;
-        }
+          }
 
-        const projectsHTML = filtered.map(p => {
-            const statusClass = `status-${p.status.toLowerCase()}`;
-            return `
+          const projectsHTML = filtered
+            .map((p) => {
+              const statusClass = `status-${p.status.toLowerCase()}`;
+              return `
             <div class="card" data-slug="${p.slug}">
-                <img src="${p.image || 'media/icons/default.png'}" alt="${p.name}" loading="lazy">
+                <img src="${p.image || "media/icons/default.png"}" alt="${
+                p.name
+              }" loading="lazy">
                 <div class="card-body">
                     <div>
                         <h3>${p.name}</h3>
-                        <span class="status-badge ${statusClass}">${p.status}</span>
+                        <span class="status-badge ${statusClass}">${
+                p.status
+              }</span>
                         <p>${p.tagline}</p>
                     </div>
-                    <a href="${p.link}" target="_blank" rel="noopener noreferrer" class="card-button">Open</a>
+                    <a href="${
+                      p.link
+                    }" target="_blank" rel="noopener noreferrer" class="card-button">Open</a>
                 </div>
             </div>`;
-        }).join('');
-        projectsGrid.innerHTML = projectsHTML;
-    }
-    searchInput.addEventListener('input', e => loadProjects(e.target.value));
+            })
+            .join("");
+          projectsGrid.innerHTML = projectsHTML;
+        }
+        searchInput.addEventListener("input", (e) =>
+          loadProjects(e.target.value)
+        );
 
-    // Event Delegation for Project Grid Interaction
-    projectsGrid.addEventListener('click', (e) => {
-        if (e.target.classList.contains('card-button')) {
-            const card = e.target.closest('.card');
+        // Event Delegation for Project Grid Interaction
+        projectsGrid.addEventListener("click", (e) => {
+          if (e.target.classList.contains("card-button")) {
+            const card = e.target.closest(".card");
             if (!card) return;
             const projectSlug = card.dataset.slug;
             if (!projectSlug) return;
-            
-            const rpcUrl = SUPABASE_URL + '/rest/v1/rpc/increment_view';
-            fetch(rpcUrl, {
-                method: 'POST',
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ project_slug: projectSlug }),
-                keepalive: true
-            });
 
-        } else {
-            const card = e.target.closest('.card');
+            const rpcUrl = SUPABASE_URL + "/rest/v1/rpc/increment_view";
+            fetch(rpcUrl, {
+              method: "POST",
+              headers: {
+                apikey: SUPABASE_ANON_KEY,
+                Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ project_slug: projectSlug }),
+              keepalive: true,
+            });
+          } else {
+            const card = e.target.closest(".card");
             if (!card) return;
 
-            const project = projectsData.find(p => p.slug === card.dataset.slug);
+            const project = projectsData.find(
+              (p) => p.slug === card.dataset.slug
+            );
             if (!project) return;
-            
-            const teamMembersHTML = project.team_ids.map(id => {
-                const member = teamData.find(m => m.id === id);
-                return member ? `<span class="team-member-link" data-id="${id}">${member.name}</span>` : '';
-            }).join(', ');
+
+            const teamMembersHTML = project.team_ids
+              .map((id) => {
+                const member = teamData.find((m) => m.id === id);
+                return member
+                  ? `<span class="team-member-link" data-id="${id}">${member.name}</span>`
+                  : "";
+              })
+              .join(", ");
 
             contentAreas.project.innerHTML = `
                 <h2>${project.name}</h2>
-                <img id="projectDetailImage" src="${project.image || 'media/icons/default.png'}" alt="Thumbnail">
+                <img id="projectDetailImage" src="${
+                  project.image || "media/icons/default.png"
+                }" alt="Thumbnail">
                 
                 <p><em>${project.tagline}</em></p>
                 <hr>
@@ -395,45 +515,144 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p><strong>Status:</strong> ${project.status}</p>
                     <p><strong>Visits:</strong> ${project.view_count.toLocaleString()}</p>
                     <p><strong>Team:</strong> ${teamMembersHTML}</p>
-                    <p><strong>Keywords:</strong> ${project.keywords.join(', ')}</p>
+                    <p><strong>Keywords:</strong> ${project.keywords.join(
+                      ", "
+                    )}</p>
                 </div>
-                <a href="${project.link}" target="_blank" rel="noopener noreferrer" class="detail-button" data-slug="${project.slug}">Open</a>`;
-            modals.project.classList.add('is-visible');
-        }
-    });
-    
-    modals.project.addEventListener('click', (e) => {
-        if (e.target.classList.contains('detail-button')) {
+                <a href="${
+                  project.link
+                }" target="_blank" rel="noopener noreferrer" class="detail-button" data-slug="${
+              project.slug
+            }">Open</a>`;
+            modals.project.classList.add("is-visible");
+          }
+        });
+
+        modals.project.addEventListener("click", (e) => {
+          if (e.target.classList.contains("detail-button")) {
             const projectSlug = e.target.dataset.slug;
             if (!projectSlug) return;
 
-            const rpcUrl = SUPABASE_URL + '/rest/v1/rpc/increment_view';
+            const rpcUrl = SUPABASE_URL + "/rest/v1/rpc/increment_view";
             fetch(rpcUrl, {
-                method: 'POST',
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ project_slug: projectSlug }),
-                keepalive: true
+              method: "POST",
+              headers: {
+                apikey: SUPABASE_ANON_KEY,
+                Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ project_slug: projectSlug }),
+              keepalive: true,
             });
+          }
+        });
+
+        // Modal Helper Functions
+        function getMemberCardHTML(member) {
+          const socialLinksHTML = Object.entries(member.socialLinks)
+            .map(([platform, url]) =>
+              url && url !== "#"
+                ? `<a href="${url}" target="_blank" rel="noopener noreferrer" title="${platform}"><img src="media/social/${platform.toLowerCase()}.svg" alt="${platform}"></a>`
+                : ""
+            )
+            .join("");
+          const interestHTML =
+            member.interest && member.interest.length > 0
+              ? `<div class="interest-tags">${member.interest
+                  .map((skill) => `<span class="tag">${skill}</span>`)
+                  .join("")}</div>`
+              : "";
+          return `<div class="team-card"><div class="team-card-header"><img src="${
+            member.avatar
+          }" alt="${member.name}"><div class="team-card-identity"><h3>${
+            member.name
+          }</h3><p>${
+            member.title || member.role
+          }</p></div></div><p class="team-card-bio">${
+            member.bio
+          }</p>Interest & Hobbies: ${interestHTML}<div class="social-links">${socialLinksHTML}</div></div>`;
         }
-    });
+        function showTeamModal(memberId = null) {
+          let modalContentHTML;
+          if (memberId) {
+            const member = teamData.find((m) => m.id === memberId);
+            if (member) modalContentHTML = getMemberCardHTML(member);
+          } else {
+            const allMembersHTML = teamData.map(getMemberCardHTML).join("");
+            modalContentHTML = `<h2>Collaboration</h2>${allMembersHTML}`;
+          }
+          contentAreas.team.innerHTML = modalContentHTML;
+          modals.team.classList.add("is-visible");
+        }
+        modals.project.addEventListener("click", (e) => {
+          if (e.target.classList.contains("team-member-link")) {
+            const memberId = e.target.dataset.id;
+            modals.project.classList.remove("is-visible");
+            showTeamModal(memberId);
+          }
+        });
+        function openContactModal() {
+          const founder = teamData.find(
+            (m) => m.role.toLowerCase() === "founder"
+          );
+          if (founder) {
+            contentAreas.contactSocials.innerHTML = Object.entries(
+              founder.socialLinks
+            )
+              .map(([k, v]) =>
+                v && v !== "#"
+                  ? `<a href="${v}" target="_blank" title="${k}"><img src="media/social/${k}.svg" alt="${k}"></a>`
+                  : ""
+              )
+              .join("");
+          }
+          modals.contact.classList.add("is-visible");
+        }
+        document.getElementById("emailForm").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const name = document.getElementById("emailName").value;
+          const userEmail = document.getElementById("emailUser").value;
+          const message = document.getElementById("emailMessage").value;
+          const mailtoLink = `mailto:nshntdhkr@gmail.com?subject=${encodeURIComponent(
+            `Contact from nishantadhikari.info.np - ${name}`
+          )}&body=${encodeURIComponent(
+            `Name: ${name}\nFrom: ${userEmail}\n\nMessage:\n${message}`
+          )}`;
+          window.location.href = mailtoLink;
+          modals.contact.classList.remove("is-visible");
+          e.target.reset();
+        });
+        function closeModal(modal) {
+          modal.classList.remove("is-visible");
+        }
+        Object.values(modals).forEach((modal) => {
+          modal.addEventListener("click", (e) => {
+            if (
+              e.target === modal ||
+              e.target.classList.contains("close-btn")
+            ) {
+              closeModal(modal);
+            }
+          });
+        });
+        window.addEventListener("click", (e) => {
+          const navMenu = document.getElementById("navMenu");
+          if (
+            navMenu.classList.contains("show") &&
+            !navMenu.contains(e.target) &&
+            e.target !== document.getElementById("menuToggle")
+          ) {
+            navMenu.classList.remove("show");
+          }
+        });
+      });
 
-    // Modal Helper Functions
-    function getMemberCardHTML(member) { const socialLinksHTML = Object.entries(member.socialLinks).map(([platform, url]) => (url && url !== '#') ? `<a href="${url}" target="_blank" rel="noopener noreferrer" title="${platform}"><img src="media/social/${platform.toLowerCase()}.svg" alt="${platform}"></a>` : '').join(''); const interestHTML = member.interest && member.interest.length > 0 ? `<div class="interest-tags">${member.interest.map(skill => `<span class="tag">${skill}</span>`).join('')}</div>` : ''; return `<div class="team-card"><div class="team-card-header"><img src="${member.avatar}" alt="${member.name}"><div class="team-card-identity"><h3>${member.name}</h3><p>${member.title || member.role}</p></div></div><p class="team-card-bio">${member.bio}</p>Interest & Hobbies: ${interestHTML}<div class="social-links">${socialLinksHTML}</div></div>`;}
-    function showTeamModal(memberId = null) { let modalContentHTML; if (memberId) { const member = teamData.find(m => m.id === memberId); if (member) modalContentHTML = getMemberCardHTML(member); } else { const allMembersHTML = teamData.map(getMemberCardHTML).join(''); modalContentHTML = `<h2>Collaboration</h2>${allMembersHTML}`; } contentAreas.team.innerHTML = modalContentHTML; modals.team.classList.add('is-visible'); }
-    modals.project.addEventListener('click', e => { if (e.target.classList.contains('team-member-link')) { const memberId = e.target.dataset.id; modals.project.classList.remove('is-visible'); showTeamModal(memberId); } });
-    function openContactModal() { const founder = teamData.find(m => m.role.toLowerCase() === 'founder'); if (founder) { contentAreas.contactSocials.innerHTML = Object.entries(founder.socialLinks).map(([k,v]) => v && v !== '#'?`<a href="${v}" target="_blank" title="${k}"><img src="media/social/${k}.svg" alt="${k}"></a>`:'' ).join(''); } modals.contact.classList.add('is-visible'); }
-    document.getElementById('emailForm').addEventListener('submit', e => { e.preventDefault(); const name = document.getElementById('emailName').value; const userEmail = document.getElementById('emailUser').value; const message = document.getElementById('emailMessage').value; const mailtoLink = `mailto:nshntdhkr@gmail.com?subject=${encodeURIComponent(`Contact from nishantadhikari.info.np - ${name}`)}&body=${encodeURIComponent(`Name: ${name}\nFrom: ${userEmail}\n\nMessage:\n${message}`)}`; window.location.href = mailtoLink; modals.contact.classList.remove('is-visible'); e.target.reset(); });
-    function closeModal(modal) { modal.classList.remove('is-visible'); }
-    Object.values(modals).forEach(modal => { modal.addEventListener('click', (e) => { if (e.target === modal || e.target.classList.contains('close-btn')) { closeModal(modal); } }); });
-    window.addEventListener('click', e => { const navMenu = document.getElementById('navMenu'); if (navMenu.classList.contains('show') && !navMenu.contains(e.target) && e.target !== document.getElementById('menuToggle')) { navMenu.classList.remove('show'); } });
-});
-
-// PWA Service Worker Registration
-if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); }); }
-</script>
-</body>
+      // PWA Service Worker Registration
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/sw.js").catch(() => {});
+        });
+      }
+    </script>
+  </body>
 </html>

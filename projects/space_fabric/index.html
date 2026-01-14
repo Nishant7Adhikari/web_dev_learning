@@ -1,888 +1,2030 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
     <title>Space Fabric</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; overscroll-behavior: none; display: flex; flex-direction: column; height: 100vh; }
-        canvas { display: block; width: 100%; height: 100%; flex-grow: 1; }
-        #info-overlay { position: absolute; top: 10px; left: 10px; padding: 8px 12px; background: rgba(0,0,0,0.6); border-radius: 8px; z-index: 10; font-size: 11px; max-width: calc(100vw - 20px); box-sizing: border-box; color: #ccc; }
-        #hud { position: absolute; top: 10px; right: 10px; padding: 10px; background: rgba(0,0,0,0.6); border-radius: 8px; z-index: 10; font-size: 12px; color: #e0e0e0; text-align: right; min-width: 180px; }
-        #hud div { margin-bottom: 4px; }
-        #hud-obj-stats { font-size: 11px; color: #b0b0b0; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px; padding-top: 5px; }
-        #bottom-toolbar { position: fixed; bottom: 0; left: 0; right: 0; background-color: rgba(20, 20, 30, 0.85); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; justify-content: space-around; align-items: center; padding: 8px 0; padding-bottom: calc(8px + env(safe-area-inset-bottom)); z-index: 100; border-top: 1px solid rgba(255,255,255,0.1); }
-        #bottom-toolbar button { background: none; border: none; color: #b0c4de; font-size: 10px; padding: 5px; display: flex; flex-direction: column; align-items: center; cursor: pointer; min-width: 55px; text-align: center; transition: color 0.2s; }
-        #bottom-toolbar button:hover { color: #ffffff; }
-        #bottom-toolbar button:disabled { color: #506070; cursor: not-allowed; }
-        #bottom-toolbar button svg { width: 22px; height: 22px; margin-bottom: 3px; fill: currentColor; }
-        #bottom-toolbar button span { display: block; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); z-index: 1000; justify-content: center; align-items: center; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
-        .modal.active { display: flex; }
-        .modal-content { background-color: rgba(35, 35, 50, 0.97); padding: 20px; border-radius: 10px; width: 90%; max-width: 380px; max-height: 80vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-        .modal-header h3 { margin: 0; font-size: 17px; color: #e0e8ff; }
-        .modal-close-btn { background: none; border: none; color: #99aacc; font-size: 22px; cursor: pointer; padding: 5px; line-height: 1; }
-        .modal-body .form-group { margin-bottom: 12px; }
-        .modal-body label { display: block; margin-bottom: 4px; font-size: 12px; color: #b0c0d0; }
-        .modal-body input[type="text"], .modal-body input[type="number"], .modal-body input[type="color"], .modal-body select { width: calc(100% - 18px); padding: 9px; border: 1px solid #4a5568; background-color: #202530; color: #ddeeff; border-radius: 5px; font-size: 13px; box-sizing: border-box; }
-        .modal-body input[type="range"] { width: 100%; margin-top: 4px; accent-color: #60a5fa;}
-        .modal-body .range-value-display { font-size: 11px; color: #8090a0; display: inline-block; margin-left: 8px; }
-        .modal-body input[type="checkbox"] { margin-right: 6px; vertical-align: middle; width: auto; accent-color: #60a5fa; }
-        .modal-body .checkbox-label-wrapper { display: flex; align-items: center; } /* For aligning checkbox and label */
-        .modal-body .checkbox-label { font-size: 13px; color: #ddeeff; vertical-align: middle; margin-left: 4px; }
-        .modal-body .button-group { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
-        .modal-body button, .preset-buttons button { padding: 9px 14px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 500; transition: background-color 0.2s; }
-        .modal-body .btn-primary { background-color: #3b82f6; color: white; } .modal-body .btn-primary:hover { background-color: #2563eb; }
-        .modal-body .btn-secondary { background-color: #4a5568; color: #e0e8ff; } .modal-body .btn-secondary:hover { background-color: #3b4558; }
-        .modal-body .btn-danger { background-color: #ef4444; color: white; } .modal-body .btn-danger:hover { background-color: #dc2626; }
-        .preset-buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
-        .custom-add-separator { margin-top: 18px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px; }
-        .disabled-text { color: #708090; font-size: 11px; margin-top: 3px; }
-        #time-controls-form-container .time-button-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
-        #time-controls-form-container .time-button-group button { flex-grow: 1; }
-        #time-controls-form-container .current-speed-display { text-align: center; font-size: 14px; margin-bottom: 15px; color: #a0b0c0; }
-        #time-controls-form-container .current-speed-display strong { color: #e0e8ff; }
-        .focus-btn-group { margin-top: 10px; }
+      body {
+        margin: 0;
+        overflow: hidden;
+        background-color: #000;
+        color: #fff;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+        overscroll-behavior: none;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        flex-grow: 1;
+      }
+      #info-overlay {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        padding: 8px 12px;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 8px;
+        z-index: 10;
+        font-size: 11px;
+        max-width: calc(100vw - 20px);
+        box-sizing: border-box;
+        color: #ccc;
+      }
+      #hud {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 10px;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 8px;
+        z-index: 10;
+        font-size: 12px;
+        color: #e0e0e0;
+        text-align: right;
+        min-width: 180px;
+      }
+      #hud div {
+        margin-bottom: 4px;
+      }
+      #hud-obj-stats {
+        font-size: 11px;
+        color: #b0b0b0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        margin-top: 5px;
+        padding-top: 5px;
+      }
+      #bottom-toolbar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: rgba(20, 20, 30, 0.85);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 8px 0;
+        padding-bottom: calc(8px + env(safe-area-inset-bottom));
+        z-index: 100;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      #bottom-toolbar button {
+        background: none;
+        border: none;
+        color: #b0c4de;
+        font-size: 10px;
+        padding: 5px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        min-width: 55px;
+        text-align: center;
+        transition: color 0.2s;
+      }
+      #bottom-toolbar button:hover {
+        color: #ffffff;
+      }
+      #bottom-toolbar button:disabled {
+        color: #506070;
+        cursor: not-allowed;
+      }
+      #bottom-toolbar button svg {
+        width: 22px;
+        height: 22px;
+        margin-bottom: 3px;
+        fill: currentColor;
+      }
+      #bottom-toolbar button span {
+        display: block;
+      }
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        padding: env(safe-area-inset-top) env(safe-area-inset-right)
+          env(safe-area-inset-bottom) env(safe-area-inset-left);
+      }
+      .modal.active {
+        display: flex;
+      }
+      .modal-content {
+        background-color: rgba(35, 35, 50, 0.97);
+        padding: 20px;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 380px;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .modal-header h3 {
+        margin: 0;
+        font-size: 17px;
+        color: #e0e8ff;
+      }
+      .modal-close-btn {
+        background: none;
+        border: none;
+        color: #99aacc;
+        font-size: 22px;
+        cursor: pointer;
+        padding: 5px;
+        line-height: 1;
+      }
+      .modal-body .form-group {
+        margin-bottom: 12px;
+      }
+      .modal-body label {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 12px;
+        color: #b0c0d0;
+      }
+      .modal-body input[type="text"],
+      .modal-body input[type="number"],
+      .modal-body input[type="color"],
+      .modal-body select {
+        width: calc(100% - 18px);
+        padding: 9px;
+        border: 1px solid #4a5568;
+        background-color: #202530;
+        color: #ddeeff;
+        border-radius: 5px;
+        font-size: 13px;
+        box-sizing: border-box;
+      }
+      .modal-body input[type="range"] {
+        width: 100%;
+        margin-top: 4px;
+        accent-color: #60a5fa;
+      }
+      .modal-body .range-value-display {
+        font-size: 11px;
+        color: #8090a0;
+        display: inline-block;
+        margin-left: 8px;
+      }
+      .modal-body input[type="checkbox"] {
+        margin-right: 6px;
+        vertical-align: middle;
+        width: auto;
+        accent-color: #60a5fa;
+      }
+      .modal-body .checkbox-label-wrapper {
+        display: flex;
+        align-items: center;
+      } /* For aligning checkbox and label */
+      .modal-body .checkbox-label {
+        font-size: 13px;
+        color: #ddeeff;
+        vertical-align: middle;
+        margin-left: 4px;
+      }
+      .modal-body .button-group {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 18px;
+      }
+      .modal-body button,
+      .preset-buttons button {
+        padding: 9px 14px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        transition: background-color 0.2s;
+      }
+      .modal-body .btn-primary {
+        background-color: #3b82f6;
+        color: white;
+      }
+      .modal-body .btn-primary:hover {
+        background-color: #2563eb;
+      }
+      .modal-body .btn-secondary {
+        background-color: #4a5568;
+        color: #e0e8ff;
+      }
+      .modal-body .btn-secondary:hover {
+        background-color: #3b4558;
+      }
+      .modal-body .btn-danger {
+        background-color: #ef4444;
+        color: white;
+      }
+      .modal-body .btn-danger:hover {
+        background-color: #dc2626;
+      }
+      .preset-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 8px;
+      }
+      .custom-add-separator {
+        margin-top: 18px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 12px;
+      }
+      .disabled-text {
+        color: #708090;
+        font-size: 11px;
+        margin-top: 3px;
+      }
+      #time-controls-form-container .time-button-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 15px;
+      }
+      #time-controls-form-container .time-button-group button {
+        flex-grow: 1;
+      }
+      #time-controls-form-container .current-speed-display {
+        text-align: center;
+        font-size: 14px;
+        margin-bottom: 15px;
+        color: #a0b0c0;
+      }
+      #time-controls-form-container .current-speed-display strong {
+        color: #e0e8ff;
+      }
+      .focus-btn-group {
+        margin-top: 10px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div id="info-overlay">
-        <b>Space Facric Visualizer</b><br>
-        Drag to orbit, Pinch to zoom. Tap objects to select/edit.
+      <b>Space Facric Visualizer</b><br />
+      Drag to orbit, Pinch to zoom. Tap objects to select/edit.
     </div>
     <div id="hud">
-        <div id="hud-sim-speed">Sim Speed: 1.0x</div>
-        <div id="hud-selected-obj">Selected: None</div>
-        <div id="hud-obj-stats"></div>
-        <!-- <div id="hud-date-time">Date: N/A</div> -->
+      <div id="hud-sim-speed">Sim Speed: 1.0x</div>
+      <div id="hud-selected-obj">Selected: None</div>
+      <div id="hud-obj-stats"></div>
+      <!-- <div id="hud-date-time">Date: N/A</div> -->
     </div>
 
     <div id="bottom-toolbar">
-        <button id="btn-add-preset" title="Add Body/Scenario"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span>Add</span></button>
-        <button id="btn-edit-selected" title="Edit Selected Body" disabled><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg><span>Edit</span></button>
-        <button id="btn-time-controls" title="Time Controls"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg><span>Time</span></button>
-        <button id="btn-grid-settings" title="Grid Settings"><svg viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg><span>Grid</span></button>
-        <button id="btn-reset-sim" title="Reset Simulation"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg><span>Reset</span></button>
+      <button id="btn-add-preset" title="Add Body/Scenario">
+        <svg viewBox="0 0 24 24">
+          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+          </svg><span>Add</span>
+      </button>
+      <button id="btn-edit-selected" title="Edit Selected Body" disabled>
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+          /></svg><span>Edit</span>
+      </button>
+      <button id="btn-time-controls" title="Time Controls">
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"
+          /></svg><span>Time</span>
+      </button>
+      <button id="btn-grid-settings" title="Grid Settings">
+        <svg viewBox="0 0 24 24">
+          <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z" /></svg><span>Grid</span>
+      </button>
+      <button id="btn-reset-sim" title="Reset Simulation">
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"
+          /></svg><span>Reset</span>
+      </button>
     </div>
 
     <div id="modals-container">
-        <div id="preset-modal" class="modal"><div class="modal-content"><div class="modal-header"><h3>Add Celestial Body/Scenario</h3><button class="modal-close-btn" data-modal-id="preset-modal">&times;</button></div><div class="modal-body"><div class="preset-buttons" id="preset-buttons-container"></div><div class="form-group custom-add-separator"><label>Or Add Custom:</label><button id="btn-add-custom-from-modal" class="btn-secondary">Add Custom Body</button></div></div></div></div>
-        <div id="edit-body-modal" class="modal"><div class="modal-content"><div class="modal-header"><h3 id="edit-body-name">Edit Body</h3><button class="modal-close-btn" data-modal-id="edit-body-modal">&times;</button></div><div class="modal-body" id="edit-body-form-container"></div></div></div>
-        <div id="grid-settings-modal" class="modal"><div class="modal-content"><div class="modal-header"><h3>Grid Settings</h3><button class="modal-close-btn" data-modal-id="grid-settings-modal">&times;</button></div><div class="modal-body" id="grid-settings-form-container"></div></div></div>
-        <div id="custom-body-modal" class="modal"><div class="modal-content"><div class="modal-header"><h3>Add Custom Body</h3><button class="modal-close-btn" data-modal-id="custom-body-modal">&times;</button></div><div class="modal-body" id="custom-body-form-container"></div></div></div>
-        <div id="time-controls-modal" class="modal"><div class="modal-content"><div class="modal-header"><h3>Time Controls</h3><button class="modal-close-btn" data-modal-id="time-controls-modal">&times;</button></div><div class="modal-body" id="time-controls-form-container"></div></div></div>
+      <div id="preset-modal" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Add Celestial Body/Scenario</h3>
+            <button class="modal-close-btn" data-modal-id="preset-modal">
+              &times;
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="preset-buttons" id="preset-buttons-container"></div>
+            <div class="form-group custom-add-separator">
+              <label>Or Add Custom:</label
+              ><button id="btn-add-custom-from-modal" class="btn-secondary">
+                Add Custom Body
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="edit-body-modal" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 id="edit-body-name">Edit Body</h3>
+            <button class="modal-close-btn" data-modal-id="edit-body-modal">
+              &times;
+            </button>
+          </div>
+          <div class="modal-body" id="edit-body-form-container"></div>
+        </div>
+      </div>
+      <div id="grid-settings-modal" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Grid Settings</h3>
+            <button class="modal-close-btn" data-modal-id="grid-settings-modal">
+              &times;
+            </button>
+          </div>
+          <div class="modal-body" id="grid-settings-form-container"></div>
+        </div>
+      </div>
+      <div id="custom-body-modal" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Add Custom Body</h3>
+            <button class="modal-close-btn" data-modal-id="custom-body-modal">
+              &times;
+            </button>
+          </div>
+          <div class="modal-body" id="custom-body-form-container"></div>
+        </div>
+      </div>
+      <div id="time-controls-modal" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Time Controls</h3>
+            <button class="modal-close-btn" data-modal-id="time-controls-modal">
+              &times;
+            </button>
+          </div>
+          <div class="modal-body" id="time-controls-form-container"></div>
+        </div>
+      </div>
     </div>
-    
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    
+
     <script type="module">
-        // --- CONFIGURATION ---
-        const G_PHYSICS = 0.8; // Arbitrary gravitational constant for simulation scaling
-        let GRID_CONFIG = {
-            EXTENT: 900, LINES_PER_AXIS_GROUP: 7, POINTS_PER_LINE: 22,
-            COLOR: '#336699', OPACITY: 0.20, MASS_THRESHOLD_FOR_WARP: 2,
-            MAX_INFLUENCE_RADIUS_FACTOR: 55, VISUAL_WARP_STRENGTH: 28,
-            SOFTENING_FACTOR: 0.45, PULL_EXPONENT: 1.22,
-        };
-        const TEXTURE_PATHS = {
-            skybox: [ 'https://threejs.org/examples/textures/cube/MilkyWay/px.jpg', 'https://threejs.org/examples/textures/cube/MilkyWay/nx.jpg', 'https://threejs.org/examples/textures/cube/MilkyWay/py.jpg', 'https://threejs.org/examples/textures/cube/MilkyWay/ny.jpg', 'https://threejs.org/examples/textures/cube/MilkyWay/pz.jpg', 'https://threejs.org/examples/textures/cube/MilkyWay/nz.jpg' ],
-            sun: 'https://i.imgur.com/ZfhKxS2.jpeg', earth: 'https://i.imgur.com/D817tLg.jpeg', moon: 'https://i.imgur.com/7Zp2L2I.jpeg', mars: 'https://i.imgur.com/U9k2KQE.jpeg', jupiter: 'https://i.imgur.com/xTKkj74.jpeg', saturn: 'https://i.imgur.com/bOl20B9.jpeg', saturnRing: 'https://i.imgur.com/j6wKzFh.png'
-        };
-        const PRESET_BODIES = {
-            sun: { name: "Sun", mass: 2200, radius: 75, color: 0xFFEE88, textureKey: 'sun', emissive: 0xFFDD55, isGridWarper: true, axialTilt: 0.126, rotationSpeed: 0.0004, isStar: true },
-            earth: { name: "Earth", mass: 100, radius: 20, color: 0x6699FF, textureKey: 'earth', isGridWarper: true, axialTilt: 0.409, rotationSpeed: 0.015 },
-            moon: { name: "Moon", mass: 1.2, radius: 5.5, color: 0xAAAAAA, textureKey: 'moon', isGridWarper: true, axialTilt: 0.116, rotationSpeed: 0.001 },
-            mars: { name: "Mars", mass: 10.7, radius: 10.6, color: 0xFF6633, textureKey: 'mars', isGridWarper: true, axialTilt: 0.439, rotationSpeed: 0.014 },
-            jupiter: { name: "Jupiter", mass: 700, radius: 60, color: 0xDDAA77, textureKey: 'jupiter', isGridWarper: true, axialTilt: 0.054, rotationSpeed: 0.035 },
-            saturn: { name: "Saturn", mass: 400, radius: 50, color: 0xF0E68C, textureKey: 'saturn', isGridWarper: true, hasRing: true, axialTilt: 0.466, rotationSpeed: 0.032 },
-            blackhole: { name: "Black Hole", mass: 4500, radius: 8, color: 0x030303, isGridWarper: true, emissive: 0x010101, pullExponent: 1.7, axialTilt: 0, rotationSpeed: 0, isStar: true }, // isStar:true makes it a potential light source
-        };
-        const PRESET_SCENARIOS = {
-            earthMoonSys: { name: "Earth-Moon System", isScenario: true, action: addEarthMoonSystem },
-            solarSysBasic: { name: "Solar System", isScenario: true, action: addSolarSystemBasic }
-        };
-        const CUSTOM_BODY_DEFAULTS = {
-            name: "Custom Planet", mass: 50, radius: 15, posX: 0, posY: 0, posZ: 0,
-            velX: 0, velY: 0, velZ: 0, color: '#00FF00', isGridWarper: true,
-            axialTilt: 0, rotationSpeed: 0.01
-        };
-        const TIME_MULTIPLIERS = [0.1, 0.25, 0.5, 1, 2, 5, 10, 25, 50, 100];
-        let currentSimSpeedMultiplier = 1;
+      // --- CONFIGURATION ---
+      const G_PHYSICS = 0.8; // Arbitrary gravitational constant for simulation scaling
+      let GRID_CONFIG = {
+        EXTENT: 900,
+        LINES_PER_AXIS_GROUP: 7,
+        POINTS_PER_LINE: 22,
+        COLOR: "#336699",
+        OPACITY: 0.2,
+        MASS_THRESHOLD_FOR_WARP: 2,
+        MAX_INFLUENCE_RADIUS_FACTOR: 55,
+        VISUAL_WARP_STRENGTH: 28,
+        SOFTENING_FACTOR: 0.45,
+        PULL_EXPONENT: 1.22,
+      };
+      const TEXTURE_PATHS = {
+        skybox: [
+          "https://threejs.org/examples/textures/cube/MilkyWay/px.jpg",
+          "https://threejs.org/examples/textures/cube/MilkyWay/nx.jpg",
+          "https://threejs.org/examples/textures/cube/MilkyWay/py.jpg",
+          "https://threejs.org/examples/textures/cube/MilkyWay/ny.jpg",
+          "https://threejs.org/examples/textures/cube/MilkyWay/pz.jpg",
+          "https://threejs.org/examples/textures/cube/MilkyWay/nz.jpg",
+        ],
+        sun: "https://i.imgur.com/ZfhKxS2.jpeg",
+        earth: "https://i.imgur.com/D817tLg.jpeg",
+        moon: "https://i.imgur.com/7Zp2L2I.jpeg",
+        mars: "https://i.imgur.com/U9k2KQE.jpeg",
+        jupiter: "https://i.imgur.com/xTKkj74.jpeg",
+        saturn: "https://i.imgur.com/bOl20B9.jpeg",
+        saturnRing: "https://i.imgur.com/j6wKzFh.png",
+      };
+      const PRESET_BODIES = {
+        sun: {
+          name: "Sun",
+          mass: 2200,
+          radius: 75,
+          color: 0xffee88,
+          textureKey: "sun",
+          emissive: 0xffdd55,
+          isGridWarper: true,
+          axialTilt: 0.126,
+          rotationSpeed: 0.0004,
+          isStar: true,
+        },
+        earth: {
+          name: "Earth",
+          mass: 100,
+          radius: 20,
+          color: 0x6699ff,
+          textureKey: "earth",
+          isGridWarper: true,
+          axialTilt: 0.409,
+          rotationSpeed: 0.015,
+        },
+        moon: {
+          name: "Moon",
+          mass: 1.2,
+          radius: 5.5,
+          color: 0xaaaaaa,
+          textureKey: "moon",
+          isGridWarper: true,
+          axialTilt: 0.116,
+          rotationSpeed: 0.001,
+        },
+        mars: {
+          name: "Mars",
+          mass: 10.7,
+          radius: 10.6,
+          color: 0xff6633,
+          textureKey: "mars",
+          isGridWarper: true,
+          axialTilt: 0.439,
+          rotationSpeed: 0.014,
+        },
+        jupiter: {
+          name: "Jupiter",
+          mass: 700,
+          radius: 60,
+          color: 0xddaa77,
+          textureKey: "jupiter",
+          isGridWarper: true,
+          axialTilt: 0.054,
+          rotationSpeed: 0.035,
+        },
+        saturn: {
+          name: "Saturn",
+          mass: 400,
+          radius: 50,
+          color: 0xf0e68c,
+          textureKey: "saturn",
+          isGridWarper: true,
+          hasRing: true,
+          axialTilt: 0.466,
+          rotationSpeed: 0.032,
+        },
+        blackhole: {
+          name: "Black Hole",
+          mass: 4500,
+          radius: 8,
+          color: 0x030303,
+          isGridWarper: true,
+          emissive: 0x010101,
+          pullExponent: 1.7,
+          axialTilt: 0,
+          rotationSpeed: 0,
+          isStar: true,
+        }, // isStar:true makes it a potential light source
+      };
+      const PRESET_SCENARIOS = {
+        earthMoonSys: {
+          name: "Earth-Moon System",
+          isScenario: true,
+          action: addEarthMoonSystem,
+        },
+        solarSysBasic: {
+          name: "Solar System",
+          isScenario: true,
+          action: addSolarSystemBasic,
+        },
+      };
+      const CUSTOM_BODY_DEFAULTS = {
+        name: "Custom Planet",
+        mass: 50,
+        radius: 15,
+        posX: 0,
+        posY: 0,
+        posZ: 0,
+        velX: 0,
+        velY: 0,
+        velZ: 0,
+        color: "#00FF00",
+        isGridWarper: true,
+        axialTilt: 0,
+        rotationSpeed: 0.01,
+      };
+      const TIME_MULTIPLIERS = [0.1, 0.25, 0.5, 1, 2, 5, 10, 25, 50, 100];
+      let currentSimSpeedMultiplier = 1;
 
-        // --- THREE.JS & SIMULATION GLOBALS ---
-        let scene, camera, renderer, controls, textureLoader, skyboxLoader;
-        const celestialBodies = [];
-        let gridLines = [];
-        let sharedLineMaterial;
-        let selectedBody = null;
-        let isCameraTracking = false;
-        const cameraTarget = new THREE.Vector3(); // For smooth camera movement
-        const raycaster = new THREE.Raycaster();
-        const pointer = new THREE.Vector2();
-        let isPointerDragging = false;
-        let pointerDownTime = 0;
-        let lastFrameTime = 0;
+      // --- THREE.JS & SIMULATION GLOBALS ---
+      let scene, camera, renderer, controls, textureLoader, skyboxLoader;
+      const celestialBodies = [];
+      let gridLines = [];
+      let sharedLineMaterial;
+      let selectedBody = null;
+      let isCameraTracking = false;
+      const cameraTarget = new THREE.Vector3(); // For smooth camera movement
+      const raycaster = new THREE.Raycaster();
+      const pointer = new THREE.Vector2();
+      let isPointerDragging = false;
+      let pointerDownTime = 0;
+      let lastFrameTime = 0;
 
-        // --- DOM ELEMENTS ---
-        const hudSimSpeedEl = document.getElementById('hud-sim-speed');
-        const hudSelectedObjEl = document.getElementById('hud-selected-obj');
-        const hudObjStatsEl = document.getElementById('hud-obj-stats');
-        const btnAddPreset = document.getElementById('btn-add-preset');
-        const btnEditSelected = document.getElementById('btn-edit-selected');
-        const btnTimeControls = document.getElementById('btn-time-controls');
-        const btnGridSettings = document.getElementById('btn-grid-settings');
-        const btnResetSim = document.getElementById('btn-reset-sim');
-        const allModals = Array.from(document.querySelectorAll('.modal'));
+      // --- DOM ELEMENTS ---
+      const hudSimSpeedEl = document.getElementById("hud-sim-speed");
+      const hudSelectedObjEl = document.getElementById("hud-selected-obj");
+      const hudObjStatsEl = document.getElementById("hud-obj-stats");
+      const btnAddPreset = document.getElementById("btn-add-preset");
+      const btnEditSelected = document.getElementById("btn-edit-selected");
+      const btnTimeControls = document.getElementById("btn-time-controls");
+      const btnGridSettings = document.getElementById("btn-grid-settings");
+      const btnResetSim = document.getElementById("btn-reset-sim");
+      const allModals = Array.from(document.querySelectorAll(".modal"));
 
+      // --- INITIALIZATION ---
+      function init() {
+        // Scene
+        scene = new THREE.Scene();
+        // scene.fog = new THREE.FogExp2(0x000000, 0.0007); // Optional subtle fog
 
-        // --- INITIALIZATION ---
-        function init() {
-            // Scene
-            scene = new THREE.Scene();
-            // scene.fog = new THREE.FogExp2(0x000000, 0.0007); // Optional subtle fog
+        // Camera
+        camera = new THREE.PerspectiveCamera(
+          60,
+          window.innerWidth / window.innerHeight,
+          0.2,
+          GRID_CONFIG.EXTENT * 5
+        );
+        camera.position.set(
+          GRID_CONFIG.EXTENT * 0.5,
+          GRID_CONFIG.EXTENT * 0.35,
+          GRID_CONFIG.EXTENT * 0.9
+        );
+        cameraTarget.copy(scene.position);
+        camera.lookAt(cameraTarget);
 
-            // Camera
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.2, GRID_CONFIG.EXTENT * 5);
-            camera.position.set(GRID_CONFIG.EXTENT * 0.5, GRID_CONFIG.EXTENT * 0.35, GRID_CONFIG.EXTENT * 0.9);
-            cameraTarget.copy(scene.position);
-            camera.lookAt(cameraTarget);
+        // Renderer
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // Cap pixel ratio
+        document.body.insertBefore(
+          renderer.domElement,
+          document.getElementById("bottom-toolbar")
+        ); // Insert canvas
 
-            // Renderer
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // Cap pixel ratio
-            document.body.insertBefore(renderer.domElement, document.getElementById('bottom-toolbar')); // Insert canvas
+        // Controls
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.04;
+        controls.minDistance = 5;
+        controls.maxDistance = GRID_CONFIG.EXTENT * 3.5;
+        controls.target.copy(cameraTarget); // Ensure controls start at the same target
 
-            // Controls
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.04;
-            controls.minDistance = 5;
-            controls.maxDistance = GRID_CONFIG.EXTENT * 3.5;
-            controls.target.copy(cameraTarget); // Ensure controls start at the same target
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xaaaaaa); // Slightly brighter ambient
+        scene.add(ambientLight);
+        const sunLight = new THREE.PointLight(
+          0xffffee,
+          1.5,
+          GRID_CONFIG.EXTENT * 4,
+          1.8
+        ); // Main light, like a sun
+        sunLight.position.set(0, 0, 0); // Will be updated if a "Sun" body exists
+        scene.add(sunLight);
+        // Store sunLight globally to update its position if a sun-like body is added/moved
+        scene.userData.sunLight = sunLight;
 
-            // Lighting
-            const ambientLight = new THREE.AmbientLight(0xaaaaaa); // Slightly brighter ambient
-            scene.add(ambientLight);
-            const sunLight = new THREE.PointLight(0xffffee, 1.5, GRID_CONFIG.EXTENT * 4 , 1.8); // Main light, like a sun
-            sunLight.position.set(0,0,0); // Will be updated if a "Sun" body exists
-            scene.add(sunLight);
-            // Store sunLight globally to update its position if a sun-like body is added/moved
-            scene.userData.sunLight = sunLight;
+        // Loaders
+        textureLoader = new THREE.TextureLoader();
+        skyboxLoader = new THREE.CubeTextureLoader();
 
+        // Skybox
+        const skyboxTexture = skyboxLoader.load(TEXTURE_PATHS.skybox);
+        scene.background = skyboxTexture;
 
-            // Loaders
-            textureLoader = new THREE.TextureLoader();
-            skyboxLoader = new THREE.CubeTextureLoader();
+        // Grid Material
+        sharedLineMaterial = new THREE.LineBasicMaterial({
+          color: new THREE.Color(GRID_CONFIG.COLOR),
+          transparent: true,
+          opacity: GRID_CONFIG.OPACITY,
+        });
 
-            // Skybox
-            const skyboxTexture = skyboxLoader.load(TEXTURE_PATHS.skybox);
-            scene.background = skyboxTexture;
+        // Setup UI and initial state
+        setup3DGrid();
+        setupUIEventHandlers();
+        populatePresetModal();
+        populateGridSettingsModal();
+        populateTimeControlsModal();
 
-            // Grid Material
-            sharedLineMaterial = new THREE.LineBasicMaterial({
-                color: new THREE.Color(GRID_CONFIG.COLOR),
-                transparent: true,
-                opacity: GRID_CONFIG.OPACITY
-            });
+        addSolarSystemBasic(); // Start with a default scenario
 
-            // Setup UI and initial state
-            setup3DGrid();
-            setupUIEventHandlers();
-            populatePresetModal();
-            populateGridSettingsModal();
-            populateTimeControlsModal();
-            
-            addSolarSystemBasic(); // Start with a default scenario
+        // Event Listeners
+        window.addEventListener("resize", onWindowResize, false);
+        renderer.domElement.addEventListener(
+          "pointerdown",
+          onCanvasPointerDown,
+          false
+        );
 
-            // Event Listeners
-            window.addEventListener('resize', onWindowResize, false);
-            renderer.domElement.addEventListener('pointerdown', onCanvasPointerDown, false);
-            
-            // Start animation loop
-            animate();
-        }
+        // Start animation loop
+        animate();
+      }
 
-        // --- UTILITY FUNCTIONS ---
-        function calculateGScaled(mass, radius, G_constant) {
-            if (radius <= 0) return 0;
-            return (G_constant * mass) / (radius * radius);
-        }
+      // --- UTILITY FUNCTIONS ---
+      function calculateGScaled(mass, radius, G_constant) {
+        if (radius <= 0) return 0;
+        return (G_constant * mass) / (radius * radius);
+      }
 
-        // --- UI MANAGEMENT ---
-        function setupUIEventHandlers() {
-            document.querySelectorAll('.modal-close-btn').forEach(btn => {
-                btn.addEventListener('click', () => closeModal(document.getElementById(btn.dataset.modalId)));
-            });
-            allModals.forEach(modal => {
-                modal.addEventListener('click', (event) => { if (event.target === modal) closeModal(modal); });
-            });
+      // --- UI MANAGEMENT ---
+      function setupUIEventHandlers() {
+        document.querySelectorAll(".modal-close-btn").forEach((btn) => {
+          btn.addEventListener("click", () =>
+            closeModal(document.getElementById(btn.dataset.modalId))
+          );
+        });
+        allModals.forEach((modal) => {
+          modal.addEventListener("click", (event) => {
+            if (event.target === modal) closeModal(modal);
+          });
+        });
 
-            btnAddPreset.addEventListener('click', () => openModalById('preset-modal'));
-            btnEditSelected.addEventListener('click', () => {
-                if (selectedBody) { populateEditBodyModal(); openModalById('edit-body-modal'); }
-            });
-            btnTimeControls.addEventListener('click', () => openModalById('time-controls-modal'));
-            btnGridSettings.addEventListener('click', () => openModalById('grid-settings-modal'));
-            btnResetSim.addEventListener('click', () => {
-                if (confirm("Reset simulation and remove all bodies?")) resetSimulationInternal();
-            });
-            document.getElementById('btn-add-custom-from-modal').addEventListener('click', () => {
-                closeModalById('preset-modal'); populateCustomBodyModal(); openModalById('custom-body-modal');
-            });
-        }
-
-        function openModalById(modalId) {
-            const modalElement = document.getElementById(modalId);
-            if (modalElement) {
-                modalElement.classList.add('active');
-                controls.enabled = false;
-            }
-        }
-        function closeModalById(modalId) {
-            const modalElement = document.getElementById(modalId);
-            if (modalElement) {
-                modalElement.classList.remove('active');
-                controls.enabled = true;
-            }
-        }
-        function closeModal(modalElement) { // General close for any modal
-            if(modalElement) modalElement.classList.remove('active');
-            controls.enabled = true;
-        }
-
-        function createFormInput(id, labelText, type, value, options = {}) {
-            const group = document.createElement('div'); group.className = 'form-group';
-            const label = document.createElement('label'); label.htmlFor = id;
-            let input, valueDisplaySpan;
-
-            if (type === 'checkbox') {
-                label.appendChild(document.createTextNode(options.checkLabel || labelText)); // Text first for checkbox
-            } else {
-                label.textContent = labelText;
-                group.appendChild(label);
-            }
-            
-            if (type === 'range') {
-                input = document.createElement('input'); input.type = 'range';
-                input.min = options.min || 0; input.max = options.max || 100; input.step = options.step || 0.01;
-                valueDisplaySpan = document.createElement('span'); valueDisplaySpan.className = 'range-value-display';
-                valueDisplaySpan.textContent = parseFloat(value).toFixed(options.decimals ?? 2);
-                input.addEventListener('input', () => valueDisplaySpan.textContent = parseFloat(input.value).toFixed(options.decimals ?? 2));
-                group.appendChild(valueDisplaySpan);
-            } else if (type === 'checkbox') {
-                const wrapper = document.createElement('div'); wrapper.className = 'checkbox-label-wrapper';
-                input = document.createElement('input'); input.type = 'checkbox'; input.checked = !!value;
-                wrapper.appendChild(input);
-                wrapper.appendChild(label); // Label now contains text due to above logic
-                group.appendChild(wrapper); // Add wrapper to group
-            } else {
-                input = document.createElement('input'); input.type = type;
-                if(type === 'number'){ if(options.min !== undefined) input.min=options.min; if(options.max !== undefined) input.max=options.max; if(options.step !== undefined) input.step=options.step;}
-            }
-            if (input) { // Ensure input was created
-                 input.id = id; input.name = id; input.value = value;
-                if (type !== 'checkbox') group.appendChild(input); // Checkbox is inside wrapper
-            }
-            if(options.disabledText) { const p = document.createElement('p'); p.className='disabled-text'; p.textContent=options.disabledText; group.appendChild(p); }
-            return group;
-        }
-
-        function populatePresetModal() {
-            const container = document.getElementById('preset-buttons-container'); container.innerHTML = '';
-            for (const key in PRESET_BODIES) {
-                const preset = PRESET_BODIES[key];
-                const button = document.createElement('button'); button.classList.add('btn-secondary'); button.textContent = preset.name;
-                button.addEventListener('click', () => { addPresetBody(key); closeModalById('preset-modal'); });
-                container.appendChild(button);
-            }
-            for (const key in PRESET_SCENARIOS) {
-                const scenario = PRESET_SCENARIOS[key];
-                const button = document.createElement('button'); button.classList.add('btn-primary'); button.textContent = scenario.name;
-                button.addEventListener('click', () => { scenario.action(); closeModalById('preset-modal'); });
-                container.appendChild(button);
-            }
-        }
-        
-        function populateEditBodyModal() {
-            if (!selectedBody) return;
-            const formContainer = document.getElementById('edit-body-form-container'); formContainer.innerHTML = '';
-            document.getElementById('edit-body-name').textContent = `Edit: ${selectedBody.name}`;
-            const currentG = calculateGScaled(selectedBody.mass, selectedBody.radius, G_PHYSICS).toFixed(4); // Calculate and format
-
-            formContainer.appendChild(createFormInput('edit-name', 'Name:', 'text', selectedBody.name));
-            formContainer.appendChild(createFormInput('edit-mass', 'Mass:', 'number', selectedBody.mass, {min:0.01, step: 0.1}));
-            formContainer.appendChild(createFormInput('edit-radius', 'Radius:', 'number', selectedBody.radius, {min:0.1, step: 0.1}));
-            formContainer.appendChild(createFormInput('edit-g', `Surface g (now: ${currentG}):`, 'number', currentG, {min:0.001, step:0.01, disabledText: "Changes Mass if altered."}));
-            formContainer.appendChild(createFormInput('edit-posX', 'Pos X:', 'number', selectedBody.tiltObject.position.x.toFixed(1), {step:1}));
-            formContainer.appendChild(createFormInput('edit-posY', 'Pos Y:', 'number', selectedBody.tiltObject.position.y.toFixed(1), {step:1}));
-            formContainer.appendChild(createFormInput('edit-posZ', 'Pos Z:', 'number', selectedBody.tiltObject.position.z.toFixed(1), {step:1}));
-            formContainer.appendChild(createFormInput('edit-velX', 'Vel X:', 'number', selectedBody.velocity.x.toFixed(2), {step: 0.05, min: -30, max: 30}));
-            formContainer.appendChild(createFormInput('edit-velY', 'Vel Y:', 'number', selectedBody.velocity.y.toFixed(2), {step: 0.05, min: -30, max: 30}));
-            formContainer.appendChild(createFormInput('edit-velZ', 'Vel Z:', 'number', selectedBody.velocity.z.toFixed(2), {step: 0.05, min: -30, max: 30}));
-            formContainer.appendChild(createFormInput('edit-axialTilt', 'Axial Tilt (rad):', 'number', selectedBody.axialTilt.toFixed(3), {step: 0.001, min: -Math.PI/2, max: Math.PI/2}));
-            formContainer.appendChild(createFormInput('edit-rotationSpeed', 'Rotation Spd (rad/t):', 'number', selectedBody.rotationSpeed.toFixed(4), {step: 0.0001, min: -0.1, max: 0.1}));
-            formContainer.appendChild(createFormInput('edit-isGridWarper', '', 'checkbox', selectedBody.isGridWarper, {checkLabel: 'Warps Grid'}));
-
-            const focusGroup = document.createElement('div'); focusGroup.className = 'form-group focus-btn-group';
-            const trackBtn = document.createElement('button'); trackBtn.textContent = isCameraTracking && controls.target.equals(selectedBody.tiltObject.position) ? 'Stop Tracking' : 'Focus & Track';
-            trackBtn.className = 'btn-secondary';
-            trackBtn.onclick = () => {
-                if (isCameraTracking && controls.target.equals(selectedBody.tiltObject.position)) {
-                    isCameraTracking = false;
-                    trackBtn.textContent = 'Focus & Track';
-                } else {
-                    isCameraTracking = true;
-                    // cameraTarget is updated in updateCamera if isCameraTracking and selectedBody exist
-                    trackBtn.textContent = 'Stop Tracking';
-                }
-                 // closeModalById('edit-body-modal'); // Optional: close modal on track
-            };
-            focusGroup.appendChild(trackBtn);
-            formContainer.appendChild(focusGroup);
-
-
-            const btnGroup = document.createElement('div'); btnGroup.className = 'button-group';
-            const saveBtn = document.createElement('button'); saveBtn.textContent = 'Save'; saveBtn.className = 'btn-primary';
-            saveBtn.addEventListener('click', () => {
-                selectedBody.name = document.getElementById('edit-name').value;
-                const newGInput = parseFloat(document.getElementById('edit-g').value);
-                const newRadius = parseFloat(document.getElementById('edit-radius').value);
-
-                // Check if 'g' was significantly changed by the user
-                if (Math.abs(newGInput - parseFloat(currentG)) > 1e-5 && newRadius > 0) {
-                    selectedBody.mass = (newGInput * newRadius * newRadius) / G_PHYSICS;
-                } else { 
-                    selectedBody.mass = parseFloat(document.getElementById('edit-mass').value); 
-                }
-                selectedBody.radius = newRadius;
-                
-                selectedBody.tiltObject.position.set(parseFloat(document.getElementById('edit-posX').value), parseFloat(document.getElementById('edit-posY').value), parseFloat(document.getElementById('edit-posZ').value));
-                selectedBody.velocity.set(parseFloat(document.getElementById('edit-velX').value), parseFloat(document.getElementById('edit-velY').value), parseFloat(document.getElementById('edit-velZ').value));
-                selectedBody.axialTilt = parseFloat(document.getElementById('edit-axialTilt').value);
-                selectedBody.rotationSpeed = parseFloat(document.getElementById('edit-rotationSpeed').value);
-                selectedBody.isGridWarper = document.getElementById('edit-isGridWarper').checked;
-                updateBodyVisuals(selectedBody); deform3DGrid(); closeModalById('edit-body-modal');
-            });
-            const deleteBtn = document.createElement('button'); deleteBtn.textContent = 'Delete'; deleteBtn.className = 'btn-danger';
-            deleteBtn.addEventListener('click', () => {
-                if(confirm(`Delete ${selectedBody.name}?`)){
-                    const index = celestialBodies.indexOf(selectedBody);
-                    if (index > -1) {
-                        scene.remove(selectedBody.tiltObject); // Remove tiltObject from scene
-                        if (selectedBody.orbitLine) { scene.remove(selectedBody.orbitLine); selectedBody.orbitLine.geometry.dispose(); }
-                        celestialBodies.splice(index, 1);
-                        disposeBodyAssets(selectedBody);
-                        
-                        if (isCameraTracking && controls.target.equals(selectedBody.tiltObject.position)) {
-                           isCameraTracking = false; // Stop tracking if deleted body was tracked
-                        }
-                        selectedBody = null; 
-                        updateEditButtonState(); 
-                        deform3DGrid(); 
-                        closeModalById('edit-body-modal');
-                    }
-                }
-            });
-            btnGroup.appendChild(deleteBtn); btnGroup.appendChild(saveBtn); formContainer.appendChild(btnGroup);
-        }
-
-        function populateGridSettingsModal() {
-            const c = document.getElementById('grid-settings-form-container'); c.innerHTML = '';
-            c.appendChild(createFormInput('grid-extent', 'Size:', 'range', GRID_CONFIG.EXTENT, {min:200, max:3000, step:50, decimals:0}));
-            c.appendChild(createFormInput('grid-lines', 'Density:', 'range', GRID_CONFIG.LINES_PER_AXIS_GROUP, {min:2, max:15, step:1, decimals:0}));
-            c.appendChild(createFormInput('grid-points', 'Smoothness:', 'range', GRID_CONFIG.POINTS_PER_LINE, {min:5, max:50, step:1, decimals:0}));
-            c.appendChild(createFormInput('grid-warp', 'Warp Strength:', 'range', GRID_CONFIG.VISUAL_WARP_STRENGTH, {min:1, max:150, step:1, decimals:0}));
-            c.appendChild(createFormInput('grid-pull', 'Pull Exponent:', 'range', GRID_CONFIG.PULL_EXPONENT, {min:1.0, max:2.5, step:0.01}));
-            c.appendChild(createFormInput('grid-color', 'Color:', 'color', GRID_CONFIG.COLOR));
-            c.appendChild(createFormInput('grid-opacity', 'Opacity:', 'range', GRID_CONFIG.OPACITY, {min:0.0, max:1, step:0.01}));
-            const btnGroup = document.createElement('div'); btnGroup.className = 'button-group';
-            const applyBtn = document.createElement('button'); applyBtn.textContent = 'Apply'; applyBtn.className = 'btn-primary';
-            applyBtn.onclick = () => {
-                const oldD = GRID_CONFIG.LINES_PER_AXIS_GROUP, oldS = GRID_CONFIG.POINTS_PER_LINE, oldE = GRID_CONFIG.EXTENT;
-                GRID_CONFIG.EXTENT = parseFloat(document.getElementById('grid-extent').value);
-                GRID_CONFIG.LINES_PER_AXIS_GROUP = parseInt(document.getElementById('grid-lines').value);
-                GRID_CONFIG.POINTS_PER_LINE = parseInt(document.getElementById('grid-points').value);
-                GRID_CONFIG.VISUAL_WARP_STRENGTH = parseFloat(document.getElementById('grid-warp').value);
-                GRID_CONFIG.PULL_EXPONENT = parseFloat(document.getElementById('grid-pull').value);
-                GRID_CONFIG.COLOR = document.getElementById('grid-color').value;
-                GRID_CONFIG.OPACITY = parseFloat(document.getElementById('grid-opacity').value);
-                if (GRID_CONFIG.LINES_PER_AXIS_GROUP !== oldD || GRID_CONFIG.POINTS_PER_LINE !== oldS || GRID_CONFIG.EXTENT !== oldE) remakeGrid();
-                else { updateGridMaterial(); deform3DGrid(); }
-                closeModalById('grid-settings-modal');
-            };
-            btnGroup.appendChild(applyBtn); c.appendChild(btnGroup);
-        }
-        
-        function populateCustomBodyModal() {
-            const c = document.getElementById('custom-body-form-container'); c.innerHTML = ''; const p = CUSTOM_BODY_DEFAULTS;
-            c.appendChild(createFormInput('custom-name', 'Name:', 'text', p.name));
-            c.appendChild(createFormInput('custom-mass', 'Mass:', 'number', p.mass, {min:0.1, step:1}));
-            c.appendChild(createFormInput('custom-radius', 'Radius:', 'number', p.radius, {min:0.1, step:0.5}));
-            c.appendChild(createFormInput('custom-posX', 'Pos X:', 'number', p.posX, {step:10}));
-            c.appendChild(createFormInput('custom-posY', 'Pos Y:', 'number', p.posY, {step:10}));
-            c.appendChild(createFormInput('custom-posZ', 'Pos Z:', 'number', p.posZ, {step:10}));
-            c.appendChild(createFormInput('custom-velX', 'Vel X:', 'number', p.velX, {step:0.1, min:-30,max:30}));
-            c.appendChild(createFormInput('custom-velY', 'Vel Y:', 'number', p.velY, {step:0.1, min:-30,max:30}));
-            c.appendChild(createFormInput('custom-velZ', 'Vel Z:', 'number', p.velZ, {step:0.1, min:-30,max:30}));
-            c.appendChild(createFormInput('custom-axialTilt', 'Axial Tilt (rad):', 'number', p.axialTilt, {step: 0.01, min: -Math.PI/2, max: Math.PI/2}));
-            c.appendChild(createFormInput('custom-rotationSpeed', 'Rotation Spd (rad/t):', 'number', p.rotationSpeed, {step: 0.001, min:-0.1,max:0.1}));
-            c.appendChild(createFormInput('custom-color', 'Color:', 'color', p.color));
-            c.appendChild(createFormInput('custom-isGridWarper', '', 'checkbox', p.isGridWarper, {checkLabel:"Warps Grid"}));
-            const btnGroup = document.createElement('div'); btnGroup.className = 'button-group';
-            const addBtn = document.createElement('button'); addBtn.textContent = 'Add Body'; addBtn.className = 'btn-primary';
-            addBtn.onclick = () => {
-                addCelestialBody({
-                    name: document.getElementById('custom-name').value, mass: parseFloat(document.getElementById('custom-mass').value), radius: parseFloat(document.getElementById('custom-radius').value),
-                    position: new THREE.Vector3(parseFloat(document.getElementById('custom-posX').value), parseFloat(document.getElementById('custom-posY').value), parseFloat(document.getElementById('custom-posZ').value)),
-                    velocity: new THREE.Vector3(parseFloat(document.getElementById('custom-velX').value), parseFloat(document.getElementById('custom-velY').value), parseFloat(document.getElementById('custom-velZ').value)),
-                    axialTilt: parseFloat(document.getElementById('custom-axialTilt').value), rotationSpeed: parseFloat(document.getElementById('custom-rotationSpeed').value),
-                    color: document.getElementById('custom-color').value, isGridWarper: document.getElementById('custom-isGridWarper').checked });
-                closeModalById('custom-body-modal');
-            };
-            btnGroup.appendChild(addBtn); c.appendChild(btnGroup);
-        }
-
-        function populateTimeControlsModal() {
-            const container = document.getElementById('time-controls-form-container'); container.innerHTML = '';
-            const currentSpeedDiv = document.createElement('div'); currentSpeedDiv.className = 'current-speed-display';
-            currentSpeedDiv.innerHTML = `Current Speed: <strong>${currentSimSpeedMultiplier.toFixed(2)}x</strong>`;
-            container.appendChild(currentSpeedDiv);
-
-            const group = document.createElement('div'); group.className = 'time-button-group';
-            TIME_MULTIPLIERS.forEach(multiplier => {
-                const btn = document.createElement('button');
-                btn.textContent = `${multiplier}x`;
-                btn.className = 'btn-secondary';
-                btn.onclick = () => {
-                    currentSimSpeedMultiplier = multiplier;
-                    hudSimSpeedEl.textContent = `Sim Speed: ${currentSimSpeedMultiplier.toFixed(2)}x`;
-                    currentSpeedDiv.innerHTML = `Current Speed: <strong>${currentSimSpeedMultiplier.toFixed(2)}x</strong>`;
-                    // closeModalById('time-controls-modal'); // Optional: close on selection
-                };
-                group.appendChild(btn);
-            });
-            container.appendChild(group);
-        }
-
-        function updateHUD() {
-            hudSimSpeedEl.textContent = `Sim Speed: ${currentSimSpeedMultiplier.toFixed(2)}x`;
-            if (selectedBody) {
-                hudSelectedObjEl.textContent = `Selected: ${selectedBody.name}`;
-                let statsHTML = `Mass: ${selectedBody.mass.toFixed(1)}<br>Radius: ${selectedBody.radius.toFixed(1)}<br>Vel: ${selectedBody.velocity.length().toFixed(2)}`;
-                // Attempt to find a primary if orbiting
-                let primary = findPrimary(selectedBody);
-                if (primary) {
-                    const dist = selectedBody.tiltObject.position.distanceTo(primary.tiltObject.position);
-                    statsHTML += `<br>Dist to ${primary.name}: ${dist.toFixed(0)}`;
-                }
-                hudObjStatsEl.innerHTML = statsHTML;
-            } else {
-                hudSelectedObjEl.textContent = "Selected: None";
-                hudObjStatsEl.innerHTML = "";
-            }
-        }
-        function updateEditButtonState() { btnEditSelected.disabled = !selectedBody; }
-
-        // --- SIMULATION LOGIC (Celestial Bodies, Grid, Physics) ---
-        function addCelestialBody(params) {
-            const { mass, radius, position, velocity = new THREE.Vector3(), color = 0xffffff, textureKey, emissive, hasRing, isGridWarper = false, name = "Body", axialTilt = 0, rotationSpeed = 0, isStar = false, pullExponent } = params;
-            
-            const materialParams = { shininess: isStar ? 0 : 25, color: new THREE.Color(color) };
-            if (emissive) { materialParams.emissive = new THREE.Color(emissive); if(!textureKey || !isStar) materialParams.color.set(0x000000); } // if emissive and no texture, base color black
-            if (textureKey && TEXTURE_PATHS[textureKey]) {
-                try {
-                    const map = textureLoader.load(TEXTURE_PATHS[textureKey]);
-                    materialParams.map = map;
-                    if (isStar && emissive) materialParams.emissiveMap = map; // Sun uses texture for emission
-                } catch (e) { console.error("Texture load fail:", textureKey, e); }
-            }
-            
-            const geometry = new THREE.SphereGeometry(1, 24, 16); // Segments for sphere
-            const material = new THREE.MeshPhongMaterial(materialParams);
-            const mesh = new THREE.Mesh(geometry, material);
-            
-            const tiltObject = new THREE.Object3D();
-            tiltObject.rotation.z = axialTilt; // Tilt around Z for Y-up world (effectively tilts planet's north pole along Y axis in its own XY plane)
-            tiltObject.add(mesh); 
-
-            tiltObject.scale.setScalar(radius); 
-            tiltObject.position.copy(position);
-
-            const body = {
-                tiltObject: tiltObject, 
-                mesh: mesh, 
-                mass, radius, initialRadiusForRing: radius, velocity: velocity.clone(), acceleration: new THREE.Vector3(),
-                isGridWarper, name, axialTilt, rotationSpeed, isStar, pullExponent,
-                orbitPath: [], orbitLine: null, maxOrbitPoints: 150 + Math.min(mass, 200), 
-                ringMesh: null
-            };
-            mesh.userData.body = body; // Link back for raycasting
-
-            if (hasRing && name === "Saturn") { // Specific logic for Saturn's rings
-                const ringOuter = 1 * 2.2; const ringInner = 1 * 1.4; 
-                const ringGeom = new THREE.RingGeometry(ringInner, ringOuter, 48, 2);
-                const ringMatParams = { side: THREE.DoubleSide, transparent: true, opacity: 0.75 };
-                if (TEXTURE_PATHS.saturnRing) {
-                    try { 
-                        const ringTexture = textureLoader.load(TEXTURE_PATHS.saturnRing);
-                        ringMatParams.map = ringTexture; 
-                        ringMatParams.alphaMap = ringTexture; // Use texture for alpha as well for transparency
-                    } catch(e){ console.error("Saturn ring texture load fail:", e); }
-                } else { ringMatParams.color = new THREE.Color(color).offsetHSL(0,0,0.15); }
-                const ringMaterial = new THREE.MeshBasicMaterial(ringMatParams);
-                const ringMesh = new THREE.Mesh(ringGeom, ringMaterial);
-                ringMesh.rotation.x = Math.PI / 2; // Orient ring to lie in planet's XY plane (equatorial)
-                mesh.add(ringMesh); 
-                body.ringMesh = ringMesh;
-            }
-            celestialBodies.push(body);
-            scene.add(tiltObject); 
-
-            if (isStar && scene.userData.sunLight) {
-                scene.userData.sunLight.position.copy(tiltObject.position);
-            }
-            return body;
-        }
-        
-        function updateBodyVisuals(body) { 
-            body.tiltObject.scale.setScalar(body.radius);
-            body.tiltObject.rotation.z = body.axialTilt; // Update tilt on the parent
-            // Ring mesh is a child of body.mesh, which is a child of tiltObject.
-            // Its geometry is unit-based. The scale of tiltObject handles planet size.
-            // Ring orientation (rotation.x) is relative to planet's mesh, so it tilts with planet.
-            if (body.isStar && scene.userData.sunLight) {
-                scene.userData.sunLight.position.copy(body.tiltObject.position);
-            }
-        }
-        
-        function disposeBodyAssets(body) {
-            body.mesh.geometry.dispose();
-            if(body.mesh.material.map) body.mesh.material.map.dispose();
-            if(body.mesh.material.emissiveMap) body.mesh.material.emissiveMap.dispose();
-            body.mesh.material.dispose();
-            if(body.ringMesh){
-                body.ringMesh.geometry.dispose();
-                if(body.ringMesh.material.map) body.ringMesh.material.map.dispose();
-                if(body.ringMesh.material.alphaMap) body.ringMesh.material.alphaMap.dispose(); // if alphaMap is same as map, it's disposed once
-                body.ringMesh.material.dispose();
-            }
-        }
-
-        function addPresetBody(key, customParams = {}) {
-            const preset = PRESET_BODIES[key]; if (!preset) return;
-            const params = { ...preset, ...customParams };
-            params.position = params.position || new THREE.Vector3((Math.random()-0.5)*GRID_CONFIG.EXTENT*0.4, (Math.random()-0.5)*GRID_CONFIG.EXTENT*0.1, (Math.random()-0.5)*GRID_CONFIG.EXTENT*0.4);
-            params.velocity = params.velocity || new THREE.Vector3();
-            return addCelestialBody(params);
-        }
-        function addEarthMoonSystem() {
+        btnAddPreset.addEventListener("click", () =>
+          openModalById("preset-modal")
+        );
+        btnEditSelected.addEventListener("click", () => {
+          if (selectedBody) {
+            populateEditBodyModal();
+            openModalById("edit-body-modal");
+          }
+        });
+        btnTimeControls.addEventListener("click", () =>
+          openModalById("time-controls-modal")
+        );
+        btnGridSettings.addEventListener("click", () =>
+          openModalById("grid-settings-modal")
+        );
+        btnResetSim.addEventListener("click", () => {
+          if (confirm("Reset simulation and remove all bodies?"))
             resetSimulationInternal();
-            const earth = addPresetBody('earth', { position: new THREE.Vector3(0,0,0), velocity: new THREE.Vector3(0,0,0) });
-            const moonOrbitDist = PRESET_BODIES.earth.radius + PRESET_BODIES.moon.radius + 35;
-            const moonOrbitalSpeed = Math.sqrt((G_PHYSICS * earth.mass) / moonOrbitDist);
-            addPresetBody('moon', { position: new THREE.Vector3(moonOrbitDist, 0, 0), velocity: new THREE.Vector3(0, 0, -moonOrbitalSpeed) });
-            setCameraTarget(earth.tiltObject.position, true); 
-        }
-        function addSolarSystemBasic() {
-            resetSimulationInternal();
-            const sun = addPresetBody('sun', { position: new THREE.Vector3(0,0,0), velocity: new THREE.Vector3(0,0,0) });
-            const planetData = [
-                { key: 'earth', dist: 180, speedFactor: 1.0 }, { key: 'mars', dist: 250, speedFactor: 0.82 },
-                { key: 'jupiter', dist: 450, speedFactor: 0.45 }, { key: 'saturn', dist: 650, speedFactor: 0.33 },
-            ];
-            planetData.forEach(pD => {
-                const angle = Math.random()*Math.PI*2;
-                const posX = pD.dist*Math.cos(angle); const posZ = pD.dist*Math.sin(angle);
-                const orbitalSpeed = Math.sqrt((G_PHYSICS * sun.mass) / pD.dist) * pD.speedFactor;
-                const velX = -orbitalSpeed*Math.sin(angle); const velZ = orbitalSpeed*Math.cos(angle);
-                addPresetBody(pD.key, {position: new THREE.Vector3(posX, (Math.random()-0.5)*10, posZ), velocity: new THREE.Vector3(velX, (Math.random()-0.5)*0.1, velZ)});
-            });
-            setCameraTarget(sun.tiltObject.position, true); 
-        }
+        });
+        document
+          .getElementById("btn-add-custom-from-modal")
+          .addEventListener("click", () => {
+            closeModalById("preset-modal");
+            populateCustomBodyModal();
+            openModalById("custom-body-modal");
+          });
+      }
 
-        function setup3DGrid() {
-            const halfExtent = GRID_CONFIG.EXTENT / 2;
-            const linesPerGroup = GRID_CONFIG.LINES_PER_AXIS_GROUP;
-            const pointsPerLine = GRID_CONFIG.POINTS_PER_LINE;
-            gridLines.forEach(line => { scene.remove(line); line.geometry.dispose(); });
-            gridLines = [];
-            const createAxisLines = (axisFixed, coord1, coord2) => { // e.g., axisFixed='y', lines are on XZ plane
-                for (let i = 0; i <= linesPerGroup; i++) { // Iterate for lines parallel to one axis (e.g., Z-axis if creating XZ plane lines)
-                    const pos1 = -halfExtent + (i / linesPerGroup) * GRID_CONFIG.EXTENT; // Position along coord1 (e.g., X)
-                    for (let k = 0; k <= linesPerGroup; k++) { // Iterate for lines parallel to other axis (e.g., X-axis)
-                        const pos2 = -halfExtent + (k / linesPerGroup) * GRID_CONFIG.EXTENT; // Position along coord2 (e.g., Z)
-                        
-                        // Create lines PARALLEL to axisFixed, varying along it
-                        const points = []; const originalVertices = [];
-                        for (let j = 0; j <= pointsPerLine; j++) { // Points along the line
-                            const movingCoord = -halfExtent + (j / pointsPerLine) * GRID_CONFIG.EXTENT;
-                            const p = new THREE.Vector3(); 
-                            p[axisFixed] = movingCoord; // Line extends along axisFixed
-                            p[coord1] = pos1;          // Fixed on coord1
-                            p[coord2] = pos2;          // Fixed on coord2
-                            points.push(p); originalVertices.push(p.clone());
-                        }
-                        // Check if points are valid before creating line
-                        if (points.length > 1) {
-                             const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), sharedLineMaterial);
-                             line.userData.originalVertices = originalVertices; gridLines.push(line); scene.add(line);
-                        }
-                    } 
-                } 
-            };
-            // This interpretation of createAxisLines was problematic. A typical grid has lines ALONG axes.
-            // Let's define lines on XY, XZ, YZ planes.
-            // Lines on XY plane: some parallel to X, some parallel to Y.
-            // For XY plane (fixed Z=0, but we do this for multiple Z slices)
-            for (let Zslice = -halfExtent; Zslice <= halfExtent; Zslice += GRID_CONFIG.EXTENT / linesPerGroup) {
-                // Lines parallel to X
-                for (let Ypos = -halfExtent; Ypos <= halfExtent; Ypos += GRID_CONFIG.EXTENT / linesPerGroup) {
-                    const points = []; const originalVertices = [];
-                    for (let j=0; j<=pointsPerLine; ++j) { const Xpos = -halfExtent + j/pointsPerLine * GRID_CONFIG.EXTENT; points.push(new THREE.Vector3(Xpos, Ypos, Zslice)); originalVertices.push(new THREE.Vector3(Xpos, Ypos, Zslice)); }
-                    if (points.length > 1) { const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), sharedLineMaterial); line.userData.originalVertices = originalVertices; gridLines.push(line); scene.add(line); }
-                }
-                // Lines parallel to Y
-                for (let Xpos = -halfExtent; Xpos <= halfExtent; Xpos += GRID_CONFIG.EXTENT / linesPerGroup) {
-                    const points = []; const originalVertices = [];
-                    for (let j=0; j<=pointsPerLine; ++j) { const Ypos = -halfExtent + j/pointsPerLine * GRID_CONFIG.EXTENT; points.push(new THREE.Vector3(Xpos, Ypos, Zslice)); originalVertices.push(new THREE.Vector3(Xpos, Ypos, Zslice)); }
-                     if (points.length > 1) { const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), sharedLineMaterial); line.userData.originalVertices = originalVertices; gridLines.push(line); scene.add(line); }
-                }
-            }
-            // For XZ plane (fixed Y=0, but we do this for multiple Y slices)
-             for (let Yslice = -halfExtent; Yslice <= halfExtent; Yslice += GRID_CONFIG.EXTENT / linesPerGroup) {
-                // Lines parallel to X
-                for (let Zpos = -halfExtent; Zpos <= halfExtent; Zpos += GRID_CONFIG.EXTENT / linesPerGroup) {
-                    const points = []; const originalVertices = [];
-                    for (let j=0; j<=pointsPerLine; ++j) { const Xpos = -halfExtent + j/pointsPerLine * GRID_CONFIG.EXTENT; points.push(new THREE.Vector3(Xpos, Yslice, Zpos)); originalVertices.push(new THREE.Vector3(Xpos, Yslice, Zpos)); }
-                    if (points.length > 1) { const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), sharedLineMaterial); line.userData.originalVertices = originalVertices; gridLines.push(line); scene.add(line); }
-                }
-                // Lines parallel to Z
-                for (let Xpos = -halfExtent; Xpos <= halfExtent; Xpos += GRID_CONFIG.EXTENT / linesPerGroup) {
-                    const points = []; const originalVertices = [];
-                    for (let j=0; j<=pointsPerLine; ++j) { const Zpos = -halfExtent + j/pointsPerLine * GRID_CONFIG.EXTENT; points.push(new THREE.Vector3(Xpos, Yslice, Zpos)); originalVertices.push(new THREE.Vector3(Xpos, Yslice, Zpos)); }
-                     if (points.length > 1) { const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), sharedLineMaterial); line.userData.originalVertices = originalVertices; gridLines.push(line); scene.add(line); }
-                }
-            }
-            // For YZ plane (fixed X=0, but we do this for multiple X slices)
-            for (let Xslice = -halfExtent; Xslice <= halfExtent; Xslice += GRID_CONFIG.EXTENT / linesPerGroup) {
-                // Lines parallel to Y
-                for (let Zpos = -halfExtent; Zpos <= halfExtent; Zpos += GRID_CONFIG.EXTENT / linesPerGroup) {
-                    const points = []; const originalVertices = [];
-                    for (let j=0; j<=pointsPerLine; ++j) { const Ypos = -halfExtent + j/pointsPerLine * GRID_CONFIG.EXTENT; points.push(new THREE.Vector3(Xslice, Ypos, Zpos)); originalVertices.push(new THREE.Vector3(Xslice, Ypos, Zpos)); }
-                    if (points.length > 1) { const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), sharedLineMaterial); line.userData.originalVertices = originalVertices; gridLines.push(line); scene.add(line); }
-                }
-                // Lines parallel to Z
-                for (let Ypos = -halfExtent; Ypos <= halfExtent; Ypos += GRID_CONFIG.EXTENT / linesPerGroup) {
-                    const points = []; const originalVertices = [];
-                    for (let j=0; j<=pointsPerLine; ++j) { const Zpos = -halfExtent + j/pointsPerLine * GRID_CONFIG.EXTENT; points.push(new THREE.Vector3(Xslice, Ypos, Zpos)); originalVertices.push(new THREE.Vector3(Xslice, Ypos, Zpos)); }
-                     if (points.length > 1) { const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), sharedLineMaterial); line.userData.originalVertices = originalVertices; gridLines.push(line); scene.add(line); }
-                }
-            }
-            deform3DGrid();
+      function openModalById(modalId) {
+        const modalElement = document.getElementById(modalId);
+        if (modalElement) {
+          modalElement.classList.add("active");
+          controls.enabled = false;
+        }
+      }
+      function closeModalById(modalId) {
+        const modalElement = document.getElementById(modalId);
+        if (modalElement) {
+          modalElement.classList.remove("active");
+          controls.enabled = true;
+        }
+      }
+      function closeModal(modalElement) {
+        // General close for any modal
+        if (modalElement) modalElement.classList.remove("active");
+        controls.enabled = true;
+      }
+
+      function createFormInput(id, labelText, type, value, options = {}) {
+        const group = document.createElement("div");
+        group.className = "form-group";
+        const label = document.createElement("label");
+        label.htmlFor = id;
+        let input, valueDisplaySpan;
+
+        if (type === "checkbox") {
+          label.appendChild(
+            document.createTextNode(options.checkLabel || labelText)
+          ); // Text first for checkbox
+        } else {
+          label.textContent = labelText;
+          group.appendChild(label);
         }
 
-        function remakeGrid() { setup3DGrid(); }
-        function updateGridMaterial() { sharedLineMaterial.color.set(GRID_CONFIG.COLOR); sharedLineMaterial.opacity = GRID_CONFIG.OPACITY; }
-        function deform3DGrid() {
-            gridLines.forEach(lineMesh => {
-                const currentPos = lineMesh.geometry.attributes.position; const origVerts = lineMesh.userData.originalVertices;
-                if (!currentPos || !origVerts) return; // Safety check
-                for (let i = 0; i < origVerts.length; i++) {
-                    const P_orig = origVerts[i]; let cumDisp = new THREE.Vector3(0,0,0);
-                    celestialBodies.forEach(body => {
-                        if (body.isGridWarper && body.mass >= GRID_CONFIG.MASS_THRESHOLD_FOR_WARP) {
-                            const bodyPos = body.tiltObject.position; 
-                            const vecToBody = new THREE.Vector3().subVectors(bodyPos, P_orig);
-                            let dist = vecToBody.length(); const maxInf = body.radius * GRID_CONFIG.MAX_INFLUENCE_RADIUS_FACTOR;
-                            if (dist > 0.01 && dist < maxInf) { // Check dist > 0.01 to avoid issues at center of body
-                                const pullExp = body.pullExponent || GRID_CONFIG.PULL_EXPONENT;
-                                const effDist = dist + body.radius * GRID_CONFIG.SOFTENING_FACTOR; // Softening for smoother warp near body
-                                let dMag = (GRID_CONFIG.VISUAL_WARP_STRENGTH * body.mass) / (Math.pow(effDist, pullExp) + 1e-6); // Add epsilon to avoid div by zero
-                                dMag = Math.min(dMag, dist * 0.99); // Cap displacement to prevent overshooting
-                                cumDisp.add(vecToBody.normalize().multiplyScalar(dMag));
-                            } 
-                        } 
-                    });
-                    const P_new = P_orig.clone().add(cumDisp); currentPos.setXYZ(i, P_new.x, P_new.y, P_new.z);
-                } 
-                currentPos.needsUpdate = true; 
-            });
+        if (type === "range") {
+          input = document.createElement("input");
+          input.type = "range";
+          input.min = options.min || 0;
+          input.max = options.max || 100;
+          input.step = options.step || 0.01;
+          valueDisplaySpan = document.createElement("span");
+          valueDisplaySpan.className = "range-value-display";
+          valueDisplaySpan.textContent = parseFloat(value).toFixed(
+            options.decimals ?? 2
+          );
+          input.addEventListener(
+            "input",
+            () =>
+              (valueDisplaySpan.textContent = parseFloat(input.value).toFixed(
+                options.decimals ?? 2
+              ))
+          );
+          group.appendChild(valueDisplaySpan);
+        } else if (type === "checkbox") {
+          const wrapper = document.createElement("div");
+          wrapper.className = "checkbox-label-wrapper";
+          input = document.createElement("input");
+          input.type = "checkbox";
+          input.checked = !!value;
+          wrapper.appendChild(input);
+          wrapper.appendChild(label); // Label now contains text due to above logic
+          group.appendChild(wrapper); // Add wrapper to group
+        } else {
+          input = document.createElement("input");
+          input.type = type;
+          if (type === "number") {
+            if (options.min !== undefined) input.min = options.min;
+            if (options.max !== undefined) input.max = options.max;
+            if (options.step !== undefined) input.step = options.step;
+          }
         }
-
-        function updatePhysics(deltaTime) {
-            const dt = Math.min(deltaTime * currentSimSpeedMultiplier, 0.1); // Cap effective dt
-            if (dt <= 0) return;
-
-            celestialBodies.forEach(body => body.acceleration.set(0,0,0));
-            for (let i=0; i<celestialBodies.length; ++i) {
-                for (let j=i+1; j<celestialBodies.length; ++j) {
-                    const bodyA = celestialBodies[i], bodyB = celestialBodies[j];
-                    const direction = new THREE.Vector3().subVectors(bodyB.tiltObject.position, bodyA.tiltObject.position);
-                    let distSq = direction.lengthSq();
-                    const colDist = bodyA.radius + bodyB.radius;
-
-                    // Basic collision avoidance / singularity prevention for physics
-                    if(distSq < Math.pow(colDist * 0.75, 2)) { // If bodies are very close
-                        distSq = Math.max(distSq, Math.pow(colDist * 0.3,2)); // Prevent extreme forces but don't fully stop them
-                    }
-                    if(distSq < 1e-4) continue; // Avoid division by zero if somehow still too close
-
-                    const forceMag = G_PHYSICS * bodyA.mass * bodyB.mass / distSq;
-                    const forceVec = direction.normalize().multiplyScalar(forceMag);
-                    if(bodyA.mass > 0) bodyA.acceleration.add(forceVec.clone().divideScalar(bodyA.mass));
-                    if(bodyB.mass > 0) bodyB.acceleration.sub(forceVec.clone().divideScalar(bodyB.mass));
-                }
-            }
-            celestialBodies.forEach(body => {
-                body.velocity.add(body.acceleration.clone().multiplyScalar(dt));
-                body.tiltObject.position.add(body.velocity.clone().multiplyScalar(dt));
-                
-                // Apply rotation around mesh's local Y axis (day/night cycle)
-                if (body.rotationSpeed !== 0) body.mesh.rotation.y += body.rotationSpeed * dt * 25; // Multiplier to make rotation visible
-
-                if (body.isStar && scene.userData.sunLight) scene.userData.sunLight.position.copy(body.tiltObject.position); 
-
-                const trailCondition = body.velocity.lengthSq() > 0.05; 
-                if (trailCondition) {
-                    body.orbitPath.push(body.tiltObject.position.clone());
-                    if(body.orbitPath.length > body.maxOrbitPoints) body.orbitPath.shift();
-                    if(body.orbitPath.length > 1) {
-                        if(body.orbitLine){ scene.remove(body.orbitLine); body.orbitLine.geometry.dispose(); }
-                        const oG = new THREE.BufferGeometry().setFromPoints(body.orbitPath);
-                        const trailColorSource = body.mesh.material.emissive && body.mesh.material.emissive.getHex() !== 0 ? body.mesh.material.emissive : body.mesh.material.color;
-                        const trailColor = trailColorSource.clone().offsetHSL(0, 0.2, 0.2); // Slightly brighter/more saturated
-                        const oM = new THREE.LineBasicMaterial({color: trailColor, transparent: true, opacity: 0.6 }); // Linewidth has limitations
-                        body.orbitLine = new THREE.Line(oG,oM); scene.add(body.orbitLine);
-                    }
-                } else if (body.orbitLine) { scene.remove(body.orbitLine); body.orbitLine.geometry.dispose(); body.orbitLine = null; body.orbitPath = []; }
-            });
+        if (input) {
+          // Ensure input was created
+          input.id = id;
+          input.name = id;
+          input.value = value;
+          if (type !== "checkbox") group.appendChild(input); // Checkbox is inside wrapper
         }
-        
-        function resetSimulationInternal() {
-            while(celestialBodies.length > 0) {
-                const body = celestialBodies.pop();
-                scene.remove(body.tiltObject); 
-                if (body.orbitLine) { scene.remove(body.orbitLine); body.orbitLine.geometry.dispose(); }
-                disposeBodyAssets(body); 
-            }
-            remakeGrid(); 
-            selectedBody = null; updateEditButtonState(); 
+        if (options.disabledText) {
+          const p = document.createElement("p");
+          p.className = "disabled-text";
+          p.textContent = options.disabledText;
+          group.appendChild(p);
+        }
+        return group;
+      }
+
+      function populatePresetModal() {
+        const container = document.getElementById("preset-buttons-container");
+        container.innerHTML = "";
+        for (const key in PRESET_BODIES) {
+          const preset = PRESET_BODIES[key];
+          const button = document.createElement("button");
+          button.classList.add("btn-secondary");
+          button.textContent = preset.name;
+          button.addEventListener("click", () => {
+            addPresetBody(key);
+            closeModalById("preset-modal");
+          });
+          container.appendChild(button);
+        }
+        for (const key in PRESET_SCENARIOS) {
+          const scenario = PRESET_SCENARIOS[key];
+          const button = document.createElement("button");
+          button.classList.add("btn-primary");
+          button.textContent = scenario.name;
+          button.addEventListener("click", () => {
+            scenario.action();
+            closeModalById("preset-modal");
+          });
+          container.appendChild(button);
+        }
+      }
+
+      function populateEditBodyModal() {
+        if (!selectedBody) return;
+        const formContainer = document.getElementById(
+          "edit-body-form-container"
+        );
+        formContainer.innerHTML = "";
+        document.getElementById(
+          "edit-body-name"
+        ).textContent = `Edit: ${selectedBody.name}`;
+        const currentG = calculateGScaled(
+          selectedBody.mass,
+          selectedBody.radius,
+          G_PHYSICS
+        ).toFixed(4); // Calculate and format
+
+        formContainer.appendChild(
+          createFormInput("edit-name", "Name:", "text", selectedBody.name)
+        );
+        formContainer.appendChild(
+          createFormInput("edit-mass", "Mass:", "number", selectedBody.mass, {
+            min: 0.01,
+            step: 0.1,
+          })
+        );
+        formContainer.appendChild(
+          createFormInput(
+            "edit-radius",
+            "Radius:",
+            "number",
+            selectedBody.radius,
+            { min: 0.1, step: 0.1 }
+          )
+        );
+        formContainer.appendChild(
+          createFormInput(
+            "edit-g",
+            `Surface g (now: ${currentG}):`,
+            "number",
+            currentG,
+            { min: 0.001, step: 0.01, disabledText: "Changes Mass if altered." }
+          )
+        );
+        formContainer.appendChild(
+          createFormInput(
+            "edit-posX",
+            "Pos X:",
+            "number",
+            selectedBody.tiltObject.position.x.toFixed(1),
+            { step: 1 }
+          )
+        );
+        formContainer.appendChild(
+          createFormInput(
+            "edit-posY",
+            "Pos Y:",
+            "number",
+            selectedBody.tiltObject.position.y.toFixed(1),
+            { step: 1 }
+          )
+        );
+        formContainer.appendChild(
+          createFormInput(
+            "edit-posZ",
+            "Pos Z:",
+            "number",
+            selectedBody.tiltObject.position.z.toFixed(1),
+            { step: 1 }
+          )
+        );
+        formContainer.appendChild(
+          createFormInput(
+            "edit-velX",
+            "Vel X:",
+            "number",
+            selectedBody.velocity.x.toFixed(2),
+            { step: 0.05, min: -30, max: 30 }
+          )
+        );
+        formContainer.appendChild(
+          createFormInput(
+            "edit-velY",
+            "Vel Y:",
+            "number",
+            selectedBody.velocity.y.toFixed(2),
+            { step: 0.05, min: -30, max: 30 }
+          )
+        );
+        formContainer.appendChild(
+          createFormInput(
+            "edit-velZ",
+            "Vel Z:",
+            "number",
+            selectedBody.velocity.z.toFixed(2),
+            { step: 0.05, min: -30, max: 30 }
+          )
+        );
+        formContainer.appendChild(
+          createFormInput(
+            "edit-axialTilt",
+            "Axial Tilt (rad):",
+            "number",
+            selectedBody.axialTilt.toFixed(3),
+            { step: 0.001, min: -Math.PI / 2, max: Math.PI / 2 }
+          )
+        );
+        formContainer.appendChild(
+          createFormInput(
+            "edit-rotationSpeed",
+            "Rotation Spd (rad/t):",
+            "number",
+            selectedBody.rotationSpeed.toFixed(4),
+            { step: 0.0001, min: -0.1, max: 0.1 }
+          )
+        );
+        formContainer.appendChild(
+          createFormInput(
+            "edit-isGridWarper",
+            "",
+            "checkbox",
+            selectedBody.isGridWarper,
+            { checkLabel: "Warps Grid" }
+          )
+        );
+
+        const focusGroup = document.createElement("div");
+        focusGroup.className = "form-group focus-btn-group";
+        const trackBtn = document.createElement("button");
+        trackBtn.textContent =
+          isCameraTracking &&
+          controls.target.equals(selectedBody.tiltObject.position)
+            ? "Stop Tracking"
+            : "Focus & Track";
+        trackBtn.className = "btn-secondary";
+        trackBtn.onclick = () => {
+          if (
+            isCameraTracking &&
+            controls.target.equals(selectedBody.tiltObject.position)
+          ) {
             isCameraTracking = false;
-            setCameraTarget(new THREE.Vector3(0,0,0), true); // Reset camera target and snap
-        }
-        
-        // --- CAMERA & INTERACTION ---
-        function setCameraTarget(newTargetPosition, snap = false) {
-            cameraTarget.copy(newTargetPosition); // Target for lerping
-            if (snap) {
-                controls.target.copy(newTargetPosition);
+            trackBtn.textContent = "Focus & Track";
+          } else {
+            isCameraTracking = true;
+            // cameraTarget is updated in updateCamera if isCameraTracking and selectedBody exist
+            trackBtn.textContent = "Stop Tracking";
+          }
+          // closeModalById('edit-body-modal'); // Optional: close modal on track
+        };
+        focusGroup.appendChild(trackBtn);
+        formContainer.appendChild(focusGroup);
+
+        const btnGroup = document.createElement("div");
+        btnGroup.className = "button-group";
+        const saveBtn = document.createElement("button");
+        saveBtn.textContent = "Save";
+        saveBtn.className = "btn-primary";
+        saveBtn.addEventListener("click", () => {
+          selectedBody.name = document.getElementById("edit-name").value;
+          const newGInput = parseFloat(document.getElementById("edit-g").value);
+          const newRadius = parseFloat(
+            document.getElementById("edit-radius").value
+          );
+
+          // Check if 'g' was significantly changed by the user
+          if (
+            Math.abs(newGInput - parseFloat(currentG)) > 1e-5 &&
+            newRadius > 0
+          ) {
+            selectedBody.mass = (newGInput * newRadius * newRadius) / G_PHYSICS;
+          } else {
+            selectedBody.mass = parseFloat(
+              document.getElementById("edit-mass").value
+            );
+          }
+          selectedBody.radius = newRadius;
+
+          selectedBody.tiltObject.position.set(
+            parseFloat(document.getElementById("edit-posX").value),
+            parseFloat(document.getElementById("edit-posY").value),
+            parseFloat(document.getElementById("edit-posZ").value)
+          );
+          selectedBody.velocity.set(
+            parseFloat(document.getElementById("edit-velX").value),
+            parseFloat(document.getElementById("edit-velY").value),
+            parseFloat(document.getElementById("edit-velZ").value)
+          );
+          selectedBody.axialTilt = parseFloat(
+            document.getElementById("edit-axialTilt").value
+          );
+          selectedBody.rotationSpeed = parseFloat(
+            document.getElementById("edit-rotationSpeed").value
+          );
+          selectedBody.isGridWarper =
+            document.getElementById("edit-isGridWarper").checked;
+          updateBodyVisuals(selectedBody);
+          deform3DGrid();
+          closeModalById("edit-body-modal");
+        });
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Delete";
+        deleteBtn.className = "btn-danger";
+        deleteBtn.addEventListener("click", () => {
+          if (confirm(`Delete ${selectedBody.name}?`)) {
+            const index = celestialBodies.indexOf(selectedBody);
+            if (index > -1) {
+              scene.remove(selectedBody.tiltObject); // Remove tiltObject from scene
+              if (selectedBody.orbitLine) {
+                scene.remove(selectedBody.orbitLine);
+                selectedBody.orbitLine.geometry.dispose();
+              }
+              celestialBodies.splice(index, 1);
+              disposeBodyAssets(selectedBody);
+
+              if (
+                isCameraTracking &&
+                controls.target.equals(selectedBody.tiltObject.position)
+              ) {
+                isCameraTracking = false; // Stop tracking if deleted body was tracked
+              }
+              selectedBody = null;
+              updateEditButtonState();
+              deform3DGrid();
+              closeModalById("edit-body-modal");
             }
-        }
+          }
+        });
+        btnGroup.appendChild(deleteBtn);
+        btnGroup.appendChild(saveBtn);
+        formContainer.appendChild(btnGroup);
+      }
 
-        function updateCamera(deltaTime) {
-            if (isCameraTracking && selectedBody) {
-                setCameraTarget(selectedBody.tiltObject.position); // Update lerp target continuously
-            }
-            // Smoothly interpolate OrbitControls target
-            if (!controls.target.equals(cameraTarget)) {
-                controls.target.lerp(cameraTarget, Math.min(5 * deltaTime, 1)); 
-            }
-            controls.update(); 
-        }
-
-        function onCanvasPointerDown(event) {
-            isPointerDragging = false; pointerDownTime = Date.now();
-            // Check if pointer down is on a UI element (modal, toolbar) to prevent raycasting
-            if (event.target.closest('.modal, #bottom-toolbar, #info-overlay, #hud')) {
-                 return;
-            }
-            renderer.domElement.addEventListener('pointermove', onPointerMoveDuringDown);
-            renderer.domElement.addEventListener('pointerup', onCanvasPointerUp, { once: true });
-        }
-        function onPointerMoveDuringDown() { isPointerDragging = true; }
-        function onCanvasPointerUp(event) {
-            renderer.domElement.removeEventListener('pointermove', onPointerMoveDuringDown);
-            const pressDuration = Date.now() - pointerDownTime;
-
-            if (!isPointerDragging && pressDuration < 350) { // Tap detection
-                const rect = renderer.domElement.getBoundingClientRect();
-                pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-                pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-                raycaster.setFromCamera(pointer, camera);
-                const intersects = raycaster.intersectObjects(celestialBodies.map(b => b.mesh), false); // Recursive false, as mesh is direct child of tiltObject which isn't raycast target
-
-                if (intersects.length > 0) {
-                    // Intersects returns array of intersection objects. Each object property is the Mesh.
-                    // We need to get back to the body object from mesh.userData.body
-                    const newSelected = intersects[0].object.userData.body; 
-                    
-                    if (selectedBody === newSelected) { 
-                        if (!document.getElementById('edit-body-modal').classList.contains('active')) {
-                             populateEditBodyModal(); openModalById('edit-body-modal');
-                        }
-                    } else {
-                        selectedBody = newSelected;
-                        if (!isCameraTracking) { 
-                           setCameraTarget(selectedBody.tiltObject.position); // Set new target, will lerp
-                        }
-                        // If already tracking, updateCamera will pick up new selectedBody
-                    }
-                } else {
-                     // Clicked on empty space, not on UI
-                    if (!event.target.closest || !event.target.closest('.modal, #bottom-toolbar, #info-overlay, #hud')) {
-                        selectedBody = null; 
-                        // Optionally stop tracking if clicking empty space
-                        // isCameraTracking = false; 
-                    }
-                }
-                updateEditButtonState();
-            }
-            isPointerDragging = false;
-        }
-        
-        function findPrimary(body) { 
-            let primary = null; let maxMassEffect = 0;
-            celestialBodies.forEach(other => {
-                if (other === body) return;
-                const distSq = body.tiltObject.position.distanceToSquared(other.tiltObject.position);
-                if (distSq === 0) return; // Should not happen if distinct objects
-                
-                // Consider mass and inverse square of distance for "influence"
-                // This is a heuristic for "what is it orbiting?"
-                const influence = other.mass / distSq; 
-                
-                if (influence > maxMassEffect && other.mass > body.mass) { // Must be more massive
-                    maxMassEffect = influence;
-                    primary = other;
-                }
-            });
-            return primary;
-        }
-
-        // --- WINDOW & ANIMATION LOOP ---
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-        function animate() {
-            requestAnimationFrame(animate);
-            const now = performance.now();
-            const deltaTime = lastFrameTime > 0 ? (now - lastFrameTime) / 1000 : 0.0166; // seconds
-            lastFrameTime = now;
-
-            updatePhysics(deltaTime);
+      function populateGridSettingsModal() {
+        const c = document.getElementById("grid-settings-form-container");
+        c.innerHTML = "";
+        c.appendChild(
+          createFormInput("grid-extent", "Size:", "range", GRID_CONFIG.EXTENT, {
+            min: 200,
+            max: 3000,
+            step: 50,
+            decimals: 0,
+          })
+        );
+        c.appendChild(
+          createFormInput(
+            "grid-lines",
+            "Density:",
+            "range",
+            GRID_CONFIG.LINES_PER_AXIS_GROUP,
+            { min: 2, max: 15, step: 1, decimals: 0 }
+          )
+        );
+        c.appendChild(
+          createFormInput(
+            "grid-points",
+            "Smoothness:",
+            "range",
+            GRID_CONFIG.POINTS_PER_LINE,
+            { min: 5, max: 50, step: 1, decimals: 0 }
+          )
+        );
+        c.appendChild(
+          createFormInput(
+            "grid-warp",
+            "Warp Strength:",
+            "range",
+            GRID_CONFIG.VISUAL_WARP_STRENGTH,
+            { min: 1, max: 150, step: 1, decimals: 0 }
+          )
+        );
+        c.appendChild(
+          createFormInput(
+            "grid-pull",
+            "Pull Exponent:",
+            "range",
+            GRID_CONFIG.PULL_EXPONENT,
+            { min: 1.0, max: 2.5, step: 0.01 }
+          )
+        );
+        c.appendChild(
+          createFormInput("grid-color", "Color:", "color", GRID_CONFIG.COLOR)
+        );
+        c.appendChild(
+          createFormInput(
+            "grid-opacity",
+            "Opacity:",
+            "range",
+            GRID_CONFIG.OPACITY,
+            { min: 0.0, max: 1, step: 0.01 }
+          )
+        );
+        const btnGroup = document.createElement("div");
+        btnGroup.className = "button-group";
+        const applyBtn = document.createElement("button");
+        applyBtn.textContent = "Apply";
+        applyBtn.className = "btn-primary";
+        applyBtn.onclick = () => {
+          const oldD = GRID_CONFIG.LINES_PER_AXIS_GROUP,
+            oldS = GRID_CONFIG.POINTS_PER_LINE,
+            oldE = GRID_CONFIG.EXTENT;
+          GRID_CONFIG.EXTENT = parseFloat(
+            document.getElementById("grid-extent").value
+          );
+          GRID_CONFIG.LINES_PER_AXIS_GROUP = parseInt(
+            document.getElementById("grid-lines").value
+          );
+          GRID_CONFIG.POINTS_PER_LINE = parseInt(
+            document.getElementById("grid-points").value
+          );
+          GRID_CONFIG.VISUAL_WARP_STRENGTH = parseFloat(
+            document.getElementById("grid-warp").value
+          );
+          GRID_CONFIG.PULL_EXPONENT = parseFloat(
+            document.getElementById("grid-pull").value
+          );
+          GRID_CONFIG.COLOR = document.getElementById("grid-color").value;
+          GRID_CONFIG.OPACITY = parseFloat(
+            document.getElementById("grid-opacity").value
+          );
+          if (
+            GRID_CONFIG.LINES_PER_AXIS_GROUP !== oldD ||
+            GRID_CONFIG.POINTS_PER_LINE !== oldS ||
+            GRID_CONFIG.EXTENT !== oldE
+          )
+            remakeGrid();
+          else {
+            updateGridMaterial();
             deform3DGrid();
-            updateCamera(deltaTime); 
-            updateHUD();
-            
-            renderer.render(scene, camera);
+          }
+          closeModalById("grid-settings-modal");
+        };
+        btnGroup.appendChild(applyBtn);
+        c.appendChild(btnGroup);
+      }
+
+      function populateCustomBodyModal() {
+        const c = document.getElementById("custom-body-form-container");
+        c.innerHTML = "";
+        const p = CUSTOM_BODY_DEFAULTS;
+        c.appendChild(createFormInput("custom-name", "Name:", "text", p.name));
+        c.appendChild(
+          createFormInput("custom-mass", "Mass:", "number", p.mass, {
+            min: 0.1,
+            step: 1,
+          })
+        );
+        c.appendChild(
+          createFormInput("custom-radius", "Radius:", "number", p.radius, {
+            min: 0.1,
+            step: 0.5,
+          })
+        );
+        c.appendChild(
+          createFormInput("custom-posX", "Pos X:", "number", p.posX, {
+            step: 10,
+          })
+        );
+        c.appendChild(
+          createFormInput("custom-posY", "Pos Y:", "number", p.posY, {
+            step: 10,
+          })
+        );
+        c.appendChild(
+          createFormInput("custom-posZ", "Pos Z:", "number", p.posZ, {
+            step: 10,
+          })
+        );
+        c.appendChild(
+          createFormInput("custom-velX", "Vel X:", "number", p.velX, {
+            step: 0.1,
+            min: -30,
+            max: 30,
+          })
+        );
+        c.appendChild(
+          createFormInput("custom-velY", "Vel Y:", "number", p.velY, {
+            step: 0.1,
+            min: -30,
+            max: 30,
+          })
+        );
+        c.appendChild(
+          createFormInput("custom-velZ", "Vel Z:", "number", p.velZ, {
+            step: 0.1,
+            min: -30,
+            max: 30,
+          })
+        );
+        c.appendChild(
+          createFormInput(
+            "custom-axialTilt",
+            "Axial Tilt (rad):",
+            "number",
+            p.axialTilt,
+            { step: 0.01, min: -Math.PI / 2, max: Math.PI / 2 }
+          )
+        );
+        c.appendChild(
+          createFormInput(
+            "custom-rotationSpeed",
+            "Rotation Spd (rad/t):",
+            "number",
+            p.rotationSpeed,
+            { step: 0.001, min: -0.1, max: 0.1 }
+          )
+        );
+        c.appendChild(
+          createFormInput("custom-color", "Color:", "color", p.color)
+        );
+        c.appendChild(
+          createFormInput(
+            "custom-isGridWarper",
+            "",
+            "checkbox",
+            p.isGridWarper,
+            { checkLabel: "Warps Grid" }
+          )
+        );
+        const btnGroup = document.createElement("div");
+        btnGroup.className = "button-group";
+        const addBtn = document.createElement("button");
+        addBtn.textContent = "Add Body";
+        addBtn.className = "btn-primary";
+        addBtn.onclick = () => {
+          addCelestialBody({
+            name: document.getElementById("custom-name").value,
+            mass: parseFloat(document.getElementById("custom-mass").value),
+            radius: parseFloat(document.getElementById("custom-radius").value),
+            position: new THREE.Vector3(
+              parseFloat(document.getElementById("custom-posX").value),
+              parseFloat(document.getElementById("custom-posY").value),
+              parseFloat(document.getElementById("custom-posZ").value)
+            ),
+            velocity: new THREE.Vector3(
+              parseFloat(document.getElementById("custom-velX").value),
+              parseFloat(document.getElementById("custom-velY").value),
+              parseFloat(document.getElementById("custom-velZ").value)
+            ),
+            axialTilt: parseFloat(
+              document.getElementById("custom-axialTilt").value
+            ),
+            rotationSpeed: parseFloat(
+              document.getElementById("custom-rotationSpeed").value
+            ),
+            color: document.getElementById("custom-color").value,
+            isGridWarper: document.getElementById("custom-isGridWarper")
+              .checked,
+          });
+          closeModalById("custom-body-modal");
+        };
+        btnGroup.appendChild(addBtn);
+        c.appendChild(btnGroup);
+      }
+
+      function populateTimeControlsModal() {
+        const container = document.getElementById(
+          "time-controls-form-container"
+        );
+        container.innerHTML = "";
+        const currentSpeedDiv = document.createElement("div");
+        currentSpeedDiv.className = "current-speed-display";
+        currentSpeedDiv.innerHTML = `Current Speed: <strong>${currentSimSpeedMultiplier.toFixed(
+          2
+        )}x</strong>`;
+        container.appendChild(currentSpeedDiv);
+
+        const group = document.createElement("div");
+        group.className = "time-button-group";
+        TIME_MULTIPLIERS.forEach((multiplier) => {
+          const btn = document.createElement("button");
+          btn.textContent = `${multiplier}x`;
+          btn.className = "btn-secondary";
+          btn.onclick = () => {
+            currentSimSpeedMultiplier = multiplier;
+            hudSimSpeedEl.textContent = `Sim Speed: ${currentSimSpeedMultiplier.toFixed(
+              2
+            )}x`;
+            currentSpeedDiv.innerHTML = `Current Speed: <strong>${currentSimSpeedMultiplier.toFixed(
+              2
+            )}x</strong>`;
+            // closeModalById('time-controls-modal'); // Optional: close on selection
+          };
+          group.appendChild(btn);
+        });
+        container.appendChild(group);
+      }
+
+      function updateHUD() {
+        hudSimSpeedEl.textContent = `Sim Speed: ${currentSimSpeedMultiplier.toFixed(
+          2
+        )}x`;
+        if (selectedBody) {
+          hudSelectedObjEl.textContent = `Selected: ${selectedBody.name}`;
+          let statsHTML = `Mass: ${selectedBody.mass.toFixed(
+            1
+          )}<br>Radius: ${selectedBody.radius.toFixed(
+            1
+          )}<br>Vel: ${selectedBody.velocity.length().toFixed(2)}`;
+          // Attempt to find a primary if orbiting
+          let primary = findPrimary(selectedBody);
+          if (primary) {
+            const dist = selectedBody.tiltObject.position.distanceTo(
+              primary.tiltObject.position
+            );
+            statsHTML += `<br>Dist to ${primary.name}: ${dist.toFixed(0)}`;
+          }
+          hudObjStatsEl.innerHTML = statsHTML;
+        } else {
+          hudSelectedObjEl.textContent = "Selected: None";
+          hudObjStatsEl.innerHTML = "";
+        }
+      }
+      function updateEditButtonState() {
+        btnEditSelected.disabled = !selectedBody;
+      }
+
+      // --- SIMULATION LOGIC (Celestial Bodies, Grid, Physics) ---
+      function addCelestialBody(params) {
+        const {
+          mass,
+          radius,
+          position,
+          velocity = new THREE.Vector3(),
+          color = 0xffffff,
+          textureKey,
+          emissive,
+          hasRing,
+          isGridWarper = false,
+          name = "Body",
+          axialTilt = 0,
+          rotationSpeed = 0,
+          isStar = false,
+          pullExponent,
+        } = params;
+
+        const materialParams = {
+          shininess: isStar ? 0 : 25,
+          color: new THREE.Color(color),
+        };
+        if (emissive) {
+          materialParams.emissive = new THREE.Color(emissive);
+          if (!textureKey || !isStar) materialParams.color.set(0x000000);
+        } // if emissive and no texture, base color black
+        if (textureKey && TEXTURE_PATHS[textureKey]) {
+          try {
+            const map = textureLoader.load(TEXTURE_PATHS[textureKey]);
+            materialParams.map = map;
+            if (isStar && emissive) materialParams.emissiveMap = map; // Sun uses texture for emission
+          } catch (e) {
+            console.error("Texture load fail:", textureKey, e);
+          }
         }
 
-        // --- START ---
-        init();
+        const geometry = new THREE.SphereGeometry(1, 24, 16); // Segments for sphere
+        const material = new THREE.MeshPhongMaterial(materialParams);
+        const mesh = new THREE.Mesh(geometry, material);
+
+        const tiltObject = new THREE.Object3D();
+        tiltObject.rotation.z = axialTilt; // Tilt around Z for Y-up world (effectively tilts planet's north pole along Y axis in its own XY plane)
+        tiltObject.add(mesh);
+
+        tiltObject.scale.setScalar(radius);
+        tiltObject.position.copy(position);
+
+        const body = {
+          tiltObject: tiltObject,
+          mesh: mesh,
+          mass,
+          radius,
+          initialRadiusForRing: radius,
+          velocity: velocity.clone(),
+          acceleration: new THREE.Vector3(),
+          isGridWarper,
+          name,
+          axialTilt,
+          rotationSpeed,
+          isStar,
+          pullExponent,
+          orbitPath: [],
+          orbitLine: null,
+          maxOrbitPoints: 150 + Math.min(mass, 200),
+          ringMesh: null,
+        };
+        mesh.userData.body = body; // Link back for raycasting
+
+        if (hasRing && name === "Saturn") {
+          // Specific logic for Saturn's rings
+          const ringOuter = 1 * 2.2;
+          const ringInner = 1 * 1.4;
+          const ringGeom = new THREE.RingGeometry(ringInner, ringOuter, 48, 2);
+          const ringMatParams = {
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.75,
+          };
+          if (TEXTURE_PATHS.saturnRing) {
+            try {
+              const ringTexture = textureLoader.load(TEXTURE_PATHS.saturnRing);
+              ringMatParams.map = ringTexture;
+              ringMatParams.alphaMap = ringTexture; // Use texture for alpha as well for transparency
+            } catch (e) {
+              console.error("Saturn ring texture load fail:", e);
+            }
+          } else {
+            ringMatParams.color = new THREE.Color(color).offsetHSL(0, 0, 0.15);
+          }
+          const ringMaterial = new THREE.MeshBasicMaterial(ringMatParams);
+          const ringMesh = new THREE.Mesh(ringGeom, ringMaterial);
+          ringMesh.rotation.x = Math.PI / 2; // Orient ring to lie in planet's XY plane (equatorial)
+          mesh.add(ringMesh);
+          body.ringMesh = ringMesh;
+        }
+        celestialBodies.push(body);
+        scene.add(tiltObject);
+
+        if (isStar && scene.userData.sunLight) {
+          scene.userData.sunLight.position.copy(tiltObject.position);
+        }
+        return body;
+      }
+
+      function updateBodyVisuals(body) {
+        body.tiltObject.scale.setScalar(body.radius);
+        body.tiltObject.rotation.z = body.axialTilt; // Update tilt on the parent
+        // Ring mesh is a child of body.mesh, which is a child of tiltObject.
+        // Its geometry is unit-based. The scale of tiltObject handles planet size.
+        // Ring orientation (rotation.x) is relative to planet's mesh, so it tilts with planet.
+        if (body.isStar && scene.userData.sunLight) {
+          scene.userData.sunLight.position.copy(body.tiltObject.position);
+        }
+      }
+
+      function disposeBodyAssets(body) {
+        body.mesh.geometry.dispose();
+        if (body.mesh.material.map) body.mesh.material.map.dispose();
+        if (body.mesh.material.emissiveMap)
+          body.mesh.material.emissiveMap.dispose();
+        body.mesh.material.dispose();
+        if (body.ringMesh) {
+          body.ringMesh.geometry.dispose();
+          if (body.ringMesh.material.map) body.ringMesh.material.map.dispose();
+          if (body.ringMesh.material.alphaMap)
+            body.ringMesh.material.alphaMap.dispose(); // if alphaMap is same as map, it's disposed once
+          body.ringMesh.material.dispose();
+        }
+      }
+
+      function addPresetBody(key, customParams = {}) {
+        const preset = PRESET_BODIES[key];
+        if (!preset) return;
+        const params = { ...preset, ...customParams };
+        params.position =
+          params.position ||
+          new THREE.Vector3(
+            (Math.random() - 0.5) * GRID_CONFIG.EXTENT * 0.4,
+            (Math.random() - 0.5) * GRID_CONFIG.EXTENT * 0.1,
+            (Math.random() - 0.5) * GRID_CONFIG.EXTENT * 0.4
+          );
+        params.velocity = params.velocity || new THREE.Vector3();
+        return addCelestialBody(params);
+      }
+      function addEarthMoonSystem() {
+        resetSimulationInternal();
+        const earth = addPresetBody("earth", {
+          position: new THREE.Vector3(0, 0, 0),
+          velocity: new THREE.Vector3(0, 0, 0),
+        });
+        const moonOrbitDist =
+          PRESET_BODIES.earth.radius + PRESET_BODIES.moon.radius + 35;
+        const moonOrbitalSpeed = Math.sqrt(
+          (G_PHYSICS * earth.mass) / moonOrbitDist
+        );
+        addPresetBody("moon", {
+          position: new THREE.Vector3(moonOrbitDist, 0, 0),
+          velocity: new THREE.Vector3(0, 0, -moonOrbitalSpeed),
+        });
+        setCameraTarget(earth.tiltObject.position, true);
+      }
+      function addSolarSystemBasic() {
+        resetSimulationInternal();
+        const sun = addPresetBody("sun", {
+          position: new THREE.Vector3(0, 0, 0),
+          velocity: new THREE.Vector3(0, 0, 0),
+        });
+        const planetData = [
+          { key: "earth", dist: 180, speedFactor: 1.0 },
+          { key: "mars", dist: 250, speedFactor: 0.82 },
+          { key: "jupiter", dist: 450, speedFactor: 0.45 },
+          { key: "saturn", dist: 650, speedFactor: 0.33 },
+        ];
+        planetData.forEach((pD) => {
+          const angle = Math.random() * Math.PI * 2;
+          const posX = pD.dist * Math.cos(angle);
+          const posZ = pD.dist * Math.sin(angle);
+          const orbitalSpeed =
+            Math.sqrt((G_PHYSICS * sun.mass) / pD.dist) * pD.speedFactor;
+          const velX = -orbitalSpeed * Math.sin(angle);
+          const velZ = orbitalSpeed * Math.cos(angle);
+          addPresetBody(pD.key, {
+            position: new THREE.Vector3(posX, (Math.random() - 0.5) * 10, posZ),
+            velocity: new THREE.Vector3(
+              velX,
+              (Math.random() - 0.5) * 0.1,
+              velZ
+            ),
+          });
+        });
+        setCameraTarget(sun.tiltObject.position, true);
+      }
+
+      function setup3DGrid() {
+        const halfExtent = GRID_CONFIG.EXTENT / 2;
+        const linesPerGroup = GRID_CONFIG.LINES_PER_AXIS_GROUP;
+        const pointsPerLine = GRID_CONFIG.POINTS_PER_LINE;
+        gridLines.forEach((line) => {
+          scene.remove(line);
+          line.geometry.dispose();
+        });
+        gridLines = [];
+        const createAxisLines = (axisFixed, coord1, coord2) => {
+          // e.g., axisFixed='y', lines are on XZ plane
+          for (let i = 0; i <= linesPerGroup; i++) {
+            // Iterate for lines parallel to one axis (e.g., Z-axis if creating XZ plane lines)
+            const pos1 = -halfExtent + (i / linesPerGroup) * GRID_CONFIG.EXTENT; // Position along coord1 (e.g., X)
+            for (let k = 0; k <= linesPerGroup; k++) {
+              // Iterate for lines parallel to other axis (e.g., X-axis)
+              const pos2 =
+                -halfExtent + (k / linesPerGroup) * GRID_CONFIG.EXTENT; // Position along coord2 (e.g., Z)
+
+              // Create lines PARALLEL to axisFixed, varying along it
+              const points = [];
+              const originalVertices = [];
+              for (let j = 0; j <= pointsPerLine; j++) {
+                // Points along the line
+                const movingCoord =
+                  -halfExtent + (j / pointsPerLine) * GRID_CONFIG.EXTENT;
+                const p = new THREE.Vector3();
+                p[axisFixed] = movingCoord; // Line extends along axisFixed
+                p[coord1] = pos1; // Fixed on coord1
+                p[coord2] = pos2; // Fixed on coord2
+                points.push(p);
+                originalVertices.push(p.clone());
+              }
+              // Check if points are valid before creating line
+              if (points.length > 1) {
+                const line = new THREE.Line(
+                  new THREE.BufferGeometry().setFromPoints(points),
+                  sharedLineMaterial
+                );
+                line.userData.originalVertices = originalVertices;
+                gridLines.push(line);
+                scene.add(line);
+              }
+            }
+          }
+        };
+        // This interpretation of createAxisLines was problematic. A typical grid has lines ALONG axes.
+        // Let's define lines on XY, XZ, YZ planes.
+        // Lines on XY plane: some parallel to X, some parallel to Y.
+        // For XY plane (fixed Z=0, but we do this for multiple Z slices)
+        for (
+          let Zslice = -halfExtent;
+          Zslice <= halfExtent;
+          Zslice += GRID_CONFIG.EXTENT / linesPerGroup
+        ) {
+          // Lines parallel to X
+          for (
+            let Ypos = -halfExtent;
+            Ypos <= halfExtent;
+            Ypos += GRID_CONFIG.EXTENT / linesPerGroup
+          ) {
+            const points = [];
+            const originalVertices = [];
+            for (let j = 0; j <= pointsPerLine; ++j) {
+              const Xpos =
+                -halfExtent + (j / pointsPerLine) * GRID_CONFIG.EXTENT;
+              points.push(new THREE.Vector3(Xpos, Ypos, Zslice));
+              originalVertices.push(new THREE.Vector3(Xpos, Ypos, Zslice));
+            }
+            if (points.length > 1) {
+              const line = new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints(points),
+                sharedLineMaterial
+              );
+              line.userData.originalVertices = originalVertices;
+              gridLines.push(line);
+              scene.add(line);
+            }
+          }
+          // Lines parallel to Y
+          for (
+            let Xpos = -halfExtent;
+            Xpos <= halfExtent;
+            Xpos += GRID_CONFIG.EXTENT / linesPerGroup
+          ) {
+            const points = [];
+            const originalVertices = [];
+            for (let j = 0; j <= pointsPerLine; ++j) {
+              const Ypos =
+                -halfExtent + (j / pointsPerLine) * GRID_CONFIG.EXTENT;
+              points.push(new THREE.Vector3(Xpos, Ypos, Zslice));
+              originalVertices.push(new THREE.Vector3(Xpos, Ypos, Zslice));
+            }
+            if (points.length > 1) {
+              const line = new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints(points),
+                sharedLineMaterial
+              );
+              line.userData.originalVertices = originalVertices;
+              gridLines.push(line);
+              scene.add(line);
+            }
+          }
+        }
+        // For XZ plane (fixed Y=0, but we do this for multiple Y slices)
+        for (
+          let Yslice = -halfExtent;
+          Yslice <= halfExtent;
+          Yslice += GRID_CONFIG.EXTENT / linesPerGroup
+        ) {
+          // Lines parallel to X
+          for (
+            let Zpos = -halfExtent;
+            Zpos <= halfExtent;
+            Zpos += GRID_CONFIG.EXTENT / linesPerGroup
+          ) {
+            const points = [];
+            const originalVertices = [];
+            for (let j = 0; j <= pointsPerLine; ++j) {
+              const Xpos =
+                -halfExtent + (j / pointsPerLine) * GRID_CONFIG.EXTENT;
+              points.push(new THREE.Vector3(Xpos, Yslice, Zpos));
+              originalVertices.push(new THREE.Vector3(Xpos, Yslice, Zpos));
+            }
+            if (points.length > 1) {
+              const line = new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints(points),
+                sharedLineMaterial
+              );
+              line.userData.originalVertices = originalVertices;
+              gridLines.push(line);
+              scene.add(line);
+            }
+          }
+          // Lines parallel to Z
+          for (
+            let Xpos = -halfExtent;
+            Xpos <= halfExtent;
+            Xpos += GRID_CONFIG.EXTENT / linesPerGroup
+          ) {
+            const points = [];
+            const originalVertices = [];
+            for (let j = 0; j <= pointsPerLine; ++j) {
+              const Zpos =
+                -halfExtent + (j / pointsPerLine) * GRID_CONFIG.EXTENT;
+              points.push(new THREE.Vector3(Xpos, Yslice, Zpos));
+              originalVertices.push(new THREE.Vector3(Xpos, Yslice, Zpos));
+            }
+            if (points.length > 1) {
+              const line = new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints(points),
+                sharedLineMaterial
+              );
+              line.userData.originalVertices = originalVertices;
+              gridLines.push(line);
+              scene.add(line);
+            }
+          }
+        }
+        // For YZ plane (fixed X=0, but we do this for multiple X slices)
+        for (
+          let Xslice = -halfExtent;
+          Xslice <= halfExtent;
+          Xslice += GRID_CONFIG.EXTENT / linesPerGroup
+        ) {
+          // Lines parallel to Y
+          for (
+            let Zpos = -halfExtent;
+            Zpos <= halfExtent;
+            Zpos += GRID_CONFIG.EXTENT / linesPerGroup
+          ) {
+            const points = [];
+            const originalVertices = [];
+            for (let j = 0; j <= pointsPerLine; ++j) {
+              const Ypos =
+                -halfExtent + (j / pointsPerLine) * GRID_CONFIG.EXTENT;
+              points.push(new THREE.Vector3(Xslice, Ypos, Zpos));
+              originalVertices.push(new THREE.Vector3(Xslice, Ypos, Zpos));
+            }
+            if (points.length > 1) {
+              const line = new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints(points),
+                sharedLineMaterial
+              );
+              line.userData.originalVertices = originalVertices;
+              gridLines.push(line);
+              scene.add(line);
+            }
+          }
+          // Lines parallel to Z
+          for (
+            let Ypos = -halfExtent;
+            Ypos <= halfExtent;
+            Ypos += GRID_CONFIG.EXTENT / linesPerGroup
+          ) {
+            const points = [];
+            const originalVertices = [];
+            for (let j = 0; j <= pointsPerLine; ++j) {
+              const Zpos =
+                -halfExtent + (j / pointsPerLine) * GRID_CONFIG.EXTENT;
+              points.push(new THREE.Vector3(Xslice, Ypos, Zpos));
+              originalVertices.push(new THREE.Vector3(Xslice, Ypos, Zpos));
+            }
+            if (points.length > 1) {
+              const line = new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints(points),
+                sharedLineMaterial
+              );
+              line.userData.originalVertices = originalVertices;
+              gridLines.push(line);
+              scene.add(line);
+            }
+          }
+        }
+        deform3DGrid();
+      }
+
+      function remakeGrid() {
+        setup3DGrid();
+      }
+      function updateGridMaterial() {
+        sharedLineMaterial.color.set(GRID_CONFIG.COLOR);
+        sharedLineMaterial.opacity = GRID_CONFIG.OPACITY;
+      }
+      function deform3DGrid() {
+        gridLines.forEach((lineMesh) => {
+          const currentPos = lineMesh.geometry.attributes.position;
+          const origVerts = lineMesh.userData.originalVertices;
+          if (!currentPos || !origVerts) return; // Safety check
+          for (let i = 0; i < origVerts.length; i++) {
+            const P_orig = origVerts[i];
+            let cumDisp = new THREE.Vector3(0, 0, 0);
+            celestialBodies.forEach((body) => {
+              if (
+                body.isGridWarper &&
+                body.mass >= GRID_CONFIG.MASS_THRESHOLD_FOR_WARP
+              ) {
+                const bodyPos = body.tiltObject.position;
+                const vecToBody = new THREE.Vector3().subVectors(
+                  bodyPos,
+                  P_orig
+                );
+                let dist = vecToBody.length();
+                const maxInf =
+                  body.radius * GRID_CONFIG.MAX_INFLUENCE_RADIUS_FACTOR;
+                if (dist > 0.01 && dist < maxInf) {
+                  // Check dist > 0.01 to avoid issues at center of body
+                  const pullExp =
+                    body.pullExponent || GRID_CONFIG.PULL_EXPONENT;
+                  const effDist =
+                    dist + body.radius * GRID_CONFIG.SOFTENING_FACTOR; // Softening for smoother warp near body
+                  let dMag =
+                    (GRID_CONFIG.VISUAL_WARP_STRENGTH * body.mass) /
+                    (Math.pow(effDist, pullExp) + 1e-6); // Add epsilon to avoid div by zero
+                  dMag = Math.min(dMag, dist * 0.99); // Cap displacement to prevent overshooting
+                  cumDisp.add(vecToBody.normalize().multiplyScalar(dMag));
+                }
+              }
+            });
+            const P_new = P_orig.clone().add(cumDisp);
+            currentPos.setXYZ(i, P_new.x, P_new.y, P_new.z);
+          }
+          currentPos.needsUpdate = true;
+        });
+      }
+
+      function updatePhysics(deltaTime) {
+        const dt = Math.min(deltaTime * currentSimSpeedMultiplier, 0.1); // Cap effective dt
+        if (dt <= 0) return;
+
+        celestialBodies.forEach((body) => body.acceleration.set(0, 0, 0));
+        for (let i = 0; i < celestialBodies.length; ++i) {
+          for (let j = i + 1; j < celestialBodies.length; ++j) {
+            const bodyA = celestialBodies[i],
+              bodyB = celestialBodies[j];
+            const direction = new THREE.Vector3().subVectors(
+              bodyB.tiltObject.position,
+              bodyA.tiltObject.position
+            );
+            let distSq = direction.lengthSq();
+            const colDist = bodyA.radius + bodyB.radius;
+
+            // Basic collision avoidance / singularity prevention for physics
+            if (distSq < Math.pow(colDist * 0.75, 2)) {
+              // If bodies are very close
+              distSq = Math.max(distSq, Math.pow(colDist * 0.3, 2)); // Prevent extreme forces but don't fully stop them
+            }
+            if (distSq < 1e-4) continue; // Avoid division by zero if somehow still too close
+
+            const forceMag = (G_PHYSICS * bodyA.mass * bodyB.mass) / distSq;
+            const forceVec = direction.normalize().multiplyScalar(forceMag);
+            if (bodyA.mass > 0)
+              bodyA.acceleration.add(forceVec.clone().divideScalar(bodyA.mass));
+            if (bodyB.mass > 0)
+              bodyB.acceleration.sub(forceVec.clone().divideScalar(bodyB.mass));
+          }
+        }
+        celestialBodies.forEach((body) => {
+          body.velocity.add(body.acceleration.clone().multiplyScalar(dt));
+          body.tiltObject.position.add(
+            body.velocity.clone().multiplyScalar(dt)
+          );
+
+          // Apply rotation around mesh's local Y axis (day/night cycle)
+          if (body.rotationSpeed !== 0)
+            body.mesh.rotation.y += body.rotationSpeed * dt * 25; // Multiplier to make rotation visible
+
+          if (body.isStar && scene.userData.sunLight)
+            scene.userData.sunLight.position.copy(body.tiltObject.position);
+
+          const trailCondition = body.velocity.lengthSq() > 0.05;
+          if (trailCondition) {
+            body.orbitPath.push(body.tiltObject.position.clone());
+            if (body.orbitPath.length > body.maxOrbitPoints)
+              body.orbitPath.shift();
+            if (body.orbitPath.length > 1) {
+              if (body.orbitLine) {
+                scene.remove(body.orbitLine);
+                body.orbitLine.geometry.dispose();
+              }
+              const oG = new THREE.BufferGeometry().setFromPoints(
+                body.orbitPath
+              );
+              const trailColorSource =
+                body.mesh.material.emissive &&
+                body.mesh.material.emissive.getHex() !== 0
+                  ? body.mesh.material.emissive
+                  : body.mesh.material.color;
+              const trailColor = trailColorSource
+                .clone()
+                .offsetHSL(0, 0.2, 0.2); // Slightly brighter/more saturated
+              const oM = new THREE.LineBasicMaterial({
+                color: trailColor,
+                transparent: true,
+                opacity: 0.6,
+              }); // Linewidth has limitations
+              body.orbitLine = new THREE.Line(oG, oM);
+              scene.add(body.orbitLine);
+            }
+          } else if (body.orbitLine) {
+            scene.remove(body.orbitLine);
+            body.orbitLine.geometry.dispose();
+            body.orbitLine = null;
+            body.orbitPath = [];
+          }
+        });
+      }
+
+      function resetSimulationInternal() {
+        while (celestialBodies.length > 0) {
+          const body = celestialBodies.pop();
+          scene.remove(body.tiltObject);
+          if (body.orbitLine) {
+            scene.remove(body.orbitLine);
+            body.orbitLine.geometry.dispose();
+          }
+          disposeBodyAssets(body);
+        }
+        remakeGrid();
+        selectedBody = null;
+        updateEditButtonState();
+        isCameraTracking = false;
+        setCameraTarget(new THREE.Vector3(0, 0, 0), true); // Reset camera target and snap
+      }
+
+      // --- CAMERA & INTERACTION ---
+      function setCameraTarget(newTargetPosition, snap = false) {
+        cameraTarget.copy(newTargetPosition); // Target for lerping
+        if (snap) {
+          controls.target.copy(newTargetPosition);
+        }
+      }
+
+      function updateCamera(deltaTime) {
+        if (isCameraTracking && selectedBody) {
+          setCameraTarget(selectedBody.tiltObject.position); // Update lerp target continuously
+        }
+        // Smoothly interpolate OrbitControls target
+        if (!controls.target.equals(cameraTarget)) {
+          controls.target.lerp(cameraTarget, Math.min(5 * deltaTime, 1));
+        }
+        controls.update();
+      }
+
+      function onCanvasPointerDown(event) {
+        isPointerDragging = false;
+        pointerDownTime = Date.now();
+        // Check if pointer down is on a UI element (modal, toolbar) to prevent raycasting
+        if (
+          event.target.closest(".modal, #bottom-toolbar, #info-overlay, #hud")
+        ) {
+          return;
+        }
+        renderer.domElement.addEventListener(
+          "pointermove",
+          onPointerMoveDuringDown
+        );
+        renderer.domElement.addEventListener("pointerup", onCanvasPointerUp, {
+          once: true,
+        });
+      }
+      function onPointerMoveDuringDown() {
+        isPointerDragging = true;
+      }
+      function onCanvasPointerUp(event) {
+        renderer.domElement.removeEventListener(
+          "pointermove",
+          onPointerMoveDuringDown
+        );
+        const pressDuration = Date.now() - pointerDownTime;
+
+        if (!isPointerDragging && pressDuration < 350) {
+          // Tap detection
+          const rect = renderer.domElement.getBoundingClientRect();
+          pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+          pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+          raycaster.setFromCamera(pointer, camera);
+          const intersects = raycaster.intersectObjects(
+            celestialBodies.map((b) => b.mesh),
+            false
+          ); // Recursive false, as mesh is direct child of tiltObject which isn't raycast target
+
+          if (intersects.length > 0) {
+            // Intersects returns array of intersection objects. Each object property is the Mesh.
+            // We need to get back to the body object from mesh.userData.body
+            const newSelected = intersects[0].object.userData.body;
+
+            if (selectedBody === newSelected) {
+              if (
+                !document
+                  .getElementById("edit-body-modal")
+                  .classList.contains("active")
+              ) {
+                populateEditBodyModal();
+                openModalById("edit-body-modal");
+              }
+            } else {
+              selectedBody = newSelected;
+              if (!isCameraTracking) {
+                setCameraTarget(selectedBody.tiltObject.position); // Set new target, will lerp
+              }
+              // If already tracking, updateCamera will pick up new selectedBody
+            }
+          } else {
+            // Clicked on empty space, not on UI
+            if (
+              !event.target.closest ||
+              !event.target.closest(
+                ".modal, #bottom-toolbar, #info-overlay, #hud"
+              )
+            ) {
+              selectedBody = null;
+              // Optionally stop tracking if clicking empty space
+              // isCameraTracking = false;
+            }
+          }
+          updateEditButtonState();
+        }
+        isPointerDragging = false;
+      }
+
+      function findPrimary(body) {
+        let primary = null;
+        let maxMassEffect = 0;
+        celestialBodies.forEach((other) => {
+          if (other === body) return;
+          const distSq = body.tiltObject.position.distanceToSquared(
+            other.tiltObject.position
+          );
+          if (distSq === 0) return; // Should not happen if distinct objects
+
+          // Consider mass and inverse square of distance for "influence"
+          // This is a heuristic for "what is it orbiting?"
+          const influence = other.mass / distSq;
+
+          if (influence > maxMassEffect && other.mass > body.mass) {
+            // Must be more massive
+            maxMassEffect = influence;
+            primary = other;
+          }
+        });
+        return primary;
+      }
+
+      // --- WINDOW & ANIMATION LOOP ---
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+      function animate() {
+        requestAnimationFrame(animate);
+        const now = performance.now();
+        const deltaTime =
+          lastFrameTime > 0 ? (now - lastFrameTime) / 1000 : 0.0166; // seconds
+        lastFrameTime = now;
+
+        updatePhysics(deltaTime);
+        deform3DGrid();
+        updateCamera(deltaTime);
+        updateHUD();
+
+        renderer.render(scene, camera);
+      }
+
+      // --- START ---
+      init();
     </script>
-</body>
+  </body>
 </html>
