@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>404 - Reality is Broken</title>
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404 - Reality is Broken</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap");
 
-    body {
+      body {
         margin: 0;
         height: 100vh;
         display: flex;
@@ -16,35 +16,35 @@
         align-items: center;
         background: radial-gradient(circle at center, #0b0b0b, #111 90%);
         color: #f0f0f0;
-        font-family: 'Roboto Mono', monospace;
+        font-family: "Roboto Mono", monospace;
         text-align: center;
         overflow: hidden;
-    }
+      }
 
-    h1 {
+      h1 {
         font-size: 8rem;
         color: #ff3333;
         text-shadow: 0 0 20px #ff3333, 0 0 40px #ff0000, 0 0 80px #800000;
         margin: 0;
-    }
+      }
 
-    h2 {
+      h2 {
         font-size: 1.8rem;
         margin: 20px 0;
         color: #fff;
         max-width: 700px;
         text-shadow: 1px 1px 3px #000;
-    }
+      }
 
-    p {
+      p {
         font-size: 1.2rem;
         margin: 10px 0;
         color: #ccc;
         max-width: 600px;
         line-height: 1.5;
-    }
+      }
 
-    a {
+      a {
         color: #ff6666;
         text-decoration: none;
         font-weight: bold;
@@ -52,31 +52,39 @@
         display: inline-block;
         transition: all 0.3s ease;
         cursor: pointer;
-    }
+      }
 
-    a:hover {
+      a:hover {
         color: #00ffff;
         text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
-    }
+      }
 
-    .shadow {
+      .shadow {
         position: absolute;
         width: 300%;
         height: 300%;
         top: -100%;
         left: -100%;
-        background: radial-gradient(circle, rgba(255,0,0,0.1), transparent 50%);
+        background: radial-gradient(
+          circle,
+          rgba(255, 0, 0, 0.1),
+          transparent 50%
+        );
         animation: rotate 35s infinite linear;
         pointer-events: none;
         z-index: -1;
-    }
+      }
 
-    @keyframes rotate {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
+      @keyframes rotate {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
 
-    .ember {
+      .ember {
         position: absolute;
         width: 5px;
         height: 5px;
@@ -84,49 +92,63 @@
         border-radius: 50%;
         opacity: 0.8;
         animation: float 10s infinite;
-    }
+      }
 
-    @keyframes float {
-        0% { transform: translateY(100vh) translateX(0) scale(0.5); opacity: 0; }
-        50% { opacity: 1; }
-        100% { transform: translateY(-10vh) translateX(200px) scale(1); opacity: 0; }
-    }
-</style>
-</head>
-<body>
-<div class="shadow"></div>
+      @keyframes float {
+        0% {
+          transform: translateY(100vh) translateX(0) scale(0.5);
+          opacity: 0;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(-10vh) translateX(200px) scale(1);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shadow"></div>
 
-<h1>404</h1>
-<h2>Behold… the developer has failed again. Chaos reigns where files once lived.</h2>
-<p>Yes, it’s broken. No, it’s not your fault… or is it?</p>
-<p>Somewhere, a file path trembles in fear. Someone clearly had a nap instead of coding.</p>
-<a href="/">Return to sanity →</a>
+    <h1>404</h1>
+    <h2>
+      Behold… the developer has failed again. Chaos reigns where files once
+      lived.
+    </h2>
+    <p>Yes, it’s broken. No, it’s not your fault… or is it?</p>
+    <p>
+      Somewhere, a file path trembles in fear. Someone clearly had a nap instead
+      of coding.
+    </p>
+    <a href="/">Return to sanity →</a>
 
-<script>
-    // Floating embers for dramatic effect
-    for(let i=0;i<50;i++){
-        let ember = document.createElement('div');
-        ember.className = 'ember';
-        ember.style.left = Math.random()*100+'vw';
-        ember.style.animationDelay = Math.random()*10+'s';
-        ember.style.width = ember.style.height = Math.random()*5+3+'px';
+    <script>
+      // Floating embers for dramatic effect
+      for (let i = 0; i < 50; i++) {
+        let ember = document.createElement("div");
+        ember.className = "ember";
+        ember.style.left = Math.random() * 100 + "vw";
+        ember.style.animationDelay = Math.random() * 10 + "s";
+        ember.style.width = ember.style.height = Math.random() * 5 + 3 + "px";
         document.body.appendChild(ember);
-    }
+      }
 
-    // Random Rickroll on click (50% chance)
-    const chance = 0.5; // 50%; there is a chance that you get rickrolled.
-    const link = document.querySelector('a');
+      // Random Rickroll on click (50% chance)
+      const chance = 0.5; // 50%; there is a chance that you get rickrolled.
+      const link = document.querySelector("a");
 
-    link.addEventListener('click', (e) => {
+      link.addEventListener("click", (e) => {
         e.preventDefault(); // prevent immediate navigation
         if (Math.random() < chance) {
-            // Redirect to Rickroll
-            window.location.href = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+          // Redirect to Rickroll
+          window.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
         } else {
-            // Redirect normally to root
-            window.location.href = link.getAttribute('href');
+          // Redirect normally to root
+          window.location.href = link.getAttribute("href");
         }
-    });
-</script>
-</body>
+      });
+    </script>
+  </body>
 </html>
