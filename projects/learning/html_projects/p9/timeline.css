@@ -1,0 +1,32 @@
+*{
+    padding: 0;
+    margin: 0;
+}
+body{
+    background: rgb(165, 164, 164);
+}
+ol{
+    margin-left: 20px;
+}
+
+li{
+    padding: 5px;
+    margin: 0;
+    border-left: 2px solid Black;
+    font-size: larger;
+    border-bottom: 3px dotted black;
+}
+
+p{
+    margin-top: 10px;
+    padding-left: 30px;
+    color: white;
+    font-style: italic;
+    font-size: smaller;
+}
+li:nth-child(odd){
+    background: rgb(99, 98, 98);
+}
+li:nth-child(even){
+    background: rgb(150, 149, 149);
+}

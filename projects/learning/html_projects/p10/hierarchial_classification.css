@@ -1,0 +1,40 @@
+body{
+    background: rgb(200, 200, 200);
+}
+
+ul{
+    list-style-position: outside;
+    margin-left: 20px;
+}
+li{
+    border-left: 1px solid black;
+    margin-bottom: 5px;
+}
+h1{
+    display: inline-block;
+    border-bottom: 2px solid black;
+}
+
+#animals ul ul ul li{
+    border-bottom-left-radius: 5px;
+    border-top-left-radius: 5px;
+}
+#plants ul ul ul ul li, .c li{
+    border-bottom-left-radius: 5px;
+    border-top-left-radius: 5px;
+}
+li{
+    background: #e0e0e0;
+}
+li li{
+    background: #c8c8c8;
+}
+li li li{
+    background: #b0b0b0;
+}
+li li li li{
+    background: #989898;
+}
+li li li li li{
+    background: #808080;
+}

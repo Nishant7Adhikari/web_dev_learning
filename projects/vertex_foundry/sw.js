@@ -7,8 +7,8 @@ const urlsToCache = [
     'style.css',
     'script.js',
     'curriculumData.js',
-    'icon-192.jpg',
-    'icon-512.jpg'
+    'icon-192.png',
+    'icon-512.png'
 ];
 
 // Install event - cache files
