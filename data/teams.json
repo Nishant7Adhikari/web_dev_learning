@@ -1,45 +1,45 @@
 [
-    {
-        "id": "N",
-        "name": "Nishant Adhikari",
-        "role": "Founder",
-        "title": "Creator & Developer ",
-        "avatar": "media/male.svg",
-        "bio": "A student and technology enthusiast, passionate about programming, electronics, building innovative web projects and learning new things.",
-        "interest": [
-            "Web development",
-            "Chess",
-            "Rubik's Cube",
-            "Robotics",
-            "Designing"
-        ],
-        "socialLinks": {
-            "discord": "https://discord.gg/btWA9sHV",
-            "github": "https://github.com/Nishant7Adhikari",
-            "x": "https://x.com/Nishant_OP11",
-            "instagram": "https://www.instagram.com/nishant060211?igsh=MWsxZ3o1YzJ3NW9sZg==",
-            "facebook": "https://www.facebook.com/share/172n6tfVsX/",
-            "website": "nishantadhikari.info.np"
-        }
-    },
-    {
-  "id": "S",
-  "name": "Sulav Neupane",
-  "role": "Contributor",
-  "title": "Member & Developer",
-  "avatar": "media/male.svg",
-  "bio": "AI Student and technology enthusiast, passionate about programming, building projects and learning new things. ",
-  "interest": [
-    "AI",
-    "Science",
-    "Music",
-    "Cooking"
-  ],
-  "socialLinks": {
-    "discord": "https://discord.gg/Byjhha8D",
-    "github": "https://github.com/Sulav-droid",
-    "instagram": "https://www.instagram.com/sul_avneupane",
-    "facebook": "https://www.facebook.com/sulav.neupane.9250"
-  }
+  {
+    "id": "N",
+    "name": "Nishant Adhikari",
+    "role": "Founder",
+    "title": "Creator & Developer ",
+    "avatar": "media/male.svg",
+    "bio": "A student and technology enthusiast, passionate about programming, electronics, building and learning new things.",
+    "interest": [
+      "Web development",
+      "Chess",
+      "Rubik's Cube",
+      "Robotics",
+      "Designing"
+    ],
+    "socialLinks": {
+      "discord": "https://discord.gg/btWA9sHV",
+      "github": "https://github.com/Nishant7Adhikari",
+      "x": "https://x.com/Nishant_OP11",
+      "instagram": "https://www.instagram.com/nishant060211?igsh=MWsxZ3o1YzJ3NW9sZg==",
+      "facebook": "https://www.facebook.com/share/172n6tfVsX/",
+      "website": "nishantadhikari.info.np"
+    }
+  },
+  {
+    "id": "S",
+    "name": "Sulav Neupane",
+    "role": "Contributor",
+    "title": "Member & Developer",
+    "avatar": "media/male.svg",
+    "bio": "AI Student and technology enthusiast, passionate about programming, building projects and learning new things. ",
+    "interest": [
+      "AI",
+      "Science",
+      "Music",
+      "Cooking"
+    ],
+    "socialLinks": {
+      "discord": "https://discord.gg/Byjhha8D",
+      "github": "https://github.com/Sulav-droid",
+      "instagram": "https://www.instagram.com/sul_avneupane",
+      "facebook": "https://www.facebook.com/sulav.neupane.9250"
+    }
   }
 ]
