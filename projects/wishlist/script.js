@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast: (message) => {
             DOMElements.toast.textContent = message;
             DOMElements.toast.classList.add('show');
-            setTimeout(() => DOMElements.toast.classList.remove('show'), 3000);
+            setTimeout(() => DOMElements.toast.classList.remove('show'), 5000);
         }
     };
     
@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const theme = localStorage.getItem('wishlist-theme');
             if(theme) document.documentElement.setAttribute('data-theme', theme);
             DOMElements.sortSelect.value = state.sortPreference;
-            DOMElements.wishlistContainer.className = state.viewMode === 'list' ? 'list-view' : '';
+            DOMElements.wishlistContainer.className = state.viewMode === 'list' ? 'grid-view list-view' : 'grid-view';
             DOMElements.viewToggleBtn.innerHTML = state.viewMode === 'list' ? '<i class="fa-solid fa-grip"></i>' : '<i class="fa-solid fa-list"></i>';
         },
         saveState: () => localStorage.setItem('wishlist-activeProfile', state.activeProfileId),

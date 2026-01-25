@@ -1,7 +1,8 @@
 
     import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
-    const API_KEY =/*if you misuse this key or even use this key for yourself then the person that you love the most will make relationship with multiple people*/ "AIzaSyAwImvz7Qh6DCGrxEQb4vqcBTXza9M7BFI";
+    /*if you misuse this key or even use this key for yourself then the person that you love the most will get Cancer*/
+    const API_KEY = "AIzaSyCIviO2d4Ho98fCVzs6fxKKHtjRNESWjgs";
     const genAI = new GoogleGenerativeAI(API_KEY);
 
     let timerInterval;
@@ -9,12 +10,15 @@
     async function generate() {
       const html = document.getElementById("htmlInput").value.trim();
       const css = document.getElementById("cssInput").value.trim();
+      const js = document.getElementById("jsInput").value.trim();
 
-      if (!html && !css) {
+      if (!html && !css && !js) {
         alert("⚠️ Please paste some HTML or CSS first!");
         return;
       }
 
+      const btn = document.querySelector("button[onclick='generate()']");
+  if(btn) btn.disabled = true;
       // Show loader and reset timer
       document.getElementById("loader").style.display = "block";
       document.getElementById("timer").innerText = "Time: 0s";
@@ -25,7 +29,9 @@
         document.getElementById("timer").innerText = `Time: ${elapsed}s`;
       }, 500);
 
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ 
+    model: "gemini-2.5-flash-lite"
+    });
 
       const prompt = `
 You are an assistant that generates project metadata and creative icon prompts. you are ai for an application, not a simple chatbot, you have to deliver what is asked for nothing beyond that, because if you provide anything out of format the whole system will collapse.
@@ -40,11 +46,11 @@ ${css}
 1. Create a JSON metadata object for this project with fields as:
 {
         "name": "App name from head_tag"(if it has 'project' + project name or proj: + project name or something like that with project then just keep the project name)(example: if head tag has "Project Json or Proj: html then just write Json or html respectively"),
-        "slug": "App_Name (use "_" instead of space and all small letters)",
+        "slug": "app_name (use "_" instead of space and all small letters from "name")",
         "tagline": "short tagline and moto of the project describing within 1 to 2 sentences",
-        "started": "2025(leave it as 2025 nothing else)",
+        "started": "2026(leave it as 2026 nothing else)",
         "status": "Completed",
-        "keywords": ["project", "JavaScript", "HTML", "CSS", "learning", "..upto 6.."],
+        "keywords": ["project", "JavaScript", "HTML", "CSS", "learning", "..upto 6 not necessarily to be any of these, but if it has proj: or project in the head tag include one tag as project"],
         "team_ids": ["N"],(it is always "N")
         "description": "overall description in about 3 to 5 sentences",
         "link": "projects/{slug}/",
@@ -76,10 +82,9 @@ First JSON enclosed in a backtick, then a line starting exactly with "Icon promp
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
-
+        console.log(text)
         // Split and clean outputs
         const { jsonContent, promptContent } = splitAndCleanGeminiOutput(text);
-
         document.getElementById("jsonOutput").innerText = jsonContent;
         document.getElementById("iconOutput").innerText = promptContent;
       } catch (err) {
