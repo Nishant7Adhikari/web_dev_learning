@@ -1,28 +1,58 @@
-const CACHE_NAME = 'vertex-foundry-cache-v1';
+const CACHE_NAME = 'vertex-foundry-cache-v2';
 const urlsToCache = [
+    '/',
     'index.html',
     'offline.html',
     'manifest.json',
+    'style.css',
+    'script.js',
+    'curriculumData.js',
     'icon-192.jpg',
     'icon-512.jpg'
 ];
 
-// Install event – cache files
+// Install event - cache files
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
-        .then(cache => cache.addAll(urlsToCache))
+        .then(cache => {
+            console.log('Opened cache');
+            return cache.addAll(urlsToCache);
+        })
     );
 });
 
-// Activate event
+// Activate event - clean up old caches
 self.addEventListener('activate', event => {
-    console.log('Service Worker activated');
+    event.waitUntil(
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cacheName => {
+                    if (cacheName !== CACHE_NAME) {
+                        console.log('Deleting old cache:', cacheName);
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        })
+    );
+    return self.clients.claim();
 });
 
-// Fetch event – serve cached files if offline
+// Fetch event - serve cached files if available, with network fallback
 self.addEventListener('fetch', event => {
     event.respondWith(
-        fetch(event.request).catch(() => caches.match('offline.html'))
+        caches.match(event.request)
+        .then(response => {
+            // Cache hit - return response
+            if (response) {
+                return response;
+            }
+            // Not in cache - fetch from network
+            return fetch(event.request).catch(() => {
+                // Network request failed - return offline page
+                return caches.match('offline.html');
+            });
+        })
     );
 });

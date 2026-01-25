@@ -1,0 +1,320 @@
+:root {
+    --bg-color: #1a1a1c;
+    --card-color: #252528;
+    --border-color: #3a3a3e;
+    --text-color: #e1e1e6;
+    --text-muted: #a8a8b3;
+    --primary-color: #00bfff;
+    --primary-hover: #00aeee;
+    --completed-color: #28a745;
+    --completed-hover: #218838;
+    --locked-color: #495057;
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+header h1 {
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+.progress-bar-container {
+    width: 100%;
+    background-color: var(--card-color);
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    margin-top: 20px;
+}
+
+.progress-bar {
+    width: 0%;
+    height: 20px;
+    background-color: var(--completed-color);
+    transition: width 0.5s ease-in-out;
+    text-align: center;
+    font-size: 12px;
+    line-height: 20px;
+    color: white;
+    font-weight: bold;
+}
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 30px 0;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.view-switcher button,
+.search-box input {
+    background-color: var(--card-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition:
+        background-color 0.2s,
+        color 0.2s;
+}
+
+.view-switcher button.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.search-box input {
+    width: 250px;
+}
+
+#search-results-count {
+    color: var(--text-muted);
+    font-size: 0.9em;
+}
+
+.module-group {
+    display: block;
+}
+
+.module-group.hidden {
+    display: none;
+}
+
+.module-group>summary {
+    font-size: 1.8em;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 15px;
+    margin: 20px 0 10px;
+    background-color: var(--card-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.module-group>summary:hover {
+    background-color: #313135;
+}
+
+.module-group[open]>summary {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.module {
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.project-card {
+    background-color: var(--card-color);
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
+    transition:
+        opacity 0.5s,
+        max-height 0.5s,
+        transform 0.3s;
+    transform-origin: top;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.project-card.hidden {
+    display: none;
+}
+
+.project-card.fade-out {
+    opacity: 0;
+}
+
+.project-card.locked {
+    opacity: 0.5;
+    background-color: #202022;
+}
+
+.project-card h3 {
+    margin-top: 0;
+    color: var(--text-color);
+}
+
+.project-card h3 span {
+    font-size: 0.8em;
+    color: var(--text-muted);
+    font-weight: normal;
+}
+
+.project-card pre {
+    background-color: var(--bg-color);
+    padding: 15px;
+    border-radius: 5px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 0.9em;
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+}
+
+.project-card code {
+    font-family: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", monospace;
+}
+
+.resources {
+    margin-top: 20px;
+}
+
+.resources h4 {
+    margin-bottom: 10px;
+    color: var(--text-muted);
+}
+
+.resources ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.resources li {
+    margin-bottom: 5px;
+}
+
+.resources a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.resources a:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+.project-button {
+    display: inline-block;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1em;
+    transition: background-color 0.2s;
+    margin-top: 15px;
+}
+
+.project-button.complete {
+    background-color: var(--primary-color);
+}
+
+.project-button.complete:hover {
+    background-color: var(--primary-hover);
+}
+
+.project-button.completed {
+    background-color: var(--completed-color);
+    cursor: default;
+}
+
+.project-button.locked {
+    background-color: var(--locked-color);
+    cursor: not-allowed;
+}
+
+.optional-css summary {
+    cursor: pointer;
+    color: var(--primary-color);
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+#focus-view-container h2 {
+    text-align: center;
+    color: var(--completed-color);
+}
+
+footer {
+    text-align: center;
+    margin-top: 50px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-muted);
+}
+
+footer button {
+    background: none;
+    border: 1px solid var(--text-muted);
+    color: var(--text-muted);
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+footer button:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-box input {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .module-group>summary {
+        font-size: 1.4em;
+    }
+}
