@@ -25,8 +25,8 @@
                 "started": "2025 September 8",
                 "status": "Completed",
                 "keywords": [
-                        "html",
-                        "css",
+                        "HTML",
+                        "CSS",
                         "headings",
                         "learning"
                 ],
@@ -158,9 +158,6 @@
                 "status": "Completed",
                 "keywords": [
                         "genre picker",
-                        "JavaScript",
-                        "HTML",
-                        "CSS",
                         "UI component",
                         "vibecode"
                 ],
@@ -218,11 +215,8 @@
                 "started": "2025",
                 "status": "Completed",
                 "keywords": [
-                        "PWA",
+                        "PWA Helper",
                         "icon resizer",
-                        "JavaScript",
-                        "HTML",
-                        "CSS",
                         "vibecode"
                 ],
                 "team_ids": [
@@ -242,10 +236,7 @@
                         "space",
                         "simulation",
                         "gravity",
-                        "vibecode",
-                        "JavaScript",
-                        "HTML",
-                        "CSS"
+                        "vibecode"
                 ],
                 "team_ids": [
                         "N"
@@ -282,9 +273,6 @@
                 "status": "Completed",
                 "keywords": [
                         "web development",
-                        "HTML",
-                        "CSS",
-                        "JavaScript",
                         "curriculum",
                         "vibecode"
                 ],
@@ -334,5 +322,46 @@
                 "description": "This project showcases an article on electromagnetism, explaining concepts like magnetic fields and forces. It features a simple experiment demonstrating magnetic deflection. The layout is designed with clear sections and an aside for related information, providing an engaging learning experience.",
                 "link": "projects/learning/html_projects/p7/",
                 "image": "media/icons/article.png"
+        },
+        {
+                "name": "Timeline",
+                "slug": "timeline",
+                "tagline": "A visual journey through significant scientific milestones, charting the progression of human knowledge.",
+                "started": "2026 January 25",
+                "status": "Completed",
+                "keywords": [
+                        "project",
+                        "HTML",
+                        "CSS",
+                        "learning",
+                        "timeline",
+                        "history"
+                ],
+                "team_ids": [
+                        "N"
+                ],
+                "description": "This project showcases a chronological timeline of pivotal scientific discoveries and publications. It uses basic HTML and CSS to present information in a structured and visually appealing list format, highlighting key dates and their significance.",
+                "link": "projects/learning/html_projects/p9/",
+                "image": "media/icons/timeline.png"
+        },
+        {
+                "name": "Hierarchical Classification",
+                "slug": "hierarchical_classification",
+                "tagline": "An interactive visualization of biological classification, showcasing the hierarchical structure of living organisms.",
+                "started": "2026 January 25",
+                "status": "Completed",
+                "keywords": [
+                        "project",
+                        "HTML",
+                        "CSS",
+                        "learning",
+                        "biology"
+                ],
+                "team_ids": [
+                        "N"
+                ],
+                "description": "This project visually represents the hierarchical classification of living things, from broad categories like Animals and Plants down to specific species. It uses nested lists to demonstrate the tree-like structure inherent in biological taxonomy. The accompanying CSS provides a distinct visual hierarchy through progressively darker background colors for deeper levels of classification.",
+                "link": "projects/learning/html_projects/p10/",
+                "image": "media/icons/hierarchical_classification.png"
         }
 ]

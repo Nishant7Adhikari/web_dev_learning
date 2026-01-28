@@ -2,7 +2,11 @@
     import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
     /*if you misuse this key or even use this key for yourself then the person that you love the most will get Cancer*/
-    const API_KEY = "AIzaSyCIviO2d4Ho98fCVzs6fxKKHtjRNESWjgs";
+    if(!localStorage.getItem("gemini_api_key")){
+      const  API_KEY = prompt("You need to have a Gemini API key, you can get it from https://aistudio.google.com/app/apikey", "YOUR_API_KEY_HERE");
+      localStorage.setItem("gemini_api_key", API_KEY);
+    }
+    const API_KEY = localStorage.getItem("gemini_api_key");
     const genAI = new GoogleGenerativeAI(API_KEY);
 
     let timerInterval;
