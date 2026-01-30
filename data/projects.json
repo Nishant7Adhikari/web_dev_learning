@@ -363,5 +363,47 @@
                 "description": "This project visually represents the hierarchical classification of living things, from broad categories like Animals and Plants down to specific species. It uses nested lists to demonstrate the tree-like structure inherent in biological taxonomy. The accompanying CSS provides a distinct visual hierarchy through progressively darker background colors for deeper levels of classification.",
                 "link": "projects/learning/html_projects/p10/",
                 "image": "media/icons/hierarchical_classification.png"
+        },
+        {
+                "name": "Metadata",
+                "slug": "metadata",
+                "tagline": "Exploring the importance of metadata and favicons in web development. Learn how to effectively use them for better SEO and user experience.",
+                "started": "2026 January 30",
+                "status": "Completed",
+                "keywords": [
+                        "project",
+                        "HTML",
+                        "CSS",
+                        "metadata",
+                        "favicon",
+                        "learning"
+                ],
+                "team_ids": [
+                        "N"
+                ],
+                "description": "This project delves into the fundamental aspects of web page metadata and the integration of favicons. It demonstrates how these elements contribute to search engine optimization and brand identity. Through practical examples, users can understand the impact of well-defined metadata on a webpage's discoverability and the user's perception.",
+                "link": "projects/learning/html_projects/p11/",
+                "image": "media/icons/metadata.jpg"
+        },
+        {
+        "name": "Contact",
+        "slug": "contact",
+        "tagline": "A simple and direct contact page designed for easy access to information.",
+        "started": "2026 January 30",
+        "status": "Completed",
+        "keywords": [
+                "project",
+                "HTML",
+                "CSS",
+                "contact",
+                "learning",
+                "web"
+        ],
+        "team_ids": [
+                "N"
+        ],
+        "description": "This project is a straightforward HTML and CSS implementation of a contact page. It features a clean layout to display essential contact details such as email, phone number, and address. The design uses a dark background with contrasting, vibrant colors for key elements.",
+        "link": "projects/learning/html_projects/p12/",
+        "image": "media/icons/contacts.png"
         }
 ]
