@@ -386,24 +386,45 @@
                 "image": "media/icons/metadata.jpg"
         },
         {
-        "name": "Contact",
-        "slug": "contact",
-        "tagline": "A simple and direct contact page designed for easy access to information.",
-        "started": "2026 January 30",
-        "status": "Completed",
-        "keywords": [
-                "project",
-                "HTML",
-                "CSS",
-                "contact",
-                "learning",
-                "web"
-        ],
-        "team_ids": [
-                "N"
-        ],
-        "description": "This project is a straightforward HTML and CSS implementation of a contact page. It features a clean layout to display essential contact details such as email, phone number, and address. The design uses a dark background with contrasting, vibrant colors for key elements.",
-        "link": "projects/learning/html_projects/p12/",
-        "image": "media/icons/contacts.png"
+                "name": "Contact",
+                "slug": "contact",
+                "tagline": "A simple and direct contact page designed for easy access to information.",
+                "started": "2026 January 30",
+                "status": "Completed",
+                "keywords": [
+                        "project",
+                        "HTML",
+                        "CSS",
+                        "contact",
+                        "learning",
+                        "web"
+                ],
+                "team_ids": [
+                        "N"
+                ],
+                "description": "This project is a straightforward HTML and CSS implementation of a contact page. It features a clean layout to display essential contact details such as email, phone number, and address. The design uses a dark background with contrasting, vibrant colors for key elements.",
+                "link": "projects/learning/html_projects/p12/",
+                "image": "media/icons/contacts.png"
+        },
+        {
+                "name": "FAQ Page",
+                "slug": "faq_page",
+                "tagline": "An interactive FAQ page to quickly find answers to common questions.",
+                "started": "2026",
+                "status": "Completed",
+                "keywords": [
+                        "project",
+                        "HTML",
+                        "CSS",
+                        "learning",
+                        "interactive",
+                        "FAQ"
+                ],
+                "team_ids": [
+                        "N"
+                ],
+                "description": "This project showcases a clean and functional FAQ page built with HTML and CSS. It utilizes the `<details>` and `<summary>` elements for an engaging user experience, allowing users to expand and collapse answers. The design features a dark theme with contrasting highlight colors, making information easily accessible and visually appealing.",
+                "link": "projects/learning/html_projects/p13/",
+                "image": "media/icons/faq_page.png"
         }
 ]

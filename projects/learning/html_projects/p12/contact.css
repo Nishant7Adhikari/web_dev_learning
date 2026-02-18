@@ -1,0 +1,51 @@
+body {
+    background: #212121;
+    color: #b8b8b8;
+}
+
+h2 {
+    text-align: center;
+    color: #e4c817;
+}
+
+dl {
+    padding-left: 2rem;
+    transition: transform 0.2s ease;
+}
+
+dt {
+    font-weight: 400;
+    color: #e4c817;
+}
+
+dd {
+    font-weight: 300;
+    display: inline-block;
+    color: #7dfe27;
+    margin-bottom: 12px;
+}
+
+dd:hover {
+    transform: scale(1.03);
+}
+
+a {
+    color: #fefefe;
+}
+
+a:hover {
+    color: red;
+}
+
+p {
+    text-align: center;
+    margin: 5px auto;
+    background: #383838;
+    color: #b0b0b0;
+    width: fit-content;
+}
+
+.reachMe {
+    margin-top: 20px;
+    color: #7dfe27;
+}

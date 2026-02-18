@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ExamDB Enterprise — Stable Release</title>
+    <meta name="description" content="Professional Academic Typesetting System">
+
+    <!-- ================================================================================== -->
+    <!--                                  CORE DEPENDENCIES                                 -->
+    <!-- ================================================================================== -->
+
+    <!-- Tailwind CSS (Via CDN for portability). Note: In strict production, use build step. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 900: '#1e3a8a' },
+                        paper: '#ffffff',
+                    },
+                    fontFamily: {
+                        serif: ['Times New Roman', 'Tinos', 'serif'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['Courier New', 'monospace']
+                    },
+                    screens: {
+                        'print': {'raw': 'print'},
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Quill Editor (Rich Text) -->
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+
+    <!-- KaTeX (Math) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- SortableJS (Drag & Drop) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+
+    <!-- Cropper.js (Image Editing) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+
+    <!-- Highlight.js (Code Syntax) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <style>
+        /* ================================================================================== */
+        /*                                  APPLICATION CSS                                   */
+        /* ================================================================================== */
+        
+        @import url('https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --paper-width: 210mm;
+            --paper-height: 297mm;
+        }
+
+        body {
+            background-color: #f3f4f6;
+            color: #111827;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden; /* App-like structure */
+        }
+
+        /* --- PAPER SURFACE --- */
+        .paper-sheet {
+            background: white;
+            width: 100%;
+            max-width: var(--paper-width);
+            min-height: var(--paper-height);
+            margin: 2rem auto;
+            padding: 20mm 20mm;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        /* --- TYPOGRAPHY --- */
+        .academic-font {
+            font-family: 'Tinos', 'Times New Roman', serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #000;
+        }
+
+        /* --- OVERFLOW PROTECTION (CRITICAL FIX) --- */
+        .question-content {
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            word-break: break-word;
+            min-width: 0; /* Flexbox overflow fix */
+            max-width: 100%;
+        }
+        
+        .question-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0.5rem 0;
+        }
+        
+        .question-content pre {
+            white-space: pre-wrap;
+            background: #f8fafc;
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+            font-size: 0.85em;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        /* --- INTERACTIVE ELEMENTS --- */
+        .question-row {
+            display: flex;
+            gap: 12px;
+            padding: 6px 8px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            transition: background 0.15s, border-color 0.15s;
+            position: relative;
+        }
+
+        .question-row:hover {
+            background-color: #eff6ff;
+            border-color: #bfdbfe;
+        }
+
+        /* Hover Controls */
+        .hover-controls {
+            position: absolute;
+            left: -48px;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            background: white;
+            padding: 4px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 20;
+        }
+
+        .question-row:hover .hover-controls {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .ctrl-btn {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .ctrl-btn:hover { background-color: #f3f4f6; color: #111827; }
+        .ctrl-btn.delete:hover { background-color: #fef2f2; color: #ef4444; }
+        .ctrl-btn.drag { cursor: grab; }
+        .ctrl-btn.drag:active { cursor: grabbing; }
+
+        /* --- EDITOR MODALS --- */
+        .ql-editor {
+            font-family: 'Tinos', serif;
+            font-size: 16px;
+            min-height: 250px;
+        }
+        
+        /* Math Studio Grid */
+        .symbol-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(46px, 1fr));
+            gap: 6px;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .sym-btn {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e5e7eb;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .sym-btn:hover { border-color: #3b82f6; background: #eff6ff; }
+
+        /* --- PRINT ENGINE (CRITICAL) --- */
+        @media print {
+            @page {
+                size: A4;
+                margin: 15mm;
+            }
+
+            body, html {
+                background: white !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+
+            /* Hide UI */
+            header, aside, .fab, .no-print, .hover-controls, .ql-tooltip, #mobile-menu, #modals-container {
+                display: none !important;
+            }
+
+            /* Main Content Reset */
+            main {
+                display: block !important;
+                height: auto !important;
+                overflow: visible !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            /* Paper Reset */
+            .paper-sheet {
+                box-shadow: none !important;
+                margin: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                min-height: auto !important;
+                padding: 0 !important;
+            }
+
+            /* Breaks */
+            .section-block { page-break-after: auto; }
+            .question-row { page-break-inside: avoid; border: none !important; }
+            
+            /* Logic Bar Fix */
+            .katex-html { background: transparent !important; }
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col">
+
+    <!-- ================= HEADER ================= -->
+    <header class="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center z-50 shrink-0 shadow-sm relative">
+        <div class="flex items-center gap-3">
+            <div class="bg-brand-600 text-white w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xl shadow">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg leading-tight text-gray-900">ExamDB <span class="text-brand-600">Enterprise</span></h1>
+                <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Stable Build v3.0</div>
+            </div>
+        </div>
+
+        <!-- Desktop Toolbar -->
+        <div class="hidden md:flex items-center gap-2">
+            <button onclick="toggleSidebar()" class="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-md text-sm font-medium flex items-center gap-2 transition">
+                <i class="fa-solid fa-sliders"></i> Settings
+            </button>
+            <div class="h-5 w-px bg-gray-300 mx-2"></div>
+            
+            <button onclick="document.getElementById('json-upload').click()" class="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-md text-sm font-medium flex items-center gap-2 transition">
+                <i class="fa-solid fa-upload"></i> Import
+            </button>
+            <input type="file" id="json-upload" class="hidden" accept=".json" onchange="importJSON(this)">
+            
+            <button onclick="exportJSON()" class="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-md text-sm font-medium flex items-center gap-2 transition">
+                <i class="fa-solid fa-download"></i> Export
+            </button>
+            
+            <button onclick="resetForNextYear()" class="ml-2 px-3 py-2 bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 rounded-md text-sm font-bold flex items-center gap-2 transition">
+                <i class="fa-solid fa-calendar-plus"></i> Next Year
+            </button>
+
+            <button onclick="window.print()" class="ml-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-md text-sm font-bold shadow transition flex items-center gap-2">
+                <i class="fa-solid fa-print"></i> Print PDF
+            </button>
+        </div>
+
+        <!-- Mobile Menu Toggle -->
+        <button onclick="toggleMobileMenu()" class="md:hidden text-gray-600 text-xl"><i class="fa-solid fa-bars"></i></button>
+    </header>
+
+    <!-- MOBILE MENU -->
+    <div id="mobile-menu" class="fixed inset-0 z-[60] hidden">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="toggleMobileMenu()"></div>
+        <div class="absolute right-0 top-0 h-full w-72 bg-white shadow-2xl p-6 flex flex-col">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="font-bold text-lg">Menu</h2>
+                <button onclick="toggleMobileMenu()"><i class="fa-solid fa-times text-xl text-gray-400"></i></button>
+            </div>
+            <nav class="space-y-3 flex-1">
+                <button onclick="toggleSidebar(); toggleMobileMenu()" class="w-full text-left p-3 rounded hover:bg-gray-50 flex items-center gap-3"><i class="fa-solid fa-sliders text-blue-500"></i> Settings</button>
+                <button onclick="document.getElementById('json-upload').click()" class="w-full text-left p-3 rounded hover:bg-gray-50 flex items-center gap-3"><i class="fa-solid fa-upload text-green-500"></i> Import</button>
+                <button onclick="exportJSON()" class="w-full text-left p-3 rounded hover:bg-gray-50 flex items-center gap-3"><i class="fa-solid fa-download text-orange-500"></i> Export</button>
+                <button onclick="window.print()" class="w-full text-left p-3 bg-brand-600 text-white rounded flex items-center gap-3 font-bold mt-4 justify-center"><i class="fa-solid fa-print"></i> Print PDF</button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- ================= MAIN LAYOUT ================= -->
+    <div class="flex flex-1 overflow-hidden relative">
+        
+        <!-- SIDEBAR CONFIG -->
+        <aside id="sidebar" class="w-80 bg-white border-r border-gray-200 absolute h-full z-40 transform -translate-x-full transition-transform duration-300 shadow-2xl flex flex-col">
+            <div class="p-4 border-b flex justify-between items-center bg-gray-50">
+                <h3 class="font-bold text-xs uppercase tracking-wide text-gray-500">Paper Settings</h3>
+                <button onclick="toggleSidebar()" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-5 space-y-6">
+                <!-- Group 1 -->
+                <div class="space-y-3">
+                    <label class="block text-xs font-bold text-gray-400 uppercase">Institution</label>
+                    <input type="text" id="conf-uni" class="w-full border p-2 rounded text-sm font-bold font-serif" value="Harvard University">
+                    <input type="text" id="conf-inst" class="w-full border p-2 rounded text-xs" value="Faculty of Sciences">
+                </div>
+                <!-- Group 2 -->
+                <div class="space-y-3">
+                    <label class="block text-xs font-bold text-gray-400 uppercase">Subject</label>
+                    <input type="text" id="conf-sub" class="w-full border p-2 rounded text-sm font-bold text-blue-800" value="Computer Science">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="conf-code" class="w-full border p-2 rounded text-xs" value="CS-101">
+                        <input type="text" id="conf-subt" class="w-full border p-2 rounded text-xs" value="(Algorithms)">
+                    </div>
+                </div>
+                <!-- Group 3 -->
+                <div class="space-y-3">
+                    <label class="block text-xs font-bold text-gray-400 uppercase">Exam Meta</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="number" id="conf-year" class="w-full border p-2 rounded text-sm font-bold" value="2026">
+                        <input type="text" id="conf-time" class="w-full border p-2 rounded text-sm" value="3 Hrs.">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="conf-fm" class="w-full border p-2 rounded text-sm" value="100">
+                        <input type="text" id="conf-pm" class="w-full border p-2 rounded text-sm" value="40">
+                    </div>
+                </div>
+                <!-- Group 4 -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Level</label>
+                    <textarea id="conf-level" rows="2" class="w-full border p-2 rounded text-xs resize-none">Bachelor Level / First Year / First Sem</textarea>
+                </div>
+            </div>
+            <div class="p-3 bg-gray-50 border-t text-center text-[10px] text-gray-400">
+                ExamDB Enterprise
+            </div>
+        </aside>
+
+        <!-- CANVAS -->
+        <main class="flex-1 overflow-y-auto bg-gray-100 p-4 md:p-8 flex justify-center" onclick="closeSidebarIfOpen()">
+            <div id="paper" class="paper-sheet flex flex-col">
+                <!-- Header -->
+                <div id="header-render" class="mb-8 border-b-2 border-black pb-4"></div>
+                
+                <div class="text-justify mb-8 italic text-sm font-serif text-gray-600">
+                    Candidates are required to give their answers in their own words as far as practicable. 
+                    The figures in the margin indicate full marks.
+                </div>
+
+                <!-- Sections Container -->
+                <div id="sections-container" class="flex-1 space-y-8 min-h-[300px]"></div>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="text-center py-20 no-print">
+                    <button onclick="openSectionModal()" class="inline-block p-8 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition group">
+                        <i class="fa-solid fa-folder-plus text-4xl text-gray-300 group-hover:text-blue-500 mb-2"></i>
+                        <div class="font-bold text-gray-500 group-hover:text-blue-700">Add First Section</div>
+                    </button>
+                </div>
+            </div>
+            <div class="h-24"></div> <!-- Spacer -->
+        </main>
+
+        <!-- FAB -->
+        <button onclick="openSectionModal()" class="fixed bottom-8 right-8 bg-brand-600 hover:bg-brand-700 text-white w-16 h-16 rounded-full shadow-lg flex items-center justify-center text-2xl transition hover:scale-110 z-30 no-print">
+            <i class="fa-solid fa-plus"></i>
+        </button>
+
+    </div>
+
+    <!-- ================= MODALS CONTAINER ================= -->
+    <div id="modals-container">
+        
+        <!-- 1. SECTION MODAL -->
+        <div id="modal-section" class="fixed inset-0 z-[70] hidden bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-sm">
+                <div class="p-4 border-b flex justify-between items-center">
+                    <h3 class="font-bold">Add Section</h3>
+                    <button onclick="closeModal('modal-section')"><i class="fa-solid fa-times text-gray-400"></i></button>
+                </div>
+                <div class="p-5 space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Title</label>
+                        <input id="sec-title" class="w-full border border-gray-300 p-2 rounded focus:ring-2 ring-blue-500 outline-none" placeholder="e.g. Group A">
+                        <div class="flex gap-2 mt-2">
+                            <span onclick="fillSec('Group A')" class="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded cursor-pointer border border-blue-100">Group A</span>
+                            <span onclick="fillSec('Group B')" class="text-xs bg-green-50 text-green-600 px-2 py-1 rounded cursor-pointer border border-green-100">Group B</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Instruction</label>
+                        <textarea id="sec-inst" class="w-full border border-gray-300 p-2 rounded resize-none" rows="2"></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Start #</label>
+                            <input type="number" id="sec-start" class="w-full border p-2 rounded" value="1">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Type</label>
+                            <select id="sec-type" class="w-full border p-2 rounded bg-white">
+                                <option value="1">1, 2, 3</option>
+                                <option value="a">a, b, c</option>
+                                <option value="i">i, ii, iii</option>
+                                <option value="none">None</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 bg-gray-50 border-t flex justify-end gap-2">
+                    <button onclick="closeModal('modal-section')" class="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded">Cancel</button>
+                    <button onclick="createSection()" class="px-4 py-2 bg-brand-600 text-white font-bold rounded hover:bg-brand-700">Add</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. EDITOR MODAL -->
+        <div id="modal-editor" class="fixed inset-0 z-[70] hidden bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl h-[90vh] flex flex-col">
+                <div class="p-4 border-b flex justify-between items-center">
+                    <h3 class="font-bold flex items-center gap-2"><i class="fa-solid fa-pen-to-square text-blue-500"></i> Edit Content</h3>
+                    <button onclick="closeModal('modal-editor')"><i class="fa-solid fa-times text-gray-400 text-lg"></i></button>
+                </div>
+                
+                <div class="flex-1 flex flex-col relative overflow-hidden">
+                    <div id="quill-toolbar">
+                        <span class="ql-formats">
+                            <button class="ql-bold"></button><button class="ql-italic"></button><button class="ql-underline"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-script" value="sub"></button><button class="ql-script" value="super"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-list" value="ordered"></button><button class="ql-list" value="bullet"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-image"></button>
+                            <button class="ql-code-block"></button>
+                            <button class="ql-formula" onclick="openMathModal()"></button>
+                        </span>
+                        <span class="ql-formats"><button class="ql-clean"></button></span>
+                    </div>
+                    <div id="editor-container" class="flex-1 overflow-y-auto academic-font text-lg"></div>
+                </div>
+
+                <div class="p-4 bg-gray-50 border-t flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold uppercase text-gray-500">Marks</span>
+                        <input type="text" id="editor-marks" class="w-20 border border-gray-300 rounded p-1 text-center font-bold" placeholder="[5]">
+                    </div>
+                    <button onclick="saveQuestion()" class="px-6 py-2 bg-brand-600 text-white font-bold rounded shadow hover:bg-brand-700">Save Changes</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. MATH MODAL -->
+        <div id="modal-math" class="fixed inset-0 z-[80] hidden bg-black/70 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl flex flex-col">
+                <div class="p-3 bg-gray-900 text-white flex justify-between items-center rounded-t-lg">
+                    <span class="font-bold"><i class="fa-solid fa-square-root-variable mr-2 text-blue-400"></i>Math Studio</span>
+                    <button onclick="closeModal('modal-math')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-times"></i></button>
+                </div>
+                <div class="p-6 bg-gray-50 border-b text-center min-h-[80px] flex items-center justify-center">
+                    <div id="math-preview" class="text-2xl"></div>
+                </div>
+                <div class="flex border-b">
+                    <button class="flex-1 p-2 font-bold text-xs hover:bg-gray-100 border-b-2 border-transparent focus:border-blue-500" onclick="switchMathTab('basic')">General</button>
+                    <button class="flex-1 p-2 font-bold text-xs hover:bg-gray-100 border-b-2 border-transparent focus:border-blue-500" onclick="switchMathTab('logic')">Logic</button>
+                    <button class="flex-1 p-2 font-bold text-xs hover:bg-gray-100 border-b-2 border-transparent focus:border-blue-500" onclick="switchMathTab('calc')">Calculus</button>
+                </div>
+                <div class="h-40 overflow-y-auto bg-white p-2 relative">
+                    <div id="mt-basic" class="symbol-grid"></div>
+                    <div id="mt-logic" class="symbol-grid hidden"></div>
+                    <div id="mt-calc" class="symbol-grid hidden"></div>
+                </div>
+                <div class="flex-1 bg-gray-900 p-0 relative">
+                    <textarea id="math-input" class="w-full h-24 bg-gray-900 text-green-400 p-4 font-mono text-sm resize-none focus:outline-none" placeholder="\frac{a}{b}..."></textarea>
+                </div>
+                <div class="p-3 bg-white border-t flex justify-end">
+                    <button onclick="insertMath()" class="px-4 py-2 bg-brand-600 text-white font-bold rounded hover:bg-brand-700">Insert</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. IMAGE MODAL -->
+        <div id="modal-image" class="fixed inset-0 z-[90] hidden bg-black/90 flex items-center justify-center p-4">
+            <div class="bg-gray-900 w-full max-w-5xl h-[85vh] flex flex-col rounded-lg overflow-hidden border border-gray-700">
+                <div class="p-3 border-b border-gray-700 flex justify-between items-center">
+                    <span class="text-white font-bold">Crop Image</span>
+                    <button onclick="closeModal('modal-image')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-times"></i></button>
+                </div>
+                <div class="flex-1 bg-black relative">
+                    <img id="cropper-img" class="max-w-full max-h-full block mx-auto">
+                </div>
+                <div class="p-4 bg-gray-800 flex flex-wrap gap-4 justify-center">
+                    <button onclick="cropperRotate(-90)" class="text-white bg-gray-700 p-2 rounded"><i class="fa-solid fa-rotate-left"></i></button>
+                    <button onclick="cropperRotate(90)" class="text-white bg-gray-700 p-2 rounded"><i class="fa-solid fa-rotate-right"></i></button>
+                    <button onclick="finishCrop()" class="px-6 py-2 bg-blue-600 text-white font-bold rounded">Use Image</button>
+                </div>
+            </div>
+            <input type="file" id="img-file-input" class="hidden" accept="image/*" onchange="loadCropper(this)">
+        </div>
+
+    </div>
+
+    <!-- ================= LOGIC KERNEL ================= -->
+    <script>
+        // --- GLOBAL STATE ---
+        // Flattened structure for robustness (Prevents "undefined" errors in HTML onclicks)
+        let sections = [];
+        let activeSecId = null;
+        let activeQIdx = null;
+        let quill = null;
+        let cropper = null;
+        
+        // --- MATH SYMBOLS ---
+        const symbols = {
+            basic: ['\\frac{a}{b}', 'x^2', 'x_i', '\\sqrt{x}', '\\pm', '\\neq', '\\le', '\\ge', '\\approx', '\\infty'],
+            logic: ['\\overline{A}', 'A \\oplus B', 'A \\cdot B', 'A + B', '\\rightarrow', '\\leftrightarrow', '\\implies', '\\forall'],
+            calc: ['\\int', '\\sum', '\\lim_{x \\to 0}', '\\frac{d}{dx}', '\\partial']
+        };
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            initQuill();
+            initMathUI();
+            bindConfigEvents();
+            renderHeader();
+            loadFromStorage();
+        };
+
+        // --- RENDER ENGINE ---
+        function renderHeader() {
+            const val = (id) => document.getElementById(id).value;
+            const html = `
+                <div class="text-center mb-6">
+                    <h2 class="font-bold text-2xl uppercase font-serif tracking-wide leading-tight text-gray-900">${val('conf-uni')}</h2>
+                    <h3 class="font-bold text-lg font-serif text-gray-700 mt-1">${val('conf-inst')}</h3>
+                    <div class="font-bold text-md mt-2 text-gray-600">${val('conf-year')}</div>
+                </div>
+                <div class="flex justify-between items-end font-serif border-b-2 border-black pb-2 mb-2">
+                    <div class="font-bold text-left w-2/3 leading-snug text-lg">${val('conf-level')}</div>
+                    <div class="font-bold text-right text-base">Full Marks: ${val('conf-fm')}</div>
+                </div>
+                <div class="flex justify-between items-start font-serif pt-1">
+                    <div class="text-left"><div class="font-bold text-xl">${val('conf-sub')} <span class="text-lg font-normal text-gray-800">(${val('conf-code')})</span></div><div class="italic text-base mt-1 text-gray-600">${val('conf-subt')}</div></div>
+                    <div class="text-right font-bold text-base space-y-1"><div>Pass Marks: ${val('conf-pm')}</div><div>Time: ${val('conf-time')}</div></div>
+                </div>
+            `;
+            document.getElementById('header-render').innerHTML = html;
+        }
+
+        function renderSections() {
+            const container = document.getElementById('sections-container');
+            const empty = document.getElementById('empty-state');
+
+            if(sections.length === 0) {
+                container.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+
+            container.innerHTML = sections.map(sec => {
+                const listStyle = sec.type === 'a' ? 'lower-alpha' : sec.type === 'i' ? 'lower-roman' : sec.type === 'none' ? 'none' : 'decimal';
+                const listClass = sec.type === 'none' ? 'list-none pl-0' : 'pl-5';
+
+                return `
+                <div class="section-block mb-8 group" id="${sec.id}">
+                    <div class="flex justify-between items-start mb-3 border-b border-gray-200 hover:border-blue-300 transition-colors pb-2">
+                        <div class="w-full">
+                            <div class="font-bold text-lg uppercase outline-none hover:bg-yellow-50 rounded px-1 transition academic-font" contenteditable="true" onblur="updateSec('${sec.id}', 'title', this.innerText)">${sec.title}</div>
+                            <div class="text-sm italic text-gray-600 outline-none hover:bg-yellow-50 rounded px-1 transition mt-0.5" contenteditable="true" onblur="updateSec('${sec.id}', 'instruction', this.innerText)">${sec.instruction}</div>
+                        </div>
+                        <button onclick="deleteSection('${sec.id}')" class="text-red-300 hover:text-red-600 opacity-0 group-hover:opacity-100 transition px-2 no-print"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+
+                    <ol class="${listClass} space-y-4" style="list-style-type: ${listStyle};" start="${sec.start}" id="list-${sec.id}">
+                        ${sec.questions.map((q, i) => `
+                            <li class="question-row" data-idx="${i}">
+                                <div class="flex-1 cursor-pointer pt-0.5" onclick="editQuestion('${sec.id}', ${i})">
+                                    <div class="question-content academic-font text-justify leading-relaxed">
+                                        ${q.html || '<span class="text-gray-300 italic">Click to add question content...</span>'}
+                                    </div>
+                                </div>
+                                <div class="font-bold text-sm w-12 text-right shrink-0 pt-1 text-gray-900 font-serif whitespace-nowrap">
+                                    [${q.marks || ''}]
+                                </div>
+                                
+                                <div class="hover-controls no-print">
+                                    <div class="ctrl-btn drag"><i class="fa-solid fa-grip-vertical"></i></div>
+                                    <div class="ctrl-btn" onclick="editQuestion('${sec.id}', ${i})"><i class="fa-solid fa-pen"></i></div>
+                                    <div class="ctrl-btn" onclick="duplicateQuestion('${sec.id}', ${i})"><i class="fa-solid fa-copy"></i></div>
+                                    <div class="ctrl-btn delete" onclick="deleteQuestion('${sec.id}', ${i})"><i class="fa-solid fa-times"></i></div>
+                                </div>
+                            </li>
+                        `).join('')}
+                    </ol>
+
+                    <div class="pl-6 mt-4 no-print">
+                        <button onclick="addQuestion('${sec.id}')" class="text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-full border border-blue-200 transition flex items-center gap-1">
+                            <i class="fa-solid fa-plus-circle"></i> Add Question
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+
+            // Initialize Sortables
+            sections.forEach(sec => {
+                const el = document.getElementById(`list-${sec.id}`);
+                if(el) {
+                    new Sortable(el, {
+                        handle: '.drag',
+                        animation: 150,
+                        onEnd: (evt) => {
+                            const item = sec.questions.splice(evt.oldIndex, 1)[0];
+                            sec.questions.splice(evt.newIndex, 0, item);
+                            saveToStorage();
+                            renderSections(); // Re-render to fix numbers
+                        }
+                    });
+                }
+            });
+
+            // Post-process Math & Code
+            renderMathInElement(container, { delimiters: [{left: "$", right: "$", display: false}] });
+            document.querySelectorAll('pre').forEach(block => hljs.highlightElement(block));
+        }
+
+        // --- CORE ACTIONS ---
+        window.openSectionModal = function() {
+            document.getElementById('sec-title').value = '';
+            document.getElementById('sec-inst').value = '';
+            
+            // Auto-increment logic
+            let nextStart = 1;
+            if (sections.length > 0) {
+                const last = sections[sections.length - 1];
+                if (last.type === '1') {
+                    nextStart = parseInt(last.start) + last.questions.length;
+                }
+            }
+            document.getElementById('sec-start').value = nextStart;
+            
+            document.getElementById('modal-section').classList.remove('hidden');
+        };
+
+        window.createSection = function() {
+            const title = document.getElementById('sec-title').value;
+            if(!title) return alert("Title required");
+            
+            sections.push({
+                id: 'sec-' + Date.now(),
+                title: title,
+                instruction: document.getElementById('sec-inst').value,
+                start: document.getElementById('sec-start').value,
+                type: document.getElementById('sec-type').value,
+                questions: []
+            });
+            
+            closeModal('modal-section');
+            addQuestion(sections[sections.length - 1].id);
+        };
+
+        window.updateSec = function(id, field, val) {
+            const s = sections.find(x => x.id === id);
+            if(s) { s[field] = val; saveToStorage(); }
+        };
+
+        window.deleteSection = function(id) {
+            if(confirm("Delete entire section?")) {
+                sections = sections.filter(x => x.id !== id);
+                saveToStorage();
+                renderSections();
+            }
+        };
+
+        window.addQuestion = function(secId) {
+            const s = sections.find(x => x.id === secId);
+            s.questions.push({ html: '', marks: '' });
+            saveToStorage();
+            renderSections();
+            editQuestion(secId, s.questions.length - 1);
+        };
+
+        window.editQuestion = function(secId, idx) {
+            activeSecId = secId;
+            activeQIdx = idx;
+            const q = sections.find(x => x.id === secId).questions[idx];
+            
+            // Clean load
+            quill.setContents([]);
+            const delta = quill.clipboard.convert(q.html);
+            quill.setContents(delta, 'silent');
+            
+            document.getElementById('editor-marks').value = q.marks || '';
+            document.getElementById('modal-editor').classList.remove('hidden');
+        };
+
+        window.saveQuestion = function() {
+            const q = sections.find(x => x.id === activeSecId).questions[activeQIdx];
+            q.html = quill.root.innerHTML;
+            q.marks = document.getElementById('editor-marks').value;
+            
+            closeModal('modal-editor');
+            saveToStorage();
+            renderSections();
+        };
+
+        window.duplicateQuestion = function(secId, idx) {
+            const s = sections.find(x => x.id === secId);
+            const clone = JSON.parse(JSON.stringify(s.questions[idx]));
+            s.questions.splice(idx + 1, 0, clone);
+            saveToStorage();
+            renderSections();
+        };
+
+        window.deleteQuestion = function(secId, idx) {
+            if(confirm("Delete?")) {
+                const s = sections.find(x => x.id === secId);
+                s.questions.splice(idx, 1);
+                saveToStorage();
+                renderSections();
+            }
+        };
+
+        // --- MATH STUDIO ---
+        function initMathUI() {
+            ['basic', 'logic', 'calc'].forEach(k => {
+                const c = document.getElementById('mt-' + k);
+                c.innerHTML = symbols[k].map(t => 
+                    `<div class="sym-btn" onclick="insertMathTemplate('${t.replace(/\\/g, '\\\\')}')">${katex.renderToString(t, {throwOnError:false})}</div>`
+                ).join('');
+            });
+            document.getElementById('math-input').addEventListener('input', (e) => {
+                try { katex.render(e.target.value, document.getElementById('math-preview'), {displayMode: true, throwOnError:false}); } catch {}
+            });
+        }
+
+        window.switchMathTab = function(t) {
+            document.querySelectorAll('.symbol-grid').forEach(e => e.classList.add('hidden'));
+            document.getElementById('mt-' + t).classList.remove('hidden');
+        };
+
+        window.insertMathTemplate = function(tex) {
+            const input = document.getElementById('math-input');
+            input.value += tex;
+            input.dispatchEvent(new Event('input'));
+            input.focus();
+        };
+
+        window.insertMath = function() {
+            const tex = document.getElementById('math-input').value;
+            const range = quill.getSelection(true);
+            if(range) {
+                quill.deleteText(range.index, range.length);
+                quill.insertEmbed(range.index, 'formula', tex);
+                quill.setSelection(range.index + 1);
+            }
+            closeModal('modal-math');
+        };
+
+        window.openMathModal = function() {
+            document.getElementById('math-input').value = '';
+            document.getElementById('math-preview').innerHTML = '';
+            document.getElementById('modal-math').classList.remove('hidden');
+        };
+
+        // --- EDITOR SETUP ---
+        function initQuill() {
+            const Font = Quill.import('formats/font');
+            Font.whitelist = ['serif', 'monospace'];
+            Quill.register(Font, true);
+
+            quill = new Quill('#editor-container', {
+                theme: 'snow',
+                modules: {
+                    toolbar: {
+                        container: '#quill-toolbar',
+                        handlers: {
+                            'image': () => document.getElementById('img-file-input').click(),
+                            'formula': () => openMathModal()
+                        }
+                    },
+                    clipboard: { matchVisual: false }
+                },
+                placeholder: 'Type question here...'
+            });
+
+            // Dbl click formula to edit
+            quill.root.addEventListener('dblclick', (e) => {
+                const f = e.target.closest('[data-value]');
+                if(f && f.classList.contains('ql-formula')) {
+                    openMathModal();
+                    document.getElementById('math-input').value = f.getAttribute('data-value');
+                    document.getElementById('math-input').dispatchEvent(new Event('input'));
+                }
+            });
+        }
+
+        // --- IMAGE CROPPER ---
+        window.loadCropper = function(input) {
+            if(input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('cropper-img').src = e.target.result;
+                    document.getElementById('modal-image').classList.remove('hidden');
+                    if(cropper) cropper.destroy();
+                    cropper = new Cropper(document.getElementById('cropper-img'), {
+                        viewMode: 1, dragMode: 'move', autoCropArea: 0.8, background: false
+                    });
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+            input.value = '';
+        };
+
+        window.finishCrop = function() {
+            if(!cropper) return;
+            const url = cropper.getCroppedCanvas({maxWidth: 1200}).toDataURL('image/png', 0.9);
+            const range = quill.getSelection(true);
+            if(range) {
+                quill.insertEmbed(range.index, 'image', url);
+                quill.setSelection(range.index + 1);
+            }
+            closeModal('modal-image');
+        };
+        window.cropperRotate = (d) => cropper && cropper.rotate(d);
+
+        // --- STORAGE & UTILS ---
+        function saveToStorage() {
+            const data = { meta: {}, sections: sections };
+            document.querySelectorAll('#sidebar input, #sidebar textarea').forEach(e => data.meta[e.id] = e.value);
+            localStorage.setItem('examdb_stable', JSON.stringify(data));
+        }
+
+        function loadFromStorage() {
+            const raw = localStorage.getItem('examdb_stable');
+            if(raw) {
+                try {
+                    const d = JSON.parse(raw);
+                    if(d.meta) Object.keys(d.meta).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = d.meta[k]; });
+                    if(d.sections) sections = d.sections;
+                    renderHeader();
+                    renderSections();
+                } catch(e) { console.log('Resetting storage'); }
+            }
+        }
+
+        window.exportJSON = function() {
+            saveToStorage();
+            const data = JSON.parse(localStorage.getItem('examdb_stable'));
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `Exam_${data.meta['conf-code'] || 'Paper'}.json`;
+            a.click();
+        };
+
+        window.importJSON = function(input) {
+            const f = input.files[0];
+            if(!f) return;
+            const r = new FileReader();
+            r.onload = (e) => {
+                try {
+                    const d = JSON.parse(e.target.result);
+                    if(d.meta) Object.keys(d.meta).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = d.meta[k]; });
+                    if(d.sections || d.data) sections = d.sections || d.data; // Compat
+                    saveToStorage();
+                    renderHeader();
+                    renderSections();
+                    alert('Import Successful');
+                } catch(err) { alert('Invalid File'); }
+            };
+            r.readAsText(f);
+            input.value = '';
+        };
+
+        window.resetForNextYear = function() {
+            if(!confirm("Start Next Year?\n\nKeeps sections, clears content.")) return;
+            const yr = document.getElementById('conf-year');
+            yr.value = parseInt(yr.value) + 1;
+            sections.forEach(s => s.questions.forEach(q => { q.html = ''; q.marks = ''; }));
+            saveToStorage();
+            renderHeader();
+            renderSections();
+        };
+
+        // --- UI TOGGLES ---
+        window.toggleSidebar = () => document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        window.closeSidebarIfOpen = () => document.getElementById('sidebar').classList.add('-translate-x-full');
+        window.toggleMobileMenu = () => document.getElementById('mobile-menu').classList.toggle('hidden');
+        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
+        window.bindConfigEvents = () => {
+            document.querySelectorAll('#sidebar input, #sidebar textarea').forEach(e => e.addEventListener('input', () => { renderHeader(); saveToStorage(); }));
+        };
+        window.fillSec = (t) => { document.getElementById('sec-title').value = t; document.getElementById('sec-inst').value = `Attempt all questions.`; };
+    </script>
+</body>
+</html>
