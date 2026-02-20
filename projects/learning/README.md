@@ -1,6 +1,6 @@
 # HTML Projects Collection 🚀
 
-This repository is a **super folder** containing many beginner–friendly web development projects.  
+This is a **super folder** containing many beginner–friendly web development projects.  
 Each project is focused, and designed to strengthen core skills in **HTML, CSS, and JavaScript** progressively.
 
 ---
