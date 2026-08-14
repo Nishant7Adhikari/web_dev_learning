@@ -5,18 +5,7 @@ const urlsToCache = [
   '/data/projects.json',
   '/data/teams.json',
   '/media/icon-512x512.png',
-  '/media/icon-192x192.png',
-  '/media/icons/default.png',
-  '/media/icons/keepmoviez.png',
-  '/media/male.svg',
-  '/media/female.svg',
-  '/media/social/discord.svg',
-  '/media/social/github.svg',
-  '/media/social/x.svg',
-  '/media/social/instagram.svg',
-  '/media/social/facebook.svg',
-  '/media/social/linkedin.svg',
-  '/media/social/website.svg'
+  '/media/icon-192x192.png'
 ];
 
 // Install a service worker
