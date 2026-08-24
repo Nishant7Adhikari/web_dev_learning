@@ -1,0 +1,87 @@
+:root{
+    --nav-height: 40px;
+}
+
+.aside{
+    position: relative;
+}
+
+.topBar{
+    max-width: 100vw;
+    background-color: #171717;
+    display: flex;
+    align-items: center;
+    user-select: none;
+}
+
+.topBar a{
+    text-decoration: none   ;
+}
+
+.image{
+    padding:  9px 11px 3px;
+    height: 30px;
+}
+
+.menu{
+    margin-left: auto;
+    margin-right: 10px;
+    scale: 1.4;
+}
+
+.menu:hover{
+    scale: 1.5;
+}
+
+.menu:active{
+    scale: 1.3;
+}
+
+.textShine{
+    background: linear-gradient(
+        45deg, 
+        rgb(49, 49, 49) 0%,
+        rgba(49, 49, 49) 30%,
+        white 50%,
+        rgb(49, 49, 49) 70%,
+        rgb(49, 49, 49) 100%
+    );
+    background-size: 50%;
+    background-repeat: no-repeat;
+    background-position: -100%;
+    background-clip: text;  
+    color: transparent; 
+    -webkit-text-stroke: 1px white; 
+    transition: 0.5s;
+    text-decoration: none;
+}
+
+.textShine:hover{
+    background-position: 200%;
+}
+
+.sideBar{
+    background: #171717;
+    position: absolute;
+    right: 0;
+    height: calc(99vh - var(--nav-height));
+    min-width: 20vw;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    transition: 0.4s;
+}
+.sideBar a{
+    user-select: none;
+    background-color: #242424;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 6px;
+    text-decoration: none;
+    color: white;
+}
+
+.sideBarClose{
+    scale: 0;
+    transform: translateZ(100%);
+}

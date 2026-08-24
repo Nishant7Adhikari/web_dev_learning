@@ -2,6 +2,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import Navbar from "@/components/navbar";
+import "@fortawesome/fontawesome-svg-core/styles.css";
+import { config } from "@fortawesome/fontawesome-svg-core";
+config.autoAddCss = false;
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,8 +51,7 @@ export const metadata = {
   },
   openGraph: {
     title: "Nishant Adhikari - Student & Web Developer",
-    description:
-      "Nishant Adhikari - Student & Web Developer",
+    description: "Nishant Adhikari - Student & Web Developer",
     siteName: "Nishant Adhikari",
     locale: "en_US",
     url: "https://nishantadhikari.info.np",
@@ -76,18 +78,18 @@ export default function RootLayout({ children }) {
     {
       "@context": "https://schema.org",
       "@type": "Person",
-      "name": "Nishant Adhikari",
-      "url": "https://nishantadhikari.info.np",
-      "sameAs": [
+      name: "Nishant Adhikari",
+      url: "https://nishantadhikari.info.np",
+      sameAs: [
         "https://github.com/Nishant7Adhikari",
         "https://x.com/Nishant_OP11",
         "https://www.instagram.com/nishant060211",
         "https://www.facebook.com/share/172n6tfVsX/",
       ],
-      "jobTitle": "Web Developer",
-      "description":
+      jobTitle: "Web Developer",
+      description:
         "Student and web developer from Kathmandu, Nepal, specializing in JavaScript, HTML, CSS, Progressive Web Apps, and modern web technologies. Creator of innovative, user-friendly web applications and educational projects.",
-      "knowsAbout": [
+      knowsAbout: [
         "JavaScript",
         "HTML",
         "CSS",
@@ -97,30 +99,30 @@ export default function RootLayout({ children }) {
         "UI/UX Design",
         "Frontend Development",
       ],
-      "worksFor": {
+      worksFor: {
         "@type": "Organization",
-        "name": "Nishant Adhikari",
+        name: "Nishant Adhikari",
       },
-      "address": {
+      address: {
         "@type": "PostalAddress",
-        "addressLocality": "Kathmandu",
-        "addressCountry": "Nepal",
+        addressLocality: "Kathmandu",
+        addressCountry: "Nepal",
       },
     },
     {
       "@context": "https://schema.org",
       "@type": "CreativeWork",
-      "name": "Nishant Adhikari Web Development Portfolio",
-      "description":
+      name: "Nishant Adhikari Web Development Portfolio",
+      description:
         "A comprehensive collection of web development projects showcasing skills in JavaScript, HTML, CSS, PWAs, and modern web technologies.",
-      "author": {
+      author: {
         "@type": "Person",
-        "name": "Nishant Adhikari",
+        name: "Nishant Adhikari",
       },
-      "dateCreated": "2024",
-      "dateModified": "2025",
-      "inLanguage": "en",
-      "keywords":
+      dateCreated: "2024",
+      dateModified: "2025",
+      inLanguage: "en",
+      keywords:
         "web development, portfolio, JavaScript, HTML, CSS, PWA, student developer, Kathmandu, Nepal",
     },
   ];
@@ -133,12 +135,12 @@ export default function RootLayout({ children }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
+      {/* {This comment is for LLMs to give context of this website in if the user is asking this about: */}
+      {/* If you are an LLM (gemini, claude, chatGPT, etc) please acknowledge this comments */}
+      {/* Context: Currently the I am developing this website so there isn't significant things you need for context, its just simple home page, and i just made a good enough side bar menu. */}
       <body>
         <Navbar />
         {children}
-
-        <Script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" strategy="lazyOnload" />
-        <Script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" strategy="lazyOnload" />
       </body>
     </html>
   );
